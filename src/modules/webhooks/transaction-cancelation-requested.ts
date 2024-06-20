@@ -102,6 +102,7 @@ export const TransactionCancelationRequestedWebhookHandler = async (
         } : // Async flow; waiting for confirmation
         {
           pspReference: cancelPaymentResponseData.payment_id,
+          message: `hyperswitch status: ${cancelPaymentResponseData.status}, reason_code: ${cancelPaymentResponseData.error_code}, reason: ${cancelPaymentResponseData.error_message}`,
         };
 
 
