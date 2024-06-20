@@ -89,7 +89,6 @@ export const TransactionRefundRequestedWebhookHandler = async (
     payment_id,
     amount,
     metadata: {
-      channel_id: sourceObject.channel.id,
       transaction_id: event.transaction.id,
       saleor_api_url: saleorApiUrl,
     },

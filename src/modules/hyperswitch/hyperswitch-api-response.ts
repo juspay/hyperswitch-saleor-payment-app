@@ -2,7 +2,6 @@ import { z, ZodError } from 'zod';
 import { JsonSchemaError } from '@/errors';
 
 export const SaleorMetadataSchema = z.object({
-  channel_id: z.string(),
   transaction_id: z.string(),
   saleor_api_url: z.string(),
 });

@@ -70,10 +70,9 @@ export default async function hyperswitchAuthorizationWebhookHandler(
 ): Promise<void> {
   let webhookBody = intoWebhookResponse(req.body)
 
-  const  channelId = webhookBody.content.object.metadata.channel_id;
   const transactionId = webhookBody.content.object.metadata.transaction_id;
   const saleorApiUrl = webhookBody.content.object.metadata.saleor_api_url;
-  const isRefund  = webhookBody.content.type == "refund_details";
+  const isRefund  = webhookBody.content.type === "refund_details";
 
   const authData = await saleorApp.apl.get(saleorApiUrl);
   invariant(authData, "Failed fetchinf auth data");

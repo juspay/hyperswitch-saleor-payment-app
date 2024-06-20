@@ -147,7 +147,6 @@ export const TransactionInitializeSessionWebhookHandler = async (
       email: requestData?.shippingEmail,
     },
     metadata: {
-      channel_id: event.sourceObject.channel.id,
       transaction_id: event.transaction.id,
       saleor_api_url: saleorApiUrl,
     },
