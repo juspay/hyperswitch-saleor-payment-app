@@ -1,206 +1,134 @@
-import { actions, useAppBridge } from "@saleor/app-sdk/app-bridge";
-import { Box, Button, Input, Text } from "@saleor/macaw-ui";
-import { NextPage } from "next";
-import Link from "next/link";
-import { MouseEventHandler, useEffect, useState } from "react";
+import { type NextPage } from "next";
+import { useAppBridge } from "@saleor/app-sdk/app-bridge";
+import { Box, Button, Text } from "@saleor/macaw-ui";
+import { useEffect, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useRouter } from "next/router";
+import { FormInput } from "@/modules/ui/atoms/macaw-ui/FormInput";
 
-const AddToSaleorForm = () => (
-  <Box
-    as={"form"}
-    display={"flex"}
-    alignItems={"center"}
-    gap={4}
-    onSubmit={(event) => {
-      event.preventDefault();
+const schema = z
+  .object({
+    saleorUrl: z.string().url(),
+  })
+  .required();
+type FormValues = z.infer<typeof schema>;
 
-      const saleorUrl = new FormData(event.currentTarget as HTMLFormElement).get("saleor-url");
-      const manifestUrl = new URL("/api/manifest", window.location.origin);
-      const redirectUrl = new URL(
-        `/dashboard/apps/install?manifestUrl=${manifestUrl}`,
-        saleorUrl as string
-      ).href;
+const AddToSaleorForm = () => {
+  const formMethods = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      saleorUrl: "",
+    },
+  });
 
-      window.open(redirectUrl, "_blank");
-    }}
-  >
-    <Input type="url" required label="Saleor URL" name="saleor-url" />
-    <Button type="submit">Add to Saleor</Button>
-  </Box>
-);
+  const {
+    handleSubmit,
+    control,
+    formState: { isSubmitting, errors },
+  } = formMethods;
 
-/**
- * This is page publicly accessible from your app.
- * You should probably remove it.
- */
+  return (
+    <FormProvider {...formMethods}>
+      <form
+        method="post"
+        noValidate
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        onSubmit={handleSubmit((values) => {
+          const manifestUrl = new URL("/api/manifest", window.location.origin).toString();
+          const redirectUrl = new URL(
+            `/dashboard/apps/install?manifestUrl=${manifestUrl}`,
+            values.saleorUrl,
+          ).toString();
+
+          window.open(redirectUrl, "_blank");
+        })}
+      >
+        <Box display="flex" flexDirection="column" gap={2} marginTop={10}>
+          <FormInput
+            inputMode="url"
+            label="Saleor URL"
+            required
+            name="saleorUrl"
+            size="medium"
+            placeholder="https://…"
+            error={!!errors.saleorUrl}
+            helperText={errors.saleorUrl?.message || " "}
+            control={control}
+          />
+          <Button type="submit" size="large" disabled={isSubmitting}>
+            Add to Saleor
+          </Button>
+        </Box>
+      </form>
+    </FormProvider>
+  );
+};
+
+const CopyManifest = () => {
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const unsetCopied = () => {
+      setCopied(false);
+    };
+
+    if (copied) {
+      setTimeout(unsetCopied, 1750);
+    }
+  }, [copied]);
+
+  const handleClick = async () => {
+    await navigator.clipboard.writeText(window.location.origin + "/api/manifest");
+    setCopied(true);
+  };
+
+  return (
+    <Button variant="secondary" onClick={() => void handleClick()}>
+      {copied ? "Copied" : "Copy app manifest URL"}
+    </Button>
+  );
+};
+
 const IndexPage: NextPage = () => {
-  const { appBridgeState, appBridge } = useAppBridge();
+  const { appBridgeState } = useAppBridge();
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const handleLinkClick: MouseEventHandler<HTMLAnchorElement> = (e) => {
-    /**
-     * In iframe, link can't be opened in new tab, so Dashboard must be a proxy
-     */
-    if (appBridgeState?.ready) {
-      e.preventDefault();
+  if (!mounted) {
+    return null;
+  }
 
-      appBridge?.dispatch(
-        actions.Redirect({
-          newContext: true,
-          to: e.currentTarget.href,
-        })
-      );
-    }
-
-    /**
-     * Otherwise, assume app is accessed outside of Dashboard, so href attribute on <a> will work
-     */
-  };
-
-  const isLocalHost = global.location.href.includes("localhost");
+  if (appBridgeState?.ready && mounted) {
+    void router.replace("/configurations/list");
+    return null;
+  }
 
   return (
-    <Box padding={8}>
-      <Text size={11}>Welcome to Saleor App Template (Next.js) 🚀</Text>
-      <Text as={"p"} marginY={4}>
-        Saleor App Template is a minimalistic boilerplate that provides a working example of a
-        Saleor app.
+    <Box display="flex" flexDirection="column" gap={2} __maxWidth="45rem">
+      <Text as="h1">
+        Welcome to Payment App Hyperswitch 
       </Text>
-      {appBridgeState?.ready && mounted && (
-        <Link href="/actions">
-          <Button variant="secondary">See what your app can do →</Button>
-        </Link>
-      )}
-
-      <Text as={"p"} marginTop={8}>
-        Explore the App Template by visiting:
+      <Text as="p">
+      A community led, open payments orchestrator to enable access 
+      to the best payments infrastructure for every digital business
       </Text>
-      <ul>
-        <li>
-          <code>/src/pages/api/manifest</code> - the{" "}
-          <a
-            href="https://docs.saleor.io/docs/3.x/developer/extending/apps/manifest"
-            target="_blank"
-            rel="noreferrer"
-          >
-            App Manifest
-          </a>
-          .
-        </li>
-        <li>
-          <code>/src/pages/api/webhooks/order-created</code> - an example <code>ORDER_CREATED</code>{" "}
-          webhook handler.
-        </li>
-        <li>
-          <code>/graphql</code> - the pre-defined GraphQL queries.
-        </li>
-        <li>
-          <code>/generated/graphql.ts</code> - the code generated for those queries by{" "}
-          <a target="_blank" rel="noreferrer" href="https://the-guild.dev/graphql/codegen">
-            GraphQL Code Generator
-          </a>
-          .
-        </li>
-      </ul>
-      <Text size={8} marginTop={8} as={"h2"}>
-        Resources
-      </Text>
-      <ul>
-        <li>
-          <a
-            onClick={handleLinkClick}
-            target="_blank"
-            href="https://docs.saleor.io/docs/3.x/developer/extending/apps/key-concepts"
-            rel="noreferrer"
-          >
-            <Text color={"info1"}>Apps documentation </Text>
-          </a>
-        </li>
-        <li>
-          <a
-            onClick={handleLinkClick}
-            target="_blank"
-            rel="noreferrer"
-            href="https://docs.saleor.io/docs/3.x/developer/extending/apps/developing-with-tunnels"
-          >
-            <Text color={"info1"}>Tunneling the app</Text>
-          </a>
-        </li>
-        <li>
-          <a
-            onClick={handleLinkClick}
-            target="_blank"
-            rel="noreferrer"
-            href="https://github.com/saleor/app-examples"
-          >
-            <Text color={"info1"}>App Examples repository</Text>
-          </a>
-        </li>
 
-        <li>
-          <a
-            onClick={handleLinkClick}
-            target="_blank"
-            rel="noreferrer"
-            href="https://github.com/saleor/saleor-app-sdk"
-          >
-            <Text color={"info1"}>Saleor App SDK</Text>
-          </a>
-        </li>
-
-        <li>
-          <a
-            onClick={handleLinkClick}
-            target="_blank"
-            href="https://github.com/saleor/saleor-cli"
-            rel="noreferrer"
-          >
-            <Text color={"info1"}>Saleor CLI</Text>
-          </a>
-        </li>
-        <li>
-          <a
-            onClick={handleLinkClick}
-            target="_blank"
-            href="https://github.com/saleor/apps"
-            rel="noreferrer"
-          >
-            <Text color={"info1"}>Saleor App Store - official apps by Saleor Team</Text>
-          </a>
-        </li>
-        <li>
-          <a
-            onClick={handleLinkClick}
-            target="_blank"
-            href="https://macaw-ui-next.vercel.app/?path=/docs/getting-started-installation--docs"
-            rel="noreferrer"
-          >
-            <Text color={"info1"}>Macaw UI - official Saleor UI library</Text>
-          </a>
-        </li>
-        <li>
-          <a
-            onClick={handleLinkClick}
-            target="_blank"
-            href="https://nextjs.org/docs"
-            rel="noreferrer"
-          >
-            <Text color={"info1"}>Next.js documentation</Text>
-          </a>
-        </li>
-      </ul>
-
-      {mounted && !isLocalHost && !appBridgeState?.ready && (
-        <>
-          <Text marginBottom={4} as={"p"}>
-            Install this app in your Dashboard and get extra powers!
+      {!appBridgeState?.ready && (
+        <div>
+          <Text as="p">
+            Install this app in your Saleor Dashboard to proceed!
           </Text>
-          <AddToSaleorForm />
-        </>
+          {mounted && <AddToSaleorForm />}
+        </div>
       )}
+
+      <CopyManifest />
     </Box>
   );
 };

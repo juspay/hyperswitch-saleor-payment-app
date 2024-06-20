@@ -1,7 +1,14 @@
 query FetchAppDetails {
+  shop {
+    schemaVersion
+  }
   app {
     id
     privateMetadata {
+      key
+      value
+    }
+    metadata {
       key
       value
     }

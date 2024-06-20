@@ -1,0 +1,129 @@
+import { JsonSchemaError } from '@/errors';
+import { z, ZodError } from 'zod';
+
+const AuthenticationTypeEnum = z.enum(['three_ds', 'no_three_ds']);
+
+const SetupFutureUsageEnum = z.enum(['off_session', 'on_session']);
+
+const AllowedPaymentMethodTypes = z.enum([
+    "ach",
+    "affirm",
+    "afterpay_clearpay",
+    "alfamart",
+    "ali_pay",
+    "ali_pay_hk",
+    "alma",
+    "apple_pay",
+    "atome",
+    "bacs",
+    "bancontact_card",
+    "becs",
+    "benefit",
+    "bizum",
+    "blik",
+    "boleto",
+    "bca_bank_transfer",
+    "bni_va",
+    "bri_va",
+    "card_redirect",
+    "cimb_va",
+    "classic",
+    "credit",
+    "crypto_currency",
+    "cashapp",
+    "dana",
+    "danamon_va",
+    "debit",
+    "efecty",
+    "eps",
+    "evoucher",
+    "giropay",
+    "givex",
+    "google_pay",
+    "go_pay",
+    "gcash",
+    "ideal",
+    "interac",
+    "indomaret",
+    "klarna",
+    "kakao_pay",
+    "mandiri_va",
+    "knet",
+    "mb_way",
+    "mobile_pay",
+    "momo",
+    "momo_atm",
+    "multibanco",
+    "online_banking_thailand",
+    "online_banking_czech_republic",
+    "online_banking_finland",
+    "online_banking_fpx",
+    "online_banking_poland",
+    "online_banking_slovakia",
+    "oxxo",
+    "pago_efectivo",
+    "permata_bank_transfer",
+    "open_banking_uk",
+    "pay_bright",
+    "paypal",
+    "pix",
+    "pay_safe_card",
+    "przelewy24",
+    "pse",
+    "red_compra",
+    "red_pagos",
+    "samsung_pay",
+    "sepa",
+    "sofort",
+    "swish",
+    "touch_n_go",
+    "trustly",
+    "twint",
+    "upi_collect",
+    "upi_intent",
+    "vipps",
+    "venmo",
+    "walley",
+    "we_chat_pay",
+    "seven_eleven",
+    "lawson",
+    "mini_stop",
+    "family_mart",
+    "seicomart",
+    "pay_easy",
+    "local_bank_transfer"
+]);
+
+const RetryActionEnum = z.enum(['manual_retry', 'requeue']);
+
+// Define the schema for PaymentCreateRequest
+const PaymentCreateRequestSchema = z.object({
+  customerId: z.string().nullable().optional(),
+  connector: z.string().nullable().optional(),
+  authenticationType: AuthenticationTypeEnum.nullable().optional(),
+  billingEmail: z.string().email().nullable().optional(),
+  shippingEmail: z.string().email().nullable().optional(),
+  // offSession: z.boolean().nullable().optional(),
+  description:  z.string().nullable().optional(),
+  returnUrl:  z.string().nullable().optional(),
+  // setupFutureUsage:  SetupFutureUsageEnum.nullable().optional(),
+  allowedPaymentMethodTypes: z.array(AllowedPaymentMethodTypes).nullable().optional(),
+  retryAction: RetryActionEnum.nullable().optional(),
+});
+
+// Type definition for PaymentCreateRequest
+export type PaymentCreateRequest = z.infer<typeof PaymentCreateRequestSchema>;
+
+// Function to validate the event data
+export function validatePaymentCreateRequest(eventData: unknown): PaymentCreateRequest {
+  try {
+    // Try to parse the event data against the schema
+    return PaymentCreateRequestSchema.parse(eventData);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new JsonSchemaError(`Failed to parse payment create data: ${error.message}`);
+    } else {
+      throw error;
+    }
+  }
+}

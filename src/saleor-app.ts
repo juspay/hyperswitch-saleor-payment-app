@@ -1,5 +1,7 @@
 import { SaleorApp } from "@saleor/app-sdk/saleor-app";
-import { APL, FileAPL, UpstashAPL } from "@saleor/app-sdk/APL";
+import { FileAPL, UpstashAPL, SaleorCloudAPL } from "@saleor/app-sdk/APL";
+import { invariant } from "./lib/invariant";
+import { env } from "./lib/env.mjs";
 
 /**
  * By default auth data are stored in the `.auth-data.json` (FileAPL).
@@ -8,15 +10,31 @@ import { APL, FileAPL, UpstashAPL } from "@saleor/app-sdk/APL";
  * To read more about storing auth data, read the
  * [APL documentation](https://github.com/saleor/saleor-app-sdk/blob/main/docs/apl.md)
  */
-export let apl: APL;
-switch (process.env.APL) {
-  case "upstash":
-    // Require `UPSTASH_URL` and `UPSTASH_TOKEN` environment variables
-    apl = new UpstashAPL();
-    break;
-  default:
-    apl = new FileAPL();
-}
+const getApl = async () => {
+  /* c8 ignore start */
+  switch (env.APL) {
+    case "upstash":
+      invariant(env.UPSTASH_URL, "Missing UPSTASH_URL env variable!");
+      invariant(env.UPSTASH_TOKEN, "Missing UPSTASH_TOKEN env variable!");
+      return new UpstashAPL({
+        restURL: env.UPSTASH_URL,
+        restToken: env.UPSTASH_TOKEN,
+      });
+    case "saleor-cloud": {
+      invariant(env.REST_APL_ENDPOINT, "Missing REST_APL_ENDPOINT env variable!");
+      invariant(env.REST_APL_TOKEN, "Missing REST_APL_TOKEN env variable!");
+      return new SaleorCloudAPL({
+        resourceUrl: env.REST_APL_ENDPOINT,
+        token: env.REST_APL_TOKEN,
+      });
+    }
+    default:
+      return new FileAPL();
+  }
+  /* c8 ignore stop */
+};
+
+const apl = await getApl();
 
 export const saleorApp = new SaleorApp({
   apl,

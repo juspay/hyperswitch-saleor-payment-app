@@ -1,0 +1,54 @@
+fragment TransactionProcessSessionEvent on TransactionProcessSession {
+  __typename
+  recipient {
+    ...PaymentGatewayRecipient
+  }
+  data
+  merchantReference
+  action {
+    amount
+    currency
+    actionType
+  }
+  transaction {
+    id
+    pspReference
+  }
+  sourceObject {
+    __typename
+    ... on Checkout {
+      id
+      languageCode
+      userEmail: email
+      billingAddress {
+        ...TransactionInitializeSessionAddress
+      }
+      shippingAddress {
+        ...TransactionInitializeSessionAddress
+      }
+      total: totalPrice {
+        gross {
+          ...Money
+        }
+      }
+      ...OrderOrCheckoutLines
+    }
+    ... on Order {
+      id
+      languageCodeEnum
+      userEmail
+      billingAddress {
+        ...TransactionInitializeSessionAddress
+      }
+      shippingAddress {
+        ...TransactionInitializeSessionAddress
+      }
+      total {
+        gross {
+          ...Money
+        }
+      }
+      ...OrderOrCheckoutLines
+    }
+  }
+}
