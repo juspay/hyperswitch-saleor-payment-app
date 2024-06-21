@@ -64,9 +64,6 @@ export const HyperswitchConfigurationForm = ({
           />
         </AppLayoutRow>
       )}
-      <AppLayoutRow title=" ">      
-
-      </AppLayoutRow>
     </FormProvider>
   );
 };
