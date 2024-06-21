@@ -17,7 +17,7 @@
     "deploy": "tsx ./src/deploy.ts",
     "start": "next start",
     "fetch-schema": "curl https://raw.githubusercontent.com/saleor/saleor/${npm_package_saleor_schemaVersion}/saleor/graphql/schema.graphql > graphql/schema.graphql",
-    "generate": "pnpm generate:graphql && pnpm generate:schema && generate:hyperswitch-payments",
+    "generate": "pnpm generate:graphql && pnpm generate:schema && pnpm generate:hyperswitch-payments",
     "generate:graphql": "graphql-codegen",
     "generate:schema": "pnpm saleor-schema-compiler compile ./src/schemas --definitions ./src/schemas/definitions.json",
     "generate:hyperswitch-payments": "openapi-typescript hyperswitch-payments.json --output generated/hyperswitch-payments.ts",
