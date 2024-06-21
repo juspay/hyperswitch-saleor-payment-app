@@ -34,7 +34,6 @@ const AddToSaleorForm = () => {
       <form
         method="post"
         noValidate
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         onSubmit={handleSubmit((values) => {
           const manifestUrl = new URL("/api/manifest", window.location.origin).toString();
           const redirectUrl = new URL(

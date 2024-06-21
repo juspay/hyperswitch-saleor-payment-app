@@ -1,5 +1,4 @@
 // We have to use process.env, otherwise pino doesn't work
-/* eslint-disable node/no-process-env */
 import pino from "pino";
 // import pinoPretty from "pino-pretty";
 // import { isDevelopment, isTest } from "./isEnv";

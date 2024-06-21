@@ -17,7 +17,6 @@ export default trpcNext.createNextApiHandler({
     }
 
     if (isDevelopment()) {
-      // eslint-disable-next-line @saleor/saleor-app/logger-leak
       return logger.error({ input, path, error, type, ctx }, "TRPC failed");
     }
     logger.error({ path, error: redactError(error), type }, "TRPC failed");

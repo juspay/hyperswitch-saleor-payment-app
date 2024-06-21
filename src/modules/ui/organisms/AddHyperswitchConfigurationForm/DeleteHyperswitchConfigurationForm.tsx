@@ -45,7 +45,6 @@ export const DeleteHyperswitchConfigurationForm = ({
         <Box display="flex" flexDirection="row" width="100%">
           <ConfirmationButton
             configurationName={configurationName}
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onClick={handleConfigDelete}
             variant="error"
             size="medium"

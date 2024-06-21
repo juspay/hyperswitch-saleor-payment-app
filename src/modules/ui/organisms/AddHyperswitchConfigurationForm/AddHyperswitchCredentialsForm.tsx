@@ -34,7 +34,6 @@ export const AddHyperswitchCredentialsForm = ({
 
   const { data: hyperswitchConfigurationData } =
     trpcClient.paymentAppConfigurationRouter.paymentConfig.get.useQuery(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- query is not enabled if configurationId is missing
       { configurationId: configurationId! },
       {
         enabled: !!configurationId,
@@ -121,7 +120,6 @@ export const AddHyperswitchCredentialsForm = ({
       as="form"
       method="POST"
       autoComplete="off"
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       onSubmit={handleSubmit(handleConfigSave)}
       footer={
         <Box display="flex" flexDirection="row" columnGap={4}>

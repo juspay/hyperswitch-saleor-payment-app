@@ -37,7 +37,6 @@ export const HyperswitchConfigurationForm = ({
   });
 
   const { data } = trpcClient.paymentAppConfigurationRouter.paymentConfig.get.useQuery(
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- query is not enabled if configurationId is missing
     { configurationId: configurationId! },
     { enabled: !!configurationId },
   );
