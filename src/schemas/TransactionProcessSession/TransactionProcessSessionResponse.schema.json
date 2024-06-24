@@ -7,8 +7,6 @@
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "clientSecret": { "type": "string" },
-        "publishableKey": { "type": "string" },
         "errors": { "$ref": "definitions.json#/definitions/SyncWebhookAppErrors" }
       }
     },
