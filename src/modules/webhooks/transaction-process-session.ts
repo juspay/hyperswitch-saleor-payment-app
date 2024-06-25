@@ -78,19 +78,14 @@ export const TransactionProcessSessionWebhookHandler = async (
   invariant(app, "Missing event.recipient!");
   const { privateMetadata } = app;
   const configurator = getWebhookPaymentAppConfigurator({ privateMetadata }, saleorApiUrl);
-  const appConfig = await configurator.getConfig();
-  const appChannelConfig = getConfigurationForChannel(appConfig, event.sourceObject.channel.id);
   const errors: SyncWebhookAppErrors = [];
-  if (appChannelConfig == null) {
-    throw new ChannelNotConfigured("Please assign a channel for your configuration");
-  };
-
-  const HyperswitchConfig = paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
   const currency = event.action.currency;
-
-  const hyperswitchClient = createHyperswitchClient({
-    apiKey: HyperswitchConfig.apiKey,
+  const channelId = event.sourceObject.channel.id;
+  const hyperswitchClient = await createHyperswitchClient({
+    configurator,
+    channelId,
   });
+
   const retrieveHyperswitchPayment = hyperswitchClient.path("/payments/{payment_id}").method("get").create();
 
   const resource_id: paymentsComponents["schemas"]["PaymentIdType"] = {

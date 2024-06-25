@@ -22,7 +22,7 @@ import { Event } from "../../../../../generated/graphql";
 import { getPaymentAppConfigurator } from "@/modules/payment-app-configuration/payment-app-configuration-factory";
 import { getConfigurationForChannel } from "@/modules/payment-app-configuration/payment-app-configuration";
 import { paymentAppFullyConfiguredEntrySchema } from "@/modules/payment-app-configuration/config-entry";
-import { createHyperswitchClient } from "@/modules/hyperswitch/hyperswitch-api";
+import { createHyperswitchClient, fetchHyperswitchPaymentResponseHashKey } from "@/modules/hyperswitch/hyperswitch-api";
 import { getSaleorAmountFromHyperswitchAmount } from "@/modules/hyperswitch/currencies";
 import crypto from "crypto";
 import { result } from "lodash-es";
@@ -98,8 +98,6 @@ export default async function hyperswitchAuthorizationWebhookHandler(
   res: NextApiResponse,
 ): Promise<void> {
   const logger = createLogger({ msgPrefix: "[HyperswitchWebhookHandler]" });
-
-  console.log(req.headers["x-webhook-signature-512"]);
   const signature = req.headers["x-webhook-signature-512"];
   invariant(signature, "Failed fetching webhook signature");
   let webhookBody = intoWebhookResponse(req.body);
@@ -112,7 +110,6 @@ export default async function hyperswitchAuthorizationWebhookHandler(
   if (authData === undefined) {
     res.status(401).json("Failed fetching auth data, check your Saleor API URL");
   }
-
   invariant(authData, "Failed fetching auth data");
   const client = createClient(saleorApiUrl, async () => ({ token: authData?.token }));
   const transaction = await client
@@ -125,23 +122,24 @@ export default async function hyperswitchAuthorizationWebhookHandler(
     transaction.data?.transaction?.checkout ?? transaction.data?.transaction?.order;
 
   const configurator = getPaymentAppConfigurator(client, saleorApiUrl);
-  const appConfig = await configurator.getConfig();
-  const appChannelConfig = getConfigurationForChannel(appConfig, sourceObject?.channel.id);
+  invariant(sourceObject, "Missing Source Object");
+  const channelId = sourceObject.channel.id;
 
-  if (appChannelConfig == null) {
-    return res.status(401).json("Channel Not Configured");
-  }
-
-  const HyperswitchConfig = paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
-  const paymentResponseHashKey = HyperswitchConfig.paymentResponseHashKey;
-  if (!verifyWebhookSource(signature, req, paymentResponseHashKey)) {
+  const paymentResponseHashKey = await fetchHyperswitchPaymentResponseHashKey(
+    configurator,
+    channelId,
+  );
+  
+  if (!verifyWebhookSource(signature, req,  paymentResponseHashKey)) {
     return res.status(401).json("Source Verification Failed");
   }
   logger.info("Webhook Source Verified");
   const payment_id = webhookBody.content.object.payment_id;
   const refund_id = webhookBody.content.object.refund_id;
-  const hyperswitchClient = createHyperswitchClient({
-    apiKey: HyperswitchConfig.apiKey,
+
+  const hyperswitchClient = await createHyperswitchClient({
+    configurator,
+    channelId,
   });
 
   let hyperswitchSyncResponse = null;

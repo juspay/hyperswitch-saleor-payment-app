@@ -52,18 +52,6 @@ export const TransactionRefundRequestedWebhookHandler = async (
   invariant(app, "Missing event.recipient!");
   const { privateMetadata } = app;
   const configurator = getWebhookPaymentAppConfigurator({ privateMetadata }, saleorApiUrl);
-  const appConfig = await configurator.getConfig();
-  invariant(event.transaction, "Missing transaction");
-  const authData = await saleorApp.apl.get(saleorApiUrl);
-  invariant(authData, "Failed fetching auth data");
-
-  // Fetch Transaction Details
-  // const client = createClient(saleorApiUrl, async () => ({ token: authData?.token }));
-  // const transaction = await client
-  //   .query<GetTransactionByIdQuery, GetTransactionByIdQueryVariables>(GetTransactionByIdDocument, {
-  //     transactionId: event.transaction.id,
-  //   })
-  //   .toPromise();
   invariant(event.transaction, "Missing sourceObject");
   const sourceObject = event.transaction.sourceObject
   invariant(sourceObject?.total.gross.currency, "Missing Currency");
@@ -72,15 +60,13 @@ export const TransactionRefundRequestedWebhookHandler = async (
     sourceObject?.total.gross.currency,
   );
   const payment_id = event.transaction.pspReference;
-  const appChannelConfig = getConfigurationForChannel(appConfig, sourceObject.channel.id);
-  if (appChannelConfig == null) {
-    throw new ChannelNotConfigured("Please assign a channel for your configuration");
-  }
-  const HyperswitchConfig = paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
-  const HyperswitchClient = createHyperswitchClient({
-    apiKey: HyperswitchConfig.apiKey,
+  const channelId = sourceObject.channel.id;
+  const hyperswitchClient = await createHyperswitchClient({
+    configurator,
+    channelId,
   });
-  const refundHyperswitchPayment = HyperswitchClient
+
+  const refundHyperswitchPayment = hyperswitchClient
     .path("/refunds")
     .method("post")
     .create();

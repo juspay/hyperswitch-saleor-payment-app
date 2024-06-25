@@ -19,7 +19,7 @@ export const ConfigurationSummary = ({ config }: { config: PaymentAppUserVisible
         Environment
       </Box>
       <Box as="dd" marginX={4} textAlign="right">
-        {getEnvironmentFromKey(config.apiKey) === "live" ? (
+        {getEnvironmentFromKey(config.publishableKey) === "live" ? (
           <ChipSuccess>LIVE</ChipSuccess>
         ) : (
           <ChipHyperswitchOrange>TESTING</ChipHyperswitchOrange>

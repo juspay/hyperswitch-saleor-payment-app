@@ -18,8 +18,9 @@ import {
 } from "../hyperswitch/currencies";
 import { validatePaymentCreateRequest } from "../hyperswitch/hyperswitch-api-request";
 import { ChannelNotConfigured } from "@/errors";
-import { createHyperswitchClient } from "../hyperswitch/hyperswitch-api";
+import { createHyperswitchClient, fetchHyperswitchPublishableKey } from "../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
+import { Channel } from '../../types';
 import {
   intoPaymentResponse,
   PaymentResponseSchema,
@@ -82,13 +83,7 @@ export const TransactionInitializeSessionWebhookHandler = async (
   invariant(app, "Missing event.recipient!");
   const { privateMetadata } = app;
   const configurator = getWebhookPaymentAppConfigurator({ privateMetadata }, saleorApiUrl);
-  const appConfig = await configurator.getConfig();
-  const appChannelConfig = getConfigurationForChannel(appConfig, event.sourceObject.channel.id);
   const errors: SyncWebhookAppErrors = [];
-  if (appChannelConfig == null) {
-    throw new ChannelNotConfigured("Please assign a channel for your configuration");
-  }
-  const HyperswitchConfig = paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
   const currency = event.action.currency;
   const amount = getHyperswitchAmountFromSaleorMoney(event.action.amount, currency);
   let requestData = null;
@@ -97,10 +92,13 @@ export const TransactionInitializeSessionWebhookHandler = async (
   };
   const billingAddress = event.sourceObject.billingAddress;
   const shippingAddress = event.sourceObject.shippingAddress;
+  const channelId = event.sourceObject.channel.id;
 
-  const hyperswitchClient = createHyperswitchClient({
-    apiKey: HyperswitchConfig.apiKey,
+  const hyperswitchClient = await createHyperswitchClient({
+    configurator,
+    channelId,
   });
+
   const createHyperswitchPayment = hyperswitchClient.path("/payments").method("post").create();
 
   const capture_method =
@@ -151,6 +149,10 @@ export const TransactionInitializeSessionWebhookHandler = async (
       saleor_api_url: saleorApiUrl,
     },
   };
+  const publishableKey = await fetchHyperswitchPublishableKey(
+    configurator,
+    channelId,
+    );
 
   const createPaymentResponse = await createHyperswitchPayment(createPaymentPayload);
   const createPaymentResponseData = intoPaymentResponse(createPaymentResponse.data);
@@ -161,7 +163,7 @@ export const TransactionInitializeSessionWebhookHandler = async (
   const transactionInitializeSessionResponse: TransactionInitializeSessionResponse = {
     data: {
       clientSecret: createPaymentResponseData.client_secret,
-      publishableKey: HyperswitchConfig.publishableKey,
+      publishableKey,
       errors,
     },
     pspReference: createPaymentResponseData.payment_id,
