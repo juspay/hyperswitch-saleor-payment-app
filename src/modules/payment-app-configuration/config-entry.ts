@@ -15,6 +15,9 @@ export const paymentAppConfigEntryEncryptedSchema = z.object({
   apiKey: z
     .string({ required_error: "Secret Key is required" })
     .min(1, { message: "Secret Key is required" }),
+  paymentResponseHashKey: z
+    .string({ required_error: "Payment Response Hash Key is required" })
+    .min(1, { message: "Payment Response Hash Key  is required" }),
 });
 
 export const paymentAppConfigEntryPublicSchema = z.object({
@@ -22,8 +25,8 @@ export const paymentAppConfigEntryPublicSchema = z.object({
     .string({ required_error: "Publishable Key is required" })
     .min(1, { message: "Publishable Key is required" }),
   profileId: z
-  .string({ required_error: "Profile ID is required" })
-  .min(1, { message: "Profile ID is required" }),
+    .string({ required_error: "Profile ID is required" })
+    .min(1, { message: "Profile ID is required" }),
 });
 
 export const paymentAppConfigEntrySchema = paymentAppConfigEntryEncryptedSchema
@@ -43,6 +46,7 @@ export const paymentAppFullyConfiguredEntrySchema = z
     configurationName: paymentAppConfigEntryInternalSchema.shape.configurationName,
     configurationId: paymentAppConfigEntryInternalSchema.shape.configurationId,
     apiKey: paymentAppConfigEntryEncryptedSchema.shape.apiKey,
+    paymentResponseHashKey: paymentAppConfigEntryEncryptedSchema.shape.paymentResponseHashKey,
     publishableKey: paymentAppConfigEntryPublicSchema.shape.publishableKey,
     profileId: paymentAppConfigEntryPublicSchema.shape.profileId,
     // webhookSecret: DANGEROUS_paymentAppConfigHiddenSchema.shape.webhookSecret,
@@ -57,6 +61,7 @@ export const paymentAppFormConfigEntrySchema = z
       "snd_",
       "This isn't Hyperwitch api key, it must start with snd_",
     ),
+    paymentResponseHashKey: paymentAppConfigEntryEncryptedSchema.shape.paymentResponseHashKey,
     publishableKey: paymentAppConfigEntryPublicSchema.shape.publishableKey.startsWith(
       "pk_",
       "This isn't publishable key, it must start with pk_",
@@ -65,7 +70,7 @@ export const paymentAppFormConfigEntrySchema = z
       "pro_",
       "This isn't publishable key, it must start with pro_",
     ),
-    configurationName: paymentAppConfigEntryPublicSchema.shape.profileId.startsWith(
+    configurationName: paymentAppConfigEntryInternalSchema.shape.configurationName.startsWith(
       "con_",
       "This isn't publishable key, it must start with con_",
     ),
@@ -73,9 +78,10 @@ export const paymentAppFormConfigEntrySchema = z
   .strict()
   .default({
     apiKey: "",
+    paymentResponseHashKey: "",
     publishableKey: "",
     profileId: "",
-    configurationName: ""
+    configurationName: "",
   });
 
 /** Schema used in front-end forms

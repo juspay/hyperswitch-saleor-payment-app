@@ -69,6 +69,7 @@ export const TransactionCancelationRequestedWebhookHandler = async (
   const HyperswitchConfig = paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
   const hyperswitchClient = createHyperswitchClient({
     apiKey: HyperswitchConfig.apiKey,
+    
   });
 
   const cancelHyperswitchPayment = hyperswitchClient

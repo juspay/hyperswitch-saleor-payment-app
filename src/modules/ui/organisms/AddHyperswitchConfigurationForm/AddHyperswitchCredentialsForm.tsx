@@ -160,6 +160,14 @@ export const AddHyperswitchCredentialsForm = ({
           name="profileId"
           size="medium"
         />
+        <FormInput
+          control={control}
+          type="password"
+          autoComplete="off"
+          label="Payment Response Hash Key"
+          name="paymentResponseHashKey"
+          size="medium"
+        />
       </Box>
     </RoundedBoxWithFooter>
   );

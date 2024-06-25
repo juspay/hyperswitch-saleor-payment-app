@@ -20,9 +20,8 @@ export const JsonSchemaError = BaseError.subclass("JsonSchemaError");
 export const MissingSaleorApiUrlError = BaseError.subclass("MissingSaleorApiUrlError");
 export const MissingAuthDataError = BaseError.subclass("MissingAuthDataError");
 export const ChannelNotConfigured = BaseError.subclass("ChannelNotConfiguredError");
-export const UnsupportedEvent = BaseError.subclass("UnsupportedEventError")
-export const HyperswitchHttpClientError = BaseError.subclass("HyperswitchHttpClientError"
-);
+export const UnsupportedEvent = BaseError.subclass("UnsupportedEventError");
+export const HyperswitchHttpClientError = BaseError.subclass("HyperswitchHttpClientError");
 export const HttpRequestError = BaseError.subclass("HttpRequestError", {
   props: {} as { statusCode: number; body: string; headers: IncomingHttpHeaders },
 });
@@ -91,5 +90,5 @@ export declare class ApiError extends Error {
   readonly status: number;
   readonly statusText: string;
   readonly data: any;
-  constructor(response: Omit<ApiResponse, 'ok'>);
+  constructor(response: Omit<ApiResponse, "ok">);
 }

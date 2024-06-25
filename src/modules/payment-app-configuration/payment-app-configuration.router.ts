@@ -61,10 +61,17 @@ export const paymentAppConfigurationRouter = router({
     add: protectedClientProcedure
       .input(paymentAppFormConfigEntrySchema)
       .mutation(async ({ input, ctx }) => {
-        const {configurationName, apiKey, publishableKey, profileId} = input;
+        const { configurationName, apiKey, paymentResponseHashKey, publishableKey, profileId } =
+          input;
         ctx.logger.info("appConfigurationRouter.paymentConfig.add called");
         ctx.logger.debug(
-          { configurationName, apiKey: redactLogValue(apiKey), publishableKey: redactLogValue(publishableKey),  profileId:(profileId)},
+          {
+            configurationName,
+            apiKey: redactLogValue(apiKey),
+            paymentResponseHashKey: redactLogValue(paymentResponseHashKey),
+            publishableKey: redactLogValue(publishableKey),
+            profileId: profileId,
+          },
           "appConfigurationRouter.paymentConfig.add input",
         );
         invariant(ctx.appUrl, "Missing app url");
@@ -77,13 +84,15 @@ export const paymentAppConfigurationRouter = router({
       .output(paymentAppUserVisibleConfigEntrySchema)
       .mutation(async ({ input, ctx }) => {
         const { configurationId, entry } = input;
-        const {apiKey, publishableKey, profileId,  configurationName} = entry;
+        const { apiKey, paymentResponseHashKey, publishableKey, profileId, configurationName } =
+          entry;
         ctx.logger.info("appConfigurationRouter.paymentConfig.update called");
         ctx.logger.debug(
           {
             configurationId,
             entry: {
               apiKey,
+              paymentResponseHashKey,
               publishableKey,
               profileId,
               configurationName,

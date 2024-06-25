@@ -31,6 +31,7 @@ export const HyperswitchConfigurationForm = ({
     defaultValues: {
       publishableKey: "",
       apiKey: "",
+      paymentResponseHashKey: "",
       profileId: "",
       configurationName: "",
     },
