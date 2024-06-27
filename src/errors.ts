@@ -21,6 +21,7 @@ export const MissingSaleorApiUrlError = BaseError.subclass("MissingSaleorApiUrlE
 export const MissingAuthDataError = BaseError.subclass("MissingAuthDataError");
 export const ChannelNotConfigured = BaseError.subclass("ChannelNotConfiguredError");
 export const UnsupportedEvent = BaseError.subclass("UnsupportedEventError");
+export const UnExpectedHyperswitchPaymentStatus = BaseError.subclass("UnExpectedHyperswitchPaymentStatusError");
 export const HyperswitchHttpClientError = BaseError.subclass("HyperswitchHttpClientError");
 export const HttpRequestError = BaseError.subclass("HttpRequestError", {
   props: {} as { statusCode: number; body: string; headers: IncomingHttpHeaders },

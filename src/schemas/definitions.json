@@ -59,11 +59,11 @@
       },
       "TransactionChargeRequestedAllowedResult": {
         "type": "string",
-        "enum": ["CHARGE_SUCCESS", "CHARGE_FAILURE", "CHARGE_REQUEST"]
+        "enum": ["CHARGE_SUCCESS", "CHARGE_FAILURE"]
       },
       "TransactionRefundRequestedAllowedResult": {
         "type": "string",
-        "enum": ["REFUND_SUCCESS", "REFUND_FAILURE", "REFUND_REQUEST"]
+        "enum": ["REFUND_SUCCESS", "REFUND_FAILURE"]
       },
       "SyncWebhookAppError": {
         "type": "object",

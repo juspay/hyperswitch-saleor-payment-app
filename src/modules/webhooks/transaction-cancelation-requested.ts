@@ -23,14 +23,16 @@ import { intoPaymentResponse } from "../hyperswitch/hyperswitch-api-response";
 
 export const hyperswitchPaymentCancelStatusToSaleorTransactionResult = (
   status: string,
-): TransactionCancelationRequestedResponse["result"] => {
+): TransactionCancelationRequestedResponse["result"] | null => {
   switch (status) {
     case "cancelled":
       return "CANCEL_SUCCESS";
     case "failed":
       return "CANCEL_FAILURE";
+    case "processing":
+      return undefined
     default:
-      return undefined;
+      return null;
   }
 };
 
@@ -85,19 +87,23 @@ export const TransactionCancelationRequestedWebhookHandler = async (
   );
 
   const transactionCancelationRequestedResponse: TransactionCancelationRequestedResponse =
-   result === "CANCEL_SUCCESS" || result === "CANCEL_FAILURE" ?
-     {
+   (result === undefined) ?
+   {
+    pspReference: cancelPaymentResponseData.payment_id,
+    message: "processing"
+   }: (result === null) ? 
+   {
+    pspReference: cancelPaymentResponseData.payment_id,
+    message: `Unexpected status: ${cancelPaymentResponseData.status} recieved from hyperswitch. Please check the payment flow.`
+   }:
+   {
           pspReference: cancelPaymentResponseData.payment_id,
           result,
           amount:  getSaleorAmountFromHyperswitchAmount(
             cancelPaymentResponseData.amount,
             cancelPaymentResponseData.currency,
           ),
-        } : // Async flow; waiting for confirmation
-        {
-          pspReference: cancelPaymentResponseData.payment_id,
-          message: `hyperswitch status: ${cancelPaymentResponseData.status}, reason_code: ${cancelPaymentResponseData.error_code}, reason: ${cancelPaymentResponseData.error_message}`,
-        };
+    }
 
 
   return transactionCancelationRequestedResponse;

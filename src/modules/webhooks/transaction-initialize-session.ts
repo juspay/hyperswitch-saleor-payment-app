@@ -17,7 +17,7 @@ import {
   getSaleorAmountFromHyperswitchAmount,
 } from "../hyperswitch/currencies";
 import { validatePaymentCreateRequest } from "../hyperswitch/hyperswitch-api-request";
-import { ChannelNotConfigured } from "@/errors";
+import { ChannelNotConfigured, UnExpectedHyperswitchPaymentStatus, UnsupportedEvent } from "@/errors";
 import { createHyperswitchClient, fetchHyperswitchPublishableKey } from "../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
 import { Channel } from '../../types';
@@ -29,7 +29,7 @@ import {
 export const hyperswitchPaymentIntentToTransactionResult = (
   status: string,
   transactionFlow: TransactionFlowStrategyEnum,
-): TransactionInitializeSessionResponse["result"] => {
+): TransactionInitializeSessionResponse["result"]=> {
   const prefix =
   transactionFlow === TransactionFlowStrategyEnum.Authorization
     ? "AUTHORIZATION"
@@ -41,8 +41,6 @@ export const hyperswitchPaymentIntentToTransactionResult = (
   invariant(prefix, `Unsupported transactionFlowStrategy: ${transactionFlow}`);
 
   switch (status) {
-    case "succeeded":
-      return "CHARGE_SUCCESS";
     case "requires_payment_method":
       return `${prefix}_ACTION_REQUIRED`;
     case "requires_capture":
@@ -51,10 +49,12 @@ export const hyperswitchPaymentIntentToTransactionResult = (
     case "cancelled":
         return `${prefix}_FAILURE`;
     case "processing":
-    default: 
         return `${prefix}_REQUEST`;
-  }
+    default:
+      throw new UnExpectedHyperswitchPaymentStatus(`Status received from hyperswitch: ${status}, is not expected . Please check the payment flow.`);
+}
 };
+
 
 
 export const TransactionInitializeSessionWebhookHandler = async (
@@ -160,7 +160,8 @@ export const TransactionInitializeSessionWebhookHandler = async (
     createPaymentResponseData.status,
     event.action.actionType,
   );
-  const transactionInitializeSessionResponse: TransactionInitializeSessionResponse = {
+  const transactionInitializeSessionResponse: TransactionInitializeSessionResponse = 
+  {
     data: {
       clientSecret: createPaymentResponseData.client_secret,
       publishableKey,

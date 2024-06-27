@@ -1,4 +1,4 @@
-import { ChannelNotConfigured, UnsupportedEvent } from "@/errors";
+import { BaseError, ChannelNotConfigured, HttpRequestError, HyperswitchHttpClientError, UnExpectedHyperswitchPaymentStatus} from "@/errors";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/create-graphq-client";
 import { invariant } from "@/lib/invariant";
@@ -6,6 +6,7 @@ import {
   intoPaymentResponse,
   intoRefundResponse,
   intoWebhookResponse,
+  CaptureMethod,
   WebhookResponse,
 } from "@/modules/hyperswitch/hyperswitch-api-response";
 import { saleorApp } from "@/saleor-app";
@@ -31,6 +32,8 @@ import { createLogger, logger } from "@/lib/logger";
 export const hyperswitchStatusToSaleorTransactionResult = (
   status: string,
   isRefund: boolean,
+  captureMethod: CaptureMethod | undefined | null,
+  isChargeFlow: boolean | undefined,
 ): TransactionEventTypeEnum => {
   switch (status) {
     case "succeeded":
@@ -40,11 +43,17 @@ export const hyperswitchStatusToSaleorTransactionResult = (
         return TransactionEventTypeEnum.ChargeSuccess;
       }
     case "failed":
+    case "RouterDeclined":
       if (isRefund) {
         return TransactionEventTypeEnum.RefundFailure;
+      } else if (captureMethod == "manual" && !isChargeFlow) {
+        return TransactionEventTypeEnum.AuthorizationFailure;
       } else {
         return TransactionEventTypeEnum.ChargeFailure;
       }
+    case "partially_captured_and_capturable":
+    case "partially_captured":
+      return TransactionEventTypeEnum.ChargeSuccess;
     case "requires_capture":
       return TransactionEventTypeEnum.AuthorizationSuccess;
     case "cancelled":
@@ -52,20 +61,32 @@ export const hyperswitchStatusToSaleorTransactionResult = (
     case "requires_payment_method":
     case "requires_customer_action":
     case "requires_confirmation":
+      if (captureMethod == "manual") {
       return TransactionEventTypeEnum.AuthorizationActionRequired;
+      } else {
+        return TransactionEventTypeEnum.ChargeActionRequired;
+      }
     default:
-      throw new UnsupportedEvent("This Event is not supported");
+      throw new UnExpectedHyperswitchPaymentStatus(`Status received from hyperswitch: ${status}, is not expected . Please check the payment flow.`);
   }
 };
 
 export const verifyWebhookSource = (
-  signature: string | string[],
   req: NextApiRequest,
   paymentResponseHashKey: string,
 ): boolean => {
+  console.log(req.body);
+  const signature = req.headers["x-webhook-signature-512"];
+  console.log("_________________");
+  console.log(signature);
+  invariant(signature, "Failed fetching webhook signature");
   const hmac = crypto.createHmac("sha512", paymentResponseHashKey);
   hmac.update(JSON.stringify(req.body));
+  console.log("_________________");
+  console.log(JSON.stringify(req.body));
   const computedHash = hmac.digest("hex");
+  console.log("_________________");
+  console.log(computedHash);
   if (Array.isArray(signature)) {
     // If signature is an array, check if the computed hash matches any element in the array
     return signature.includes(computedHash);
@@ -88,6 +109,7 @@ const getAvailableActions = (
   }
 };
 
+
 export const getRefundId = (webhookBody: WebhookResponse): string => {
   invariant(webhookBody.content.object.refund_id, "No Refund Id");
   return webhookBody.content.object.refund_id;
@@ -97,9 +119,8 @@ export default async function hyperswitchAuthorizationWebhookHandler(
   req: NextApiRequest,
   res: NextApiResponse,
 ): Promise<void> {
+  console.log(req.body);
   const logger = createLogger({ msgPrefix: "[HyperswitchWebhookHandler]" });
-  const signature = req.headers["x-webhook-signature-512"];
-  invariant(signature, "Failed fetching webhook signature");
   let webhookBody = intoWebhookResponse(req.body);
 
   const transactionId = webhookBody.content.object.metadata.transaction_id;
@@ -120,27 +141,43 @@ export default async function hyperswitchAuthorizationWebhookHandler(
 
   const sourceObject =
     transaction.data?.transaction?.checkout ?? transaction.data?.transaction?.order;
+  
+  let isChargeFlow = transaction.data?.transaction?.events.some(event => event.type === 'AUTHORIZATION_SUCCESS');
 
   const configurator = getPaymentAppConfigurator(client, saleorApiUrl);
   invariant(sourceObject, "Missing Source Object");
   const channelId = sourceObject.channel.id;
 
-  const paymentResponseHashKey = await fetchHyperswitchPaymentResponseHashKey(
+  let paymentResponseHashKey = null; 
+  try {
+    paymentResponseHashKey = await fetchHyperswitchPaymentResponseHashKey(
     configurator,
     channelId,
   );
+    } catch(errorData) {
+      return res.status(406).json("Channel not assigned");
+    };
   
-  if (!verifyWebhookSource(signature, req,  paymentResponseHashKey)) {
-    return res.status(401).json("Source Verification Failed");
+  if (!verifyWebhookSource(req,  paymentResponseHashKey)) {
+    return res.status(400).json("Source Verification Failed");
   }
   logger.info("Webhook Source Verified");
   const payment_id = webhookBody.content.object.payment_id;
   const refund_id = webhookBody.content.object.refund_id;
 
-  const hyperswitchClient = await createHyperswitchClient({
+  let hyperswitchClient = null;
+  try {
+    hyperswitchClient = await createHyperswitchClient({
     configurator,
     channelId,
   });
+} catch (errorData) {
+  if (errorData instanceof HyperswitchHttpClientError && errorData.statusCode != undefined) {
+  return res.status(errorData.statusCode).json(errorData.name);
+} else {
+  return res.status(424).json("Sync called failed");
+}
+}
 
   let hyperswitchSyncResponse = null;
   let pspReference = null;
@@ -164,11 +201,14 @@ export default async function hyperswitchAuthorizationWebhookHandler(
     });
     hyperswitchSyncResponse = intoPaymentResponse(paymentSyncResponse.data);
     pspReference = hyperswitchSyncResponse.payment_id;
-  }
+  };
+  const captureMethod = webhookBody.content.object.capture_method;
 
   const type = hyperswitchStatusToSaleorTransactionResult(
     webhookBody.content.object.status,
     isRefund,
+    captureMethod,
+    isChargeFlow,
   );
   await client
     .mutation(TransactionEventReportDocument, {

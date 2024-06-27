@@ -21,26 +21,28 @@ import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
 } from "../hyperswitch/currencies";
-import { ChannelNotConfigured, HyperswitchHttpClientError } from "@/errors";
+import { ChannelNotConfigured, HyperswitchHttpClientError, UnExpectedHyperswitchPaymentStatus } from "@/errors";
 import { SyncWebhookAppErrors } from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
 import { createHyperswitchClient } from "../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
 
 export const hyperswitchPaymentCaptureStatusToSaleorTransactionResult = (
   status: string,
-): TransactionChargeRequestedResponse["result"] => {
+): TransactionChargeRequestedResponse["result"] | null => {
   switch (status) {
     case "succeeded":
     case "partially_captured":
     case "partially_captured_and_capturable":
       return "CHARGE_SUCCESS";
     case "failed":
-    case "cancelled":
       return "CHARGE_FAILURE";
-    default:
+    case "processing":
       return undefined;
+    default:
+     return null;
   }
 };
+
 
 export const TransactionChargeRequestedWebhookHandler = async (
   event: TransactionChargeRequestedEventFragment,
@@ -96,7 +98,16 @@ export const TransactionChargeRequestedWebhookHandler = async (
     capturePaymentResponseData.status,
   );
   const transactionChargeRequestedResponse: TransactionChargeRequestedResponse = 
-  (result === "CHARGE_SUCCESS" || result === "CHARGE_FAILURE") ? 
+  (result === undefined) ? 
+  {
+    pspReference: capturePaymentResponseData.payment_id,
+    message: "processing"
+  }:
+  (result === null) ? 
+  {
+    pspReference: capturePaymentResponseData.payment_id,
+    message: `Unexpected status: ${capturePaymentResponseData.status} recieved from hyperswitch. Please check the payment flow.`
+  }:
   {
     result,
     pspReference: capturePaymentResponseData.payment_id,
@@ -104,11 +115,6 @@ export const TransactionChargeRequestedWebhookHandler = async (
       capturePaymentResponseData.amount,
       capturePaymentResponseData.currency,
     ),
-  } : 
-  {
-    pspReference: capturePaymentResponseData.payment_id,
-    message: `hyperswitch status: ${capturePaymentResponseData.status}, reason_code: ${capturePaymentResponseData.error_code}, reason: ${capturePaymentResponseData.error_message}`
   };
-
   return transactionChargeRequestedResponse;
 };

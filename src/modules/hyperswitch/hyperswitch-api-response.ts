@@ -88,11 +88,14 @@ export function intoRefundResponse(responseData: any): RefundResponse {
 }
 
 
+const CaptureMethodEnum = z.enum(['automatic', 'manual']);
+
 const WebhookObjectBodySchema = z.object({
   status: z.string(),
   payment_id: z.string(),
   refund_id: z.string().nullable().optional(),
   metadata: SaleorMetadataSchema,
+  capture_method: CaptureMethodEnum.nullable().optional()
 });
 
 const WebhookContentSchema = z.object({
@@ -105,6 +108,9 @@ const WebhookBodySchema = z.object({
 });
 
 export type WebhookResponse = z.infer<typeof WebhookBodySchema>;
+
+export type CaptureMethod = z.infer<typeof CaptureMethodEnum>;
+
 
 export function intoWebhookResponse(responseData: any): WebhookResponse {
   return WebhookBodySchema.parse(responseData);

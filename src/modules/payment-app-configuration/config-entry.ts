@@ -57,10 +57,7 @@ export const paymentAppFullyConfiguredEntrySchema = z
 // Schema used as input validation for saving config entires
 export const paymentAppFormConfigEntrySchema = z
   .object({
-    apiKey: paymentAppConfigEntryEncryptedSchema.shape.apiKey.startsWith(
-      "snd_",
-      "This isn't Hyperwitch api key, it must start with snd_",
-    ),
+    apiKey: paymentAppConfigEntryEncryptedSchema.shape.apiKey,
     paymentResponseHashKey: paymentAppConfigEntryEncryptedSchema.shape.paymentResponseHashKey,
     publishableKey: paymentAppConfigEntryPublicSchema.shape.publishableKey.startsWith(
       "pk_",

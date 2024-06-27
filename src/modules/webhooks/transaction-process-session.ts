@@ -11,7 +11,7 @@ import {
 
 import { paymentAppFullyConfiguredEntrySchema } from "@/modules/payment-app-configuration/config-entry";
 import { getWebhookPaymentAppConfigurator } from "@/modules/payment-app-configuration/payment-app-configuration-factory";
-import { ChannelNotConfigured, UnsupportedEvent } from "@/errors";
+import { ChannelNotConfigured, UnExpectedHyperswitchPaymentStatus, UnsupportedEvent } from "@/errors";
 import { getHyperswitchAmountFromSaleorMoney, getSaleorAmountFromHyperswitchAmount } from "../hyperswitch/currencies";
 import { createHyperswitchClient } from "../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
@@ -36,6 +36,8 @@ export const hyperswitchPaymentIntentToTransactionProcessResult = (
 
   switch (status) {
     case "succeeded":
+    case "partially_captured_and_capturable":
+    case "partially_captured":
       return `${prefix}_SUCCESS`
     case "failed":
     case "cancelled":
@@ -46,8 +48,10 @@ export const hyperswitchPaymentIntentToTransactionProcessResult = (
     case "requires_customer_action":
     case "requires_confirmation":
       return `${prefix}_ACTION_REQUIRED`
+    case "processing":
+      return `${prefix}_REQUEST`
     default:
-      throw new UnsupportedEvent("This Event is not supported");
+      throw new UnExpectedHyperswitchPaymentStatus(`Status received from hyperswitch: ${status}, is not expected . Please check the payment flow.`);
   }
 };
 

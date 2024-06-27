@@ -21,16 +21,19 @@ export type PaymentRefundResponse =  {
 
 export const hyperswitchRefundToTransactionResult = (
   status: string,
-): TransactionRefundRequestedResponse["result"] => {
+): TransactionRefundRequestedResponse["result"]| null => {
   switch (status) {
     case "succeeded":
       return "REFUND_SUCCESS"
     case "failed": 
       return "REFUND_FAILURE"
-    default:
+    case "pending":
       return undefined
+    default:
+      return null
   }
 };
+
 
 
 export const TransactionRefundRequestedWebhookHandler = async (
@@ -88,15 +91,21 @@ export const TransactionRefundRequestedWebhookHandler = async (
   );
   
   const transactionRefundRequestedResponse: TransactionRefundRequestedResponse = 
-    (result != undefined) ? {
+  (result === undefined) ?
+   {
+    pspReference: refundPaymentResponseData.payment_id,
+    message: "pending"
+   }: (result === null) ? 
+   {
+    pspReference: refundPaymentResponseData.payment_id,
+    message: `Unexpected status: ${refundPaymentResponseData.status} recieved from hyperswitch. Please check the payment flow.`
+   }: {
     pspReference: refundPaymentResponseData.refund_id,
     result,
     amount: getSaleorAmountFromHyperswitchAmount(
       refundPaymentResponseData.amount,
       refundPaymentResponseData.currency,
     ),
-  }:  {
-    pspReference: refundPaymentResponseData.refund_id,
   };
   return transactionRefundRequestedResponse;
 
