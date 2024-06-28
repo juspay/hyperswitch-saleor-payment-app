@@ -16,7 +16,7 @@ import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
 } from "../hyperswitch/currencies";
-import { validatePaymentCreateRequest } from "../hyperswitch/hyperswitch-api-request";
+import { buildAddressDetails, validatePaymentCreateRequest } from "../hyperswitch/hyperswitch-api-request";
 import { ChannelNotConfigured, UnExpectedHyperswitchPaymentStatus, UnsupportedEvent } from "@/errors";
 import { createHyperswitchClient, fetchHyperswitchPublishableKey } from "../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
@@ -25,6 +25,7 @@ import {
   intoPaymentResponse,
   PaymentResponseSchema,
 } from "../hyperswitch/hyperswitch-api-response";
+import { normalizeValue } from "../payment-app-configuration/utils";
 
 export const hyperswitchPaymentIntentToTransactionResult = (
   status: string,
@@ -90,8 +91,6 @@ export const TransactionInitializeSessionWebhookHandler = async (
   if (event.data != null) {
     requestData = validatePaymentCreateRequest(event.data);
   };
-  const billingAddress = event.sourceObject.billingAddress;
-  const shippingAddress = event.sourceObject.shippingAddress;
   const channelId = event.sourceObject.channel.id;
 
   const hyperswitchClient = await createHyperswitchClient({
@@ -100,7 +99,6 @@ export const TransactionInitializeSessionWebhookHandler = async (
   });
 
   const createHyperswitchPayment = hyperswitchClient.path("/payments").method("post").create();
-
   const capture_method =
     event.action.actionType == TransactionFlowStrategyEnum.Authorization ? "manual" : "automatic";
   const createPaymentPayload: paymentsComponents["schemas"]["PaymentsCreateRequest"] = {
@@ -108,51 +106,22 @@ export const TransactionInitializeSessionWebhookHandler = async (
     confirm: false,
     currency: currency as paymentsComponents["schemas"]["PaymentsCreateRequest"]["currency"],
     capture_method,
-    customer_id: requestData?.customerId,
-    authentication_type: requestData?.authenticationType,
-    return_url: requestData?.returnUrl,
-    description: requestData?.description,
-    billing: {
-      address: {
-        line1: billingAddress?.streetAddress1,
-        line2: billingAddress?.streetAddress2,
-        city: billingAddress?.city,
-        state: billingAddress?.countryArea,
-        zip: billingAddress?.postalCode,
-        country: billingAddress?.country.code as paymentsComponents["schemas"]["CountryAlpha2"],
-        first_name: billingAddress?.firstName,
-        last_name: billingAddress?.lastName,
-      },
-      phone: {
-        number: billingAddress?.phone,
-      },
-      email: requestData?.billingEmail,
-    },
-    shipping: {
-      address: {
-        line1: shippingAddress?.streetAddress1,
-        line2: shippingAddress?.streetAddress2,
-        city: shippingAddress?.city,
-        state: shippingAddress?.countryArea,
-        zip: shippingAddress?.postalCode,
-        country: shippingAddress?.country.code as paymentsComponents["schemas"]["CountryAlpha2"],
-        first_name: shippingAddress?.firstName,
-        last_name: shippingAddress?.lastName,
-      },
-      phone: {
-        number: shippingAddress?.phone,
-      },
-      email: requestData?.shippingEmail,
-    },
+    customer_id: normalizeValue(requestData?.customerId),
+    authentication_type: normalizeValue(requestData?.authenticationType),
+    return_url: normalizeValue(requestData?.returnUrl),
+    description: normalizeValue(requestData?.description),
+    billing: buildAddressDetails(event.sourceObject.billingAddress, requestData?.billingEmail),
+    shipping: buildAddressDetails(event.sourceObject.shippingAddress, requestData?.shippingEmail),
     metadata: {
       transaction_id: event.transaction.id,
       saleor_api_url: saleorApiUrl,
     },
   };
+
   const publishableKey = await fetchHyperswitchPublishableKey(
     configurator,
     channelId,
-    );
+  );
 
   const createPaymentResponse = await createHyperswitchPayment(createPaymentPayload);
   const createPaymentResponseData = intoPaymentResponse(createPaymentResponse.data);

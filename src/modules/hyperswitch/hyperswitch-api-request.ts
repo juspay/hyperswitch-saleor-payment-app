@@ -1,6 +1,8 @@
 import { JsonSchemaError } from '@/errors';
+import { TransactionInitializeSessionAddressFragment, TransactionInitializeSessionEventFragment } from 'generated/graphql';
 import { z, ZodError } from 'zod';
-
+import { type components as paymentsComponents } from "generated/hyperswitch-payments";
+import { normalizeValue } from '../payment-app-configuration/utils';
 const AuthenticationTypeEnum = z.enum(['three_ds', 'no_three_ds']);
 
 const SetupFutureUsageEnum = z.enum(['off_session', 'on_session']);
@@ -127,3 +129,40 @@ export function validatePaymentCreateRequest(eventData: unknown): PaymentCreateR
     }
   }
 }
+
+
+const buildAddress = (address?: TransactionInitializeSessionAddressFragment) => {
+  if (!address) {
+    return undefined;
+  }
+  return {
+    line1: address.streetAddress1,
+    line2: address.streetAddress2,
+    city: address.city,
+    state: address.countryArea,
+    zip: address.postalCode,
+    country: address.country.code as paymentsComponents["schemas"]["CountryAlpha2"],
+    first_name: address.firstName,
+    last_name: address.lastName,
+  };
+};
+
+const buildContact = (phoneNumber?: string | null | undefined) => {
+  return {
+    number: normalizeValue(phoneNumber),
+  };
+};
+
+export const buildAddressDetails = (billingAddress?: TransactionInitializeSessionAddressFragment | null, billingEmail?: string | null) => {
+  if (!billingAddress) {
+    return undefined;
+  }
+  return {
+    address: buildAddress(billingAddress),
+    phone: buildContact(billingAddress.phone),
+    email: billingEmail ? billingEmail: undefined,
+  };
+};
+
+
+

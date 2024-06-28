@@ -25,3 +25,9 @@ export const obfuscateConfigEntry = (
     ...obfuscateConfig(configValuesToObfuscate),
   } satisfies PaymentAppUserVisibleConfigEntry);
 };
+
+export const normalizeValue = (
+  entry: any |  undefined | null
+) => {
+  return entry ? entry: undefined
+}

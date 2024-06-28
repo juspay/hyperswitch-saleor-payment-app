@@ -40,6 +40,7 @@ export default transactionInitializeSessionSyncWebhook.createHandler(
             ? TransactionEventTypeEnum.AuthorizationFailure
             : TransactionEventTypeEnum.ChargeFailure,
         message: errorResponse.message,
+        pspReference: "NO_PSP_REFERNCE",
         data: { errors: errorResponse.errors}
       } as const;
     },
