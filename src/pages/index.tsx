@@ -108,10 +108,23 @@ const IndexPage: NextPage = () => {
     return null;
   }
 
+  if (appBridgeState?.domain != "" && !appBridgeState?.ready) {
+    return (
+      <Box display="flex" flexDirection="column" gap={2} placeItems="center" alignSelf="center" paddingY={20}>
+      <Text as="h1" color="critical2" size={8}>
+        Hey! Please reload the page
+      </Text>
+      <Text as="p">
+      We were not able to detect the saleor dashboard
+      </Text>
+    </Box>
+    );
+  }
+
   return (
-    <Box display="flex" flexDirection="column" gap={2} __maxWidth="45rem">
-      <Text as="h1">
-        Welcome to Payment App Hyperswitch 
+    <Box display="flex" flexDirection="column" gap={2} placeItems="center" alignSelf="center" paddingY={20}>
+      <Text as="h1" size={11} >
+        Welcome to Payment App Hyperswitch 💰
       </Text>
       <Text as="p">
       A community led, open payments orchestrator to enable access 
@@ -119,15 +132,19 @@ const IndexPage: NextPage = () => {
       </Text>
 
       {!appBridgeState?.ready && (
+        <>
         <div>
           <Text as="p">
             Install this app in your Saleor Dashboard to proceed!
           </Text>
           {mounted && <AddToSaleorForm />}
+          
         </div>
-      )}
-
+      
       <CopyManifest />
+      </>
+      )
+      }
     </Box>
   );
 };
