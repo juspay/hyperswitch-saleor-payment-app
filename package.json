@@ -1,13 +1,13 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "saleor-app-payment-hyperswitch",
-  "description": "Saleor App Payment Hyperswitch is a payment integration app that allows merchants using the Saleor e-commerce platform to accept online payments from customers using hyperswitch as their payment orchestrate.",
+  "description": "An enterprise grade payment orchestrator to enable access to the best payment infrastructure for every digital business",
   "version": "0.4.0",
   "private": true,
   "repository": "github:saleor/saleor-app-payment-hyperswicth",
-  "homepage": "https://github.com/juspay/hyperswitche",
+  "homepage": "https://github.com/juspay/hyperswitch",
   "bugs": {
-    "url": "https://github.com/AkshayaFoiger/saleor-app-hyperswitch",
+    "url": "https://github.com/AkshayaFoiger/saleor-app-payment-hyperswitch",
     "email": "hello@saleor.io"
   },
   "type": "module",
