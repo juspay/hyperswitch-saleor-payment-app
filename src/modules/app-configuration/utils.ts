@@ -1,22 +1,24 @@
 import { isNotNullish, toStringOrEmpty } from "../../lib/utils";
 
-export const OBFUSCATION_DOTS = "••••";
+export const OBFUSCATION_DOT = "•";
 
 export const obfuscateValue = (value: string) => {
-  const unbofuscatedLength = Math.min(4, value.length - 4);
+  const unbofuscatedLength = Math.min(6, value.length - 6);
 
   if (unbofuscatedLength <= 0) {
+    const OBFUSCATION_DOTS = OBFUSCATION_DOT.repeat(value.length);
     return OBFUSCATION_DOTS;
   }
 
   const visibleValue = value.slice(-unbofuscatedLength);
+  const OBFUSCATION_DOTS = OBFUSCATION_DOT.repeat(unbofuscatedLength);
   return `${OBFUSCATION_DOTS}${visibleValue}`;
 };
 
 export const deobfuscateValues = (values: Record<string, unknown>) => {
   const entries = Object.entries(values).map(
     ([key, value]) =>
-      [key, toStringOrEmpty(value).includes(OBFUSCATION_DOTS) ? null : value] as [string, unknown],
+      [key, toStringOrEmpty(value).includes(OBFUSCATION_DOT) ? null : value] as [string, unknown],
   );
   return Object.fromEntries(entries);
 };

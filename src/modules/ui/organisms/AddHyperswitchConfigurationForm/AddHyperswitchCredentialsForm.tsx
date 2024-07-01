@@ -114,6 +114,7 @@ export const AddHyperswitchCredentialsForm = ({
         : addNewConfig(data);
     }
   };
+  const secretInputType = configurationId ? "text" : "password";
 
   return (
     <RoundedBoxWithFooter
@@ -140,7 +141,7 @@ export const AddHyperswitchCredentialsForm = ({
         />
         <FormInput
           control={control}
-          type="password"
+          type = {secretInputType}
           autoComplete="off"
           label="Secret Key"
           name="apiKey"
@@ -162,7 +163,7 @@ export const AddHyperswitchCredentialsForm = ({
         />
         <FormInput
           control={control}
-          type="password"
+          type={secretInputType}
           autoComplete="off"
           label="Payment Response Hash Key"
           name="paymentResponseHashKey"

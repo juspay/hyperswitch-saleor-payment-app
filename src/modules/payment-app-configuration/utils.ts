@@ -21,7 +21,6 @@ export const obfuscateConfigEntry = (
     profileId,
     configurationId,
     configurationName,
-    // webhookId,
     ...obfuscateConfig(configValuesToObfuscate),
   } satisfies PaymentAppUserVisibleConfigEntry);
 };
