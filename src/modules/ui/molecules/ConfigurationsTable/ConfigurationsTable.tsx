@@ -1,4 +1,4 @@
-import { Text, EditIcon } from "@saleor/macaw-ui";
+import { Text, EditIcon, Box, InfoIcon, ViewListIcon, ViewTableIcon } from "@saleor/macaw-ui";
 import Link from "next/link";
 import { ConfigurationSummary } from "../ConfigurationSummary/ConfigurationSummary";
 import * as tableStyles from "./configurationsTable.css";
@@ -27,8 +27,8 @@ const ConfigurationsTableRow = ({ item }: { item: PaymentAppUserVisibleConfigEnt
             display="inline-flex"
             alignItems="center"
           >
-            <EditIcon size="small" />
-            Edit
+            <ViewTableIcon size="small" />
+            View Config
           </Text>
         </Link>
       </Td>
