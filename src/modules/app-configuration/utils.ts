@@ -11,7 +11,7 @@ export const obfuscateValue = (value: string) => {
   }
 
   const visibleValue = value.slice(-unbofuscatedLength);
-  const OBFUSCATION_DOTS = OBFUSCATION_DOT.repeat(unbofuscatedLength);
+  const OBFUSCATION_DOTS = OBFUSCATION_DOT.repeat(value.length - unbofuscatedLength);
   return `${OBFUSCATION_DOTS}${visibleValue}`;
 };
 
