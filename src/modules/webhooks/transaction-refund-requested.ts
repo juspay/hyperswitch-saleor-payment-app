@@ -93,7 +93,7 @@ export const TransactionRefundRequestedWebhookHandler = async (
   const transactionRefundRequestedResponse: TransactionRefundRequestedResponse = 
   (result === undefined) ?
    {
-    pspReference: refundPaymentResponseData.payment_id,
+    pspReference: refundPaymentResponseData.refund_id,
     message: "pending"
    }: (result === null) ? 
    {
