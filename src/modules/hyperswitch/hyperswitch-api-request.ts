@@ -105,6 +105,8 @@ const PaymentCreateRequestSchema = z.object({
   authenticationType: AuthenticationTypeEnum.nullable().optional(),
   billingEmail: z.string().email().nullable().optional(),
   shippingEmail: z.string().email().nullable().optional(),
+  statementDescriptorName: z.string().email().nullable().optional(),
+  statementDescriptorSuffix: z.string().email().nullable().optional(),
   // offSession: z.boolean().nullable().optional(),
   description:  z.string().nullable().optional(),
   returnUrl:  z.string().nullable().optional(),

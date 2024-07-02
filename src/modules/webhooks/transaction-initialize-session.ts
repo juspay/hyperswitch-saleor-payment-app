@@ -106,6 +106,8 @@ export const TransactionInitializeSessionWebhookHandler = async (
     confirm: false,
     currency: currency as paymentsComponents["schemas"]["PaymentsCreateRequest"]["currency"],
     capture_method,
+    statement_descriptor_name: normalizeValue(requestData?.statementDescriptorName),
+    statement_descriptor_suffix: normalizeValue(requestData?.statementDescriptorSuffix),
     customer_id: normalizeValue(requestData?.customerId),
     authentication_type: normalizeValue(requestData?.authenticationType),
     return_url: normalizeValue(requestData?.returnUrl),
