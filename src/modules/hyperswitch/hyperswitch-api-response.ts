@@ -95,7 +95,8 @@ const WebhookObjectBodySchema = z.object({
   payment_id: z.string(),
   refund_id: z.string().nullable().optional(),
   metadata: SaleorMetadataSchema,
-  capture_method: CaptureMethodEnum.nullable().optional()
+  capture_method: CaptureMethodEnum.nullable().optional(),
+  error_message: z.string().nullable().optional(),
 });
 
 const WebhookContentSchema = z.object({

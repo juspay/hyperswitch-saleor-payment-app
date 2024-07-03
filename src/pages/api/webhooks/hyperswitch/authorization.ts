@@ -222,7 +222,7 @@ export default async function hyperswitchAuthorizationWebhookHandler(
       time: new Date().toISOString(),
       type,
       pspReference: isRefund ? getRefundId(webhookBody) : webhookBody.content.object.payment_id,
-      message: "",
+      message:  webhookBody.content.object.error_message ? webhookBody.content.object.error_message : "",
     })
     .toPromise();
 
