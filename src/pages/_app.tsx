@@ -35,7 +35,6 @@ function NextApp({ Component, pageProps }: AppProps) {
     <>
       <Head>
         <title>Saleor App Payment Hyperswitch</title>
-        <link rel="icon" href="/favicon-32x32.png" type="image/png" />
         <meta name="theme-color" content="#635BFF" />
         <link rel="apple-touch-icon" sizes="48x48" href="/icons/icon-48x48.png" />
         <link rel="apple-touch-icon" sizes="72x72" href="/icons/icon-72x72.png" />
