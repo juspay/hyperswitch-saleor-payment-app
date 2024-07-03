@@ -144,7 +144,7 @@ export const AddHyperswitchCredentialsForm = ({
           control={control}
           type = {secretInputType}
           autoComplete="off"
-          label="Secret Key"
+          label="API Key"
           name="apiKey"
           size="medium"
         />
