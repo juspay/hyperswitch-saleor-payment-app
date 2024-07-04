@@ -15,7 +15,6 @@ const EditConfigurationPage = () => {
     return <div />;
   }
 
-  console.log(window.location.origin);
   return (
     <AppLayout
       title="Hyperswitch > View configuration"

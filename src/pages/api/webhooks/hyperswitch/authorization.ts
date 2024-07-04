@@ -1,4 +1,10 @@
-import { BaseError, ChannelNotConfigured, HttpRequestError, HyperswitchHttpClientError, UnExpectedHyperswitchPaymentStatus} from "@/errors";
+import {
+  BaseError,
+  ChannelNotConfigured,
+  HttpRequestError,
+  HyperswitchHttpClientError,
+  UnExpectedHyperswitchPaymentStatus,
+} from "@/errors";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/create-graphq-client";
 import { invariant } from "@/lib/invariant";
@@ -23,7 +29,10 @@ import { Event } from "../../../../../generated/graphql";
 import { getPaymentAppConfigurator } from "@/modules/payment-app-configuration/payment-app-configuration-factory";
 import { getConfigurationForChannel } from "@/modules/payment-app-configuration/payment-app-configuration";
 import { paymentAppFullyConfiguredEntrySchema } from "@/modules/payment-app-configuration/config-entry";
-import { createHyperswitchClient, fetchHyperswitchPaymentResponseHashKey } from "@/modules/hyperswitch/hyperswitch-api";
+import {
+  createHyperswitchClient,
+  fetchHyperswitchPaymentResponseHashKey,
+} from "@/modules/hyperswitch/hyperswitch-api";
 import { getSaleorAmountFromHyperswitchAmount } from "@/modules/hyperswitch/currencies";
 import crypto from "crypto";
 import { result } from "lodash-es";
@@ -62,12 +71,14 @@ export const hyperswitchStatusToSaleorTransactionResult = (
     case "requires_customer_action":
     case "requires_confirmation":
       if (captureMethod == "manual") {
-      return TransactionEventTypeEnum.AuthorizationActionRequired;
+        return TransactionEventTypeEnum.AuthorizationActionRequired;
       } else {
         return TransactionEventTypeEnum.ChargeActionRequired;
       }
     default:
-      throw new UnExpectedHyperswitchPaymentStatus(`Status received from hyperswitch: ${status}, is not expected . Please check the payment flow.`);
+      throw new UnExpectedHyperswitchPaymentStatus(
+        `Status received from hyperswitch: ${status}, is not expected . Please check the payment flow.`,
+      );
   }
 };
 
@@ -75,18 +86,11 @@ export const verifyWebhookSource = (
   req: NextApiRequest,
   paymentResponseHashKey: string,
 ): boolean => {
-  console.log(req.body);
   const signature = req.headers["x-webhook-signature-512"];
-  console.log("_________________");
-  console.log(signature);
   invariant(signature, "Failed fetching webhook signature");
   const hmac = crypto.createHmac("sha512", paymentResponseHashKey);
   hmac.update(JSON.stringify(req.body));
-  console.log("_________________");
-  console.log(JSON.stringify(req.body));
   const computedHash = hmac.digest("hex");
-  console.log("_________________");
-  console.log(computedHash);
   if (Array.isArray(signature)) {
     // If signature is an array, check if the computed hash matches any element in the array
     return signature.includes(computedHash);
@@ -109,7 +113,6 @@ const getAvailableActions = (
   }
 };
 
-
 export const getRefundId = (webhookBody: WebhookResponse): string => {
   invariant(webhookBody.content.object.refund_id, "No Refund Id");
   return webhookBody.content.object.refund_id;
@@ -119,7 +122,6 @@ export default async function hyperswitchAuthorizationWebhookHandler(
   req: NextApiRequest,
   res: NextApiResponse,
 ): Promise<void> {
-  console.log(req.body);
   const logger = createLogger({ msgPrefix: "[HyperswitchWebhookHandler]" });
   let webhookBody = intoWebhookResponse(req.body);
 
@@ -141,24 +143,23 @@ export default async function hyperswitchAuthorizationWebhookHandler(
 
   const sourceObject =
     transaction.data?.transaction?.checkout ?? transaction.data?.transaction?.order;
-  
-  let isChargeFlow = transaction.data?.transaction?.events.some(event => event.type === 'AUTHORIZATION_SUCCESS');
+
+  let isChargeFlow = transaction.data?.transaction?.events.some(
+    (event) => event.type === "AUTHORIZATION_SUCCESS",
+  );
 
   const configurator = getPaymentAppConfigurator(client, saleorApiUrl);
   invariant(sourceObject, "Missing Source Object");
   const channelId = sourceObject.channel.id;
 
-  let paymentResponseHashKey = null; 
+  let paymentResponseHashKey = null;
   try {
-    paymentResponseHashKey = await fetchHyperswitchPaymentResponseHashKey(
-    configurator,
-    channelId,
-  );
-    } catch(errorData) {
-      return res.status(406).json("Channel not assigned");
-    };
-  
-  if (!verifyWebhookSource(req,  paymentResponseHashKey)) {
+    paymentResponseHashKey = await fetchHyperswitchPaymentResponseHashKey(configurator, channelId);
+  } catch (errorData) {
+    return res.status(406).json("Channel not assigned");
+  }
+
+  if (!verifyWebhookSource(req, paymentResponseHashKey)) {
     return res.status(400).json("Source Verification Failed");
   }
   logger.info("Webhook Source Verified");
@@ -168,16 +169,16 @@ export default async function hyperswitchAuthorizationWebhookHandler(
   let hyperswitchClient = null;
   try {
     hyperswitchClient = await createHyperswitchClient({
-    configurator,
-    channelId,
-  });
-} catch (errorData) {
-  if (errorData instanceof HyperswitchHttpClientError && errorData.statusCode != undefined) {
-  return res.status(errorData.statusCode).json(errorData.name);
-} else {
-  return res.status(424).json("Sync called failed");
-}
-}
+      configurator,
+      channelId,
+    });
+  } catch (errorData) {
+    if (errorData instanceof HyperswitchHttpClientError && errorData.statusCode != undefined) {
+      return res.status(errorData.statusCode).json(errorData.name);
+    } else {
+      return res.status(424).json("Sync called failed");
+    }
+  }
 
   let hyperswitchSyncResponse = null;
   let pspReference = null;
@@ -201,7 +202,7 @@ export default async function hyperswitchAuthorizationWebhookHandler(
     });
     hyperswitchSyncResponse = intoPaymentResponse(paymentSyncResponse.data);
     pspReference = hyperswitchSyncResponse.payment_id;
-  };
+  }
   const captureMethod = webhookBody.content.object.capture_method;
 
   const type = hyperswitchStatusToSaleorTransactionResult(
@@ -222,7 +223,9 @@ export default async function hyperswitchAuthorizationWebhookHandler(
       time: new Date().toISOString(),
       type,
       pspReference: isRefund ? getRefundId(webhookBody) : webhookBody.content.object.payment_id,
-      message:  webhookBody.content.object.error_message ? webhookBody.content.object.error_message : "",
+      message: webhookBody.content.object.error_message
+        ? webhookBody.content.object.error_message
+        : "",
     })
     .toPromise();
 
