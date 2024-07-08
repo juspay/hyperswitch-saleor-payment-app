@@ -101,18 +101,22 @@ export const TransactionInitializeSessionWebhookHandler = async (
   const createHyperswitchPayment = hyperswitchClient.path("/payments").method("post").create();
   const capture_method =
     event.action.actionType == TransactionFlowStrategyEnum.Authorization ? "manual" : "automatic";
+
+  const userEmail = requestData?.billingEmail ? requestData?.billingEmail : event.sourceObject.userEmail;
+
   const createPaymentPayload: paymentsComponents["schemas"]["PaymentsCreateRequest"] = {
     amount,
     confirm: false,
     currency: currency as paymentsComponents["schemas"]["PaymentsCreateRequest"]["currency"],
     capture_method,
+    email: normalizeValue(userEmail),
     statement_descriptor_name: normalizeValue(requestData?.statementDescriptorName),
     statement_descriptor_suffix: normalizeValue(requestData?.statementDescriptorSuffix),
     customer_id: normalizeValue(requestData?.customerId),
     authentication_type: normalizeValue(requestData?.authenticationType),
     return_url: normalizeValue(requestData?.returnUrl),
     description: normalizeValue(requestData?.description),
-    billing: buildAddressDetails(event.sourceObject.billingAddress, requestData?.billingEmail),
+    billing: buildAddressDetails(event.sourceObject.billingAddress, userEmail),
     shipping: buildAddressDetails(event.sourceObject.shippingAddress, requestData?.shippingEmail),
     metadata: {
       transaction_id: event.transaction.id,

@@ -162,7 +162,7 @@ export const buildAddressDetails = (billingAddress?: TransactionInitializeSessio
   return {
     address: buildAddress(billingAddress),
     phone: buildContact(billingAddress.phone),
-    email: billingEmail ? billingEmail: undefined,
+    email: normalizeValue(billingEmail)
   };
 };
 

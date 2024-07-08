@@ -14388,6 +14388,12 @@
             "currency": {
               "$ref": "#/components/schemas/Currency"
             },
+            "email": {
+              "type": "string",
+              "description": "The Email ID for ACH billing",
+              "example": "example@me.com",
+              "nullable": true
+            },
             "amount_to_capture": {
               "type": "integer",
               "format": "int64",
