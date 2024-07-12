@@ -18,7 +18,7 @@ import {
 } from "../hyperswitch/currencies";
 import { buildAddressDetails, validatePaymentCreateRequest } from "../hyperswitch/hyperswitch-api-request";
 import { ChannelNotConfigured, UnExpectedHyperswitchPaymentStatus, UnsupportedEvent } from "@/errors";
-import { createHyperswitchClient, fetchHyperswitchPublishableKey } from "../hyperswitch/hyperswitch-api";
+import { createHyperswitchClient, fetchHyperswitchProfileID, fetchHyperswitchPublishableKey } from "../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
 import { Channel } from '../../types';
 import {
@@ -98,6 +98,9 @@ export const TransactionInitializeSessionWebhookHandler = async (
     channelId,
   });
 
+  const profileId = await fetchHyperswitchProfileID(configurator, channelId);
+
+
   const createHyperswitchPayment = hyperswitchClient.path("/payments").method("post").create();
   const capture_method =
     event.action.actionType == TransactionFlowStrategyEnum.Authorization ? "manual" : "automatic";
@@ -109,6 +112,7 @@ export const TransactionInitializeSessionWebhookHandler = async (
     confirm: false,
     currency: currency as paymentsComponents["schemas"]["PaymentsCreateRequest"]["currency"],
     capture_method,
+    profile_id: profileId,
     email: normalizeValue(userEmail),
     statement_descriptor_name: normalizeValue(requestData?.statementDescriptorName),
     statement_descriptor_suffix: normalizeValue(requestData?.statementDescriptorSuffix),

@@ -37,6 +37,16 @@ const fetchHyperswitchConfiguration = async (configurator: PaymentAppConfigurato
   return paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
 }
 
+export const fetchHyperswitchProfileID = async (configurator: PaymentAppConfigurator, channelId: string): Promise<string> => { 
+  const appConfig = await configurator.getConfig();
+  const appChannelConfig = getConfigurationForChannel(appConfig, channelId);
+  if (appChannelConfig == null) {
+    throw new ChannelNotConfigured("Please assign a channel for your configuration");
+  };
+  const HyperswitchConfig =  paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
+  return HyperswitchConfig.profileId
+}
+
 
 export const fetchHyperswitchPublishableKey = async (configurator: PaymentAppConfigurator, channelId: string): Promise<string> => { 
   const appConfig = await configurator.getConfig();
