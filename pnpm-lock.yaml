@@ -294,8 +294,8 @@ importers:
         specifier: 6.5.4
         version: 6.5.4
       prettier:
-        specifier: 3.1.1
-        version: 3.1.1
+        specifier: 3.3.3
+        version: 3.3.3
       setup-polly-jest:
         specifier: 0.11.0
         version: 0.11.0(@pollyjs/core@6.0.6)
@@ -5262,8 +5262,8 @@ packages:
     engines: {node: '>=10.13.0'}
     hasBin: true
 
-  prettier@3.1.1:
-    resolution: {integrity: sha512-22UbSzg8luF4UuZtzgiUOfcGM8s4tjBv6dJRT7j275NXsy2jb4aJa4NNveul5x4eqlF1wuhuR2RElK71RvmVaw==}
+  prettier@3.3.3:
+    resolution: {integrity: sha512-i2tDNA0O5IrMO757lfrdQZCc2jPNDVntV0m/+4whiDfWaTKfMNgR7Qz0NAeGz/nRqF4m5/6CLzbP4/liHt12Ew==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -12715,7 +12715,7 @@ snapshots:
 
   prettier@2.8.8: {}
 
-  prettier@3.1.1: {}
+  prettier@3.3.3: {}
 
   pretty-format@27.5.1:
     dependencies:
