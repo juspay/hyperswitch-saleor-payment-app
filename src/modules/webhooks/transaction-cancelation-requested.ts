@@ -16,10 +16,12 @@ import { createClient } from "@/lib/create-graphq-client";
 import { createLogger } from "@/lib/logger";
 import { createHyperswitchClient } from "../hyperswitch/hyperswitch-api";
 import { ChannelNotConfigured } from "@/errors";
-import { getHyperswitchAmountFromSaleorMoney, getSaleorAmountFromHyperswitchAmount } from "../hyperswitch/currencies";
+import {
+  getHyperswitchAmountFromSaleorMoney,
+  getSaleorAmountFromHyperswitchAmount,
+} from "../hyperswitch/currencies";
 import { SyncWebhookAppErrors } from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
 import { intoPaymentResponse } from "../hyperswitch/hyperswitch-api-response";
-
 
 export const hyperswitchPaymentCancelStatusToSaleorTransactionResult = (
   status: string,
@@ -30,7 +32,7 @@ export const hyperswitchPaymentCancelStatusToSaleorTransactionResult = (
     case "failed":
       return "CANCEL_FAILURE";
     case "processing":
-      return undefined
+      return undefined;
     default:
       return null;
   }
@@ -58,7 +60,7 @@ export const TransactionCancelationRequestedWebhookHandler = async (
   invariant(event.transaction, "Missing transaction");
   // Fetch Transaction Details
   invariant(event.transaction.sourceObject, "Missing sourceObject");
-  const sourceObject = event.transaction.sourceObject
+  const sourceObject = event.transaction.sourceObject;
   const payment_id = event.transaction.pspReference;
   const channelId = sourceObject.channel.id;
 
@@ -72,14 +74,16 @@ export const TransactionCancelationRequestedWebhookHandler = async (
     .method("post")
     .create();
 
-    const cancelPaymentResponse = await cancelHyperswitchPayment({
-      ...{metadata: {
+  const cancelPaymentResponse = await cancelHyperswitchPayment({
+    ...{
+      metadata: {
         channel_id: sourceObject.channel.id,
         transaction_id: event.transaction.id,
         saleor_api_url: saleorApiUrl,
-      }},
-      payment_id,
-    });
+      },
+    },
+    payment_id,
+  });
 
   const cancelPaymentResponseData = intoPaymentResponse(cancelPaymentResponse.data);
   const result = hyperswitchPaymentCancelStatusToSaleorTransactionResult(
@@ -87,24 +91,24 @@ export const TransactionCancelationRequestedWebhookHandler = async (
   );
 
   const transactionCancelationRequestedResponse: TransactionCancelationRequestedResponse =
-   (result === undefined) ?
-   {
-    pspReference: cancelPaymentResponseData.payment_id,
-    message: "processing"
-   }: (result === null) ? 
-   {
-    pspReference: cancelPaymentResponseData.payment_id,
-    message: `Unexpected status: ${cancelPaymentResponseData.status} recieved from hyperswitch. Please check the payment flow.`
-   }:
-   {
+    result === undefined
+      ? {
           pspReference: cancelPaymentResponseData.payment_id,
-          result,
-          amount:  getSaleorAmountFromHyperswitchAmount(
-            cancelPaymentResponseData.amount,
-            cancelPaymentResponseData.currency,
-          ),
-    }
-
+          message: "processing",
+        }
+      : result === null
+        ? {
+            pspReference: cancelPaymentResponseData.payment_id,
+            message: `Unexpected status: ${cancelPaymentResponseData.status} recieved from hyperswitch. Please check the payment flow.`,
+          }
+        : {
+            pspReference: cancelPaymentResponseData.payment_id,
+            result,
+            amount: getSaleorAmountFromHyperswitchAmount(
+              cancelPaymentResponseData.amount,
+              cancelPaymentResponseData.currency,
+            ),
+          };
 
   return transactionCancelationRequestedResponse;
 };

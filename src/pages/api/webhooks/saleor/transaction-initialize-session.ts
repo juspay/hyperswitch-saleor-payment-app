@@ -35,13 +35,13 @@ export default transactionInitializeSessionSyncWebhook.createHandler(
     (payload, errorResponse) => {
       return {
         amount: payload.action.amount,
-        result: 
+        result:
           payload.action.actionType === TransactionFlowStrategyEnum.Authorization
             ? TransactionEventTypeEnum.AuthorizationFailure
             : TransactionEventTypeEnum.ChargeFailure,
         message: errorResponse.message,
         pspReference: "NO_PSP_REFERNCE",
-        data: { errors: errorResponse.errors}
+        data: { errors: errorResponse.errors },
       } as const;
     },
   ),

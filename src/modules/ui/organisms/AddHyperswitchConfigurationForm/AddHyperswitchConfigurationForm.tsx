@@ -15,7 +15,6 @@ import {
 } from "@/modules/payment-app-configuration/config-entry";
 import Link from "next/link";
 
-
 export const HyperswitchConfigurationForm = ({
   configurationId,
 }: {
@@ -52,9 +51,7 @@ export const HyperswitchConfigurationForm = ({
 
   return (
     <FormProvider {...formMethods}>
-      <AppLayoutRow
-        title="Hyperswitch Credentials"
-      >
+      <AppLayoutRow title="Hyperswitch Credentials">
         <AddHyperswitchCredentialsForm configurationId={configurationId} />
       </AppLayoutRow>
       {data && configurationId && (

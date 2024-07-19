@@ -21,7 +21,11 @@ import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
 } from "../hyperswitch/currencies";
-import { ChannelNotConfigured, HyperswitchHttpClientError, UnExpectedHyperswitchPaymentStatus } from "@/errors";
+import {
+  ChannelNotConfigured,
+  HyperswitchHttpClientError,
+  UnExpectedHyperswitchPaymentStatus,
+} from "@/errors";
 import { SyncWebhookAppErrors } from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
 import { createHyperswitchClient } from "../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
@@ -39,10 +43,9 @@ export const hyperswitchPaymentCaptureStatusToSaleorTransactionResult = (
     case "processing":
       return undefined;
     default:
-     return null;
+      return null;
   }
 };
-
 
 export const TransactionChargeRequestedWebhookHandler = async (
   event: TransactionChargeRequestedEventFragment,
@@ -67,7 +70,7 @@ export const TransactionChargeRequestedWebhookHandler = async (
 
   // Fetch Transaction Details
   invariant(event.transaction.sourceObject, "Missing sourceObject");
-  const sourceObject = event.transaction.sourceObject
+  const sourceObject = event.transaction.sourceObject;
   invariant(sourceObject?.total.gross.currency, "Missing Currency");
   const amount_to_capture = getHyperswitchAmountFromSaleorMoney(
     event.action.amount,
@@ -97,24 +100,24 @@ export const TransactionChargeRequestedWebhookHandler = async (
   const result = hyperswitchPaymentCaptureStatusToSaleorTransactionResult(
     capturePaymentResponseData.status,
   );
-  const transactionChargeRequestedResponse: TransactionChargeRequestedResponse = 
-  (result === undefined) ? 
-  {
-    pspReference: capturePaymentResponseData.payment_id,
-    message: "processing"
-  }:
-  (result === null) ? 
-  {
-    pspReference: capturePaymentResponseData.payment_id,
-    message: `Unexpected status: ${capturePaymentResponseData.status} recieved from hyperswitch. Please check the payment flow.`
-  }:
-  {
-    result,
-    pspReference: capturePaymentResponseData.payment_id,
-    amount: getSaleorAmountFromHyperswitchAmount(
-      capturePaymentResponseData.amount,
-      capturePaymentResponseData.currency,
-    ),
-  };
+  const transactionChargeRequestedResponse: TransactionChargeRequestedResponse =
+    result === undefined
+      ? {
+          pspReference: capturePaymentResponseData.payment_id,
+          message: "processing",
+        }
+      : result === null
+        ? {
+            pspReference: capturePaymentResponseData.payment_id,
+            message: `Unexpected status: ${capturePaymentResponseData.status} recieved from hyperswitch. Please check the payment flow.`,
+          }
+        : {
+            result,
+            pspReference: capturePaymentResponseData.payment_id,
+            amount: getSaleorAmountFromHyperswitchAmount(
+              capturePaymentResponseData.amount,
+              capturePaymentResponseData.currency,
+            ),
+          };
   return transactionChargeRequestedResponse;
 };

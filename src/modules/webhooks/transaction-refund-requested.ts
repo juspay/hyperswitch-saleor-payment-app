@@ -1,40 +1,46 @@
-
 import { getWebhookPaymentAppConfigurator } from "../payment-app-configuration/payment-app-configuration-factory";
 import { paymentAppFullyConfiguredEntrySchema } from "../payment-app-configuration/config-entry";
 import { getConfigurationForChannel } from "../payment-app-configuration/payment-app-configuration";
-import { GetTransactionByIdDocument, GetTransactionByIdQuery, GetTransactionByIdQueryVariables, TransactionFlowStrategyEnum, TransactionRefundRequestedEventFragment, type TransactionInitializeSessionEventFragment } from "generated/graphql";
+import {
+  GetTransactionByIdDocument,
+  GetTransactionByIdQuery,
+  GetTransactionByIdQueryVariables,
+  TransactionFlowStrategyEnum,
+  TransactionRefundRequestedEventFragment,
+  type TransactionInitializeSessionEventFragment,
+} from "generated/graphql";
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
-import {type TransactionRefundRequestedResponse} from "@/schemas/TransactionRefundRequested/TransactionRefundRequestedResponse.mjs";
+import { type TransactionRefundRequestedResponse } from "@/schemas/TransactionRefundRequested/TransactionRefundRequestedResponse.mjs";
 import { saleorApp } from "@/saleor-app";
 import { createClient } from "@/lib/create-graphq-client";
-import { getHyperswitchAmountFromSaleorMoney, getSaleorAmountFromHyperswitchAmount } from "../hyperswitch/currencies";
+import {
+  getHyperswitchAmountFromSaleorMoney,
+  getSaleorAmountFromHyperswitchAmount,
+} from "../hyperswitch/currencies";
 import { ChannelNotConfigured } from "@/errors";
 import { createHyperswitchClient } from "../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
 import { intoRefundResponse } from "../hyperswitch/hyperswitch-api-response";
 
-
-export type PaymentRefundResponse =  {
-  status: string,
-}
+export type PaymentRefundResponse = {
+  status: string;
+};
 
 export const hyperswitchRefundToTransactionResult = (
   status: string,
-): TransactionRefundRequestedResponse["result"]| null => {
+): TransactionRefundRequestedResponse["result"] | null => {
   switch (status) {
     case "succeeded":
-      return "REFUND_SUCCESS"
-    case "failed": 
-      return "REFUND_FAILURE"
+      return "REFUND_SUCCESS";
+    case "failed":
+      return "REFUND_FAILURE";
     case "pending":
-      return undefined
+      return undefined;
     default:
-      return null
+      return null;
   }
 };
-
-
 
 export const TransactionRefundRequestedWebhookHandler = async (
   event: TransactionRefundRequestedEventFragment,
@@ -56,7 +62,7 @@ export const TransactionRefundRequestedWebhookHandler = async (
   const { privateMetadata } = app;
   const configurator = getWebhookPaymentAppConfigurator({ privateMetadata }, saleorApiUrl);
   invariant(event.transaction, "Missing sourceObject");
-  const sourceObject = event.transaction.sourceObject
+  const sourceObject = event.transaction.sourceObject;
   invariant(sourceObject?.total.gross.currency, "Missing Currency");
   const amount = getHyperswitchAmountFromSaleorMoney(
     event.action.amount,
@@ -69,11 +75,8 @@ export const TransactionRefundRequestedWebhookHandler = async (
     channelId,
   });
 
-  const refundHyperswitchPayment = hyperswitchClient
-    .path("/refunds")
-    .method("post")
-    .create();
-    
+  const refundHyperswitchPayment = hyperswitchClient.path("/refunds").method("post").create();
+
   const refundPayload: paymentsComponents["schemas"]["RefundRequest"] = {
     payment_id,
     amount,
@@ -86,27 +89,26 @@ export const TransactionRefundRequestedWebhookHandler = async (
   const refundPaymentResponse = await refundHyperswitchPayment(refundPayload);
 
   const refundPaymentResponseData = intoRefundResponse(refundPaymentResponse.data);
-  const result = hyperswitchRefundToTransactionResult(
-    refundPaymentResponseData.status
-  );
-  
-  const transactionRefundRequestedResponse: TransactionRefundRequestedResponse = 
-  (result === undefined) ?
-   {
-    pspReference: refundPaymentResponseData.refund_id,
-    message: "pending"
-   }: (result === null) ? 
-   {
-    pspReference: refundPaymentResponseData.payment_id,
-    message: `Unexpected status: ${refundPaymentResponseData.status} recieved from hyperswitch. Please check the payment flow.`
-   }: {
-    pspReference: refundPaymentResponseData.refund_id,
-    result,
-    amount: getSaleorAmountFromHyperswitchAmount(
-      refundPaymentResponseData.amount,
-      refundPaymentResponseData.currency,
-    ),
-  };
-  return transactionRefundRequestedResponse;
+  const result = hyperswitchRefundToTransactionResult(refundPaymentResponseData.status);
 
+  const transactionRefundRequestedResponse: TransactionRefundRequestedResponse =
+    result === undefined
+      ? {
+          pspReference: refundPaymentResponseData.refund_id,
+          message: "pending",
+        }
+      : result === null
+        ? {
+            pspReference: refundPaymentResponseData.payment_id,
+            message: `Unexpected status: ${refundPaymentResponseData.status} recieved from hyperswitch. Please check the payment flow.`,
+          }
+        : {
+            pspReference: refundPaymentResponseData.refund_id,
+            result,
+            amount: getSaleorAmountFromHyperswitchAmount(
+              refundPaymentResponseData.amount,
+              refundPaymentResponseData.currency,
+            ),
+          };
+  return transactionRefundRequestedResponse;
 };

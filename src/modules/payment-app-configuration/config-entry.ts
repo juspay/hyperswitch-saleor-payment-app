@@ -67,7 +67,7 @@ export const paymentAppFormConfigEntrySchema = z
       "pro_",
       "This isn't publishable key, it must start with pro_",
     ),
-    configurationName: paymentAppConfigEntryInternalSchema.shape.configurationName
+    configurationName: paymentAppConfigEntryInternalSchema.shape.configurationName,
   })
   .strict()
   .default({

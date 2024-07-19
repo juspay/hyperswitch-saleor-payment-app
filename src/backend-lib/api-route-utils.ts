@@ -98,7 +98,6 @@ const errorToResponse = (err: unknown) => {
     }) ?? []),
   ];
 
-
   return {
     sentry,
     errors,

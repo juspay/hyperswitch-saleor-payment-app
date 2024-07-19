@@ -16,7 +16,7 @@ const ActionsPage = () => {
     appBridge?.dispatch(
       actions.Redirect({
         to: `/orders`,
-      })
+      }),
     );
   };
 

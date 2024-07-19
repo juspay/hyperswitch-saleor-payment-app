@@ -61,12 +61,7 @@ export const AppLayoutRow = ({
   return (
     <Box display="grid" className={appLayoutBoxRecipe({ error, disabled })}>
       <Box display="flex" flexDirection="column" rowGap={10}>
-        <Text
-          as="h2"
-          className={appLayoutTextRecipe({ error, disabled })}
-          size={6}
-    
-        >
+        <Text as="h2" className={appLayoutTextRecipe({ error, disabled })} size={6}>
           {title}
         </Text>
         {isValidElement(description) ? (
@@ -74,12 +69,7 @@ export const AppLayoutRow = ({
             {description}
           </Box>
         ) : (
-          <Text
-            as="p"
-            className={appLayoutTextRecipe({ error, disabled })}
-  
-            size={3}
-          >
+          <Text as="p" className={appLayoutTextRecipe({ error, disabled })} size={3}>
             {description}
           </Text>
         )}

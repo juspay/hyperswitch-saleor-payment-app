@@ -50,36 +50,37 @@ export const ConfirmationButton = ({
           <AlertDialog.Overlay className={modalOverlay} />
           <AlertDialog.Content className={modal}>
             <AlertDialog.Title asChild>
-              <Text sizes="medium">
-                Delete {configurationName}
-              </Text>
+              <Text sizes="medium">Delete {configurationName}</Text>
             </AlertDialog.Title>
             <AlertDialog.Description>
               <Box display="flex" flexDirection="column" rowGap={4}>
                 <Box>
                   <Text
-                    color={state === "inProgress" ? "buttonDefaultTertiary" : "buttonDefaultPrimary"}
+                    color={
+                      state === "inProgress" ? "buttonDefaultTertiary" : "buttonDefaultPrimary"
+                    }
                     as="p"
-                   
                     sizes="medium"
                   >
                     Are you sure you want to delete the configuration?
                   </Text>
                   <Text
                     as="p"
-      
                     sizes="medium"
-                    color={state === "inProgress" ? "buttonDefaultTertiary" : "buttonDefaultPrimary"}
+                    color={
+                      state === "inProgress" ? "buttonDefaultTertiary" : "buttonDefaultPrimary"
+                    }
                   >
                     Type the configuration name to confirm:{" "}
                     <Text
                       as="strong"
-                  
                       display="inline-block"
                       wordBreak="break-word"
                       sizes="medium"
-                      color={state === "inProgress" ? "buttonDefaultTertiary" : "buttonDefaultPrimary"}
-                      >
+                      color={
+                        state === "inProgress" ? "buttonDefaultTertiary" : "buttonDefaultPrimary"
+                      }
+                    >
                       {configurationName}
                     </Text>
                   </Text>

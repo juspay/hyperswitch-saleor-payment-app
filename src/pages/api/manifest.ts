@@ -9,7 +9,6 @@ import { transactionRefundRequestedSyncWebhook } from "./webhooks/saleor/transac
 import { transactionCancelationRequestedSyncWebhook } from "./webhooks/saleor/transaction-cancelation-requested";
 import { transactionProcessSessionSyncWebhook } from "./webhooks/saleor/transaction-process-session";
 
-
 export default createManifestHandler({
   async manifestFactory(context) {
     const manifest: AppManifest = {

@@ -110,41 +110,49 @@ const IndexPage: NextPage = () => {
 
   if (appBridgeState?.domain != "" && !appBridgeState?.ready) {
     return (
-      <Box display="flex" flexDirection="column" gap={2} placeItems="center" alignSelf="center" paddingY={20}>
-      <Text as="h1" color="critical2" size={8}>
-        Hey! Please reload the page
-      </Text>
-      <Text as="p">
-      We were not able to detect the saleor dashboard
-      </Text>
-    </Box>
+      <Box
+        display="flex"
+        flexDirection="column"
+        gap={2}
+        placeItems="center"
+        alignSelf="center"
+        paddingY={20}
+      >
+        <Text as="h1" color="critical2" size={8}>
+          Hey! Please reload the page
+        </Text>
+        <Text as="p">We were not able to detect the saleor dashboard</Text>
+      </Box>
     );
   }
 
   return (
-    <Box display="flex" flexDirection="column" gap={2} placeItems="center" alignSelf="center" paddingY={20}>
-      <Text as="h1" size={11} >
+    <Box
+      display="flex"
+      flexDirection="column"
+      gap={2}
+      placeItems="center"
+      alignSelf="center"
+      paddingY={20}
+    >
+      <Text as="h1" size={11}>
         Welcome to Payment App Hyperswitch 💰
       </Text>
       <Text as="p">
-      A community led, open payments orchestrator to enable access 
-      to the best payments infrastructure for every digital business
+        A community led, open payments orchestrator to enable access to the best payments
+        infrastructure for every digital business
       </Text>
 
       {!appBridgeState?.ready && (
         <>
-        <div>
-          <Text as="p">
-            Install this app in your Saleor Dashboard to proceed!
-          </Text>
-          {mounted && <AddToSaleorForm />}
-          
-        </div>
-      
-      <CopyManifest />
-      </>
-      )
-      }
+          <div>
+            <Text as="p">Install this app in your Saleor Dashboard to proceed!</Text>
+            {mounted && <AddToSaleorForm />}
+          </div>
+
+          <CopyManifest />
+        </>
+      )}
     </Box>
   );
 };

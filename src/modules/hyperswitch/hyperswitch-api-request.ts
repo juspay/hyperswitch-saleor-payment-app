@@ -1,102 +1,105 @@
-import { JsonSchemaError } from '@/errors';
-import { TransactionInitializeSessionAddressFragment, TransactionInitializeSessionEventFragment } from 'generated/graphql';
-import { z, ZodError } from 'zod';
+import { JsonSchemaError } from "@/errors";
+import {
+  TransactionInitializeSessionAddressFragment,
+  TransactionInitializeSessionEventFragment,
+} from "generated/graphql";
+import { z, ZodError } from "zod";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
-import { normalizeValue } from '../payment-app-configuration/utils';
-const AuthenticationTypeEnum = z.enum(['three_ds', 'no_three_ds']);
+import { normalizeValue } from "../payment-app-configuration/utils";
+const AuthenticationTypeEnum = z.enum(["three_ds", "no_three_ds"]);
 
-const SetupFutureUsageEnum = z.enum(['off_session', 'on_session']);
+const SetupFutureUsageEnum = z.enum(["off_session", "on_session"]);
 
 const AllowedPaymentMethodTypes = z.enum([
-    "ach",
-    "affirm",
-    "afterpay_clearpay",
-    "alfamart",
-    "ali_pay",
-    "ali_pay_hk",
-    "alma",
-    "apple_pay",
-    "atome",
-    "bacs",
-    "bancontact_card",
-    "becs",
-    "benefit",
-    "bizum",
-    "blik",
-    "boleto",
-    "bca_bank_transfer",
-    "bni_va",
-    "bri_va",
-    "card_redirect",
-    "cimb_va",
-    "classic",
-    "credit",
-    "crypto_currency",
-    "cashapp",
-    "dana",
-    "danamon_va",
-    "debit",
-    "efecty",
-    "eps",
-    "evoucher",
-    "giropay",
-    "givex",
-    "google_pay",
-    "go_pay",
-    "gcash",
-    "ideal",
-    "interac",
-    "indomaret",
-    "klarna",
-    "kakao_pay",
-    "mandiri_va",
-    "knet",
-    "mb_way",
-    "mobile_pay",
-    "momo",
-    "momo_atm",
-    "multibanco",
-    "online_banking_thailand",
-    "online_banking_czech_republic",
-    "online_banking_finland",
-    "online_banking_fpx",
-    "online_banking_poland",
-    "online_banking_slovakia",
-    "oxxo",
-    "pago_efectivo",
-    "permata_bank_transfer",
-    "open_banking_uk",
-    "pay_bright",
-    "paypal",
-    "pix",
-    "pay_safe_card",
-    "przelewy24",
-    "pse",
-    "red_compra",
-    "red_pagos",
-    "samsung_pay",
-    "sepa",
-    "sofort",
-    "swish",
-    "touch_n_go",
-    "trustly",
-    "twint",
-    "upi_collect",
-    "upi_intent",
-    "vipps",
-    "venmo",
-    "walley",
-    "we_chat_pay",
-    "seven_eleven",
-    "lawson",
-    "mini_stop",
-    "family_mart",
-    "seicomart",
-    "pay_easy",
-    "local_bank_transfer"
+  "ach",
+  "affirm",
+  "afterpay_clearpay",
+  "alfamart",
+  "ali_pay",
+  "ali_pay_hk",
+  "alma",
+  "apple_pay",
+  "atome",
+  "bacs",
+  "bancontact_card",
+  "becs",
+  "benefit",
+  "bizum",
+  "blik",
+  "boleto",
+  "bca_bank_transfer",
+  "bni_va",
+  "bri_va",
+  "card_redirect",
+  "cimb_va",
+  "classic",
+  "credit",
+  "crypto_currency",
+  "cashapp",
+  "dana",
+  "danamon_va",
+  "debit",
+  "efecty",
+  "eps",
+  "evoucher",
+  "giropay",
+  "givex",
+  "google_pay",
+  "go_pay",
+  "gcash",
+  "ideal",
+  "interac",
+  "indomaret",
+  "klarna",
+  "kakao_pay",
+  "mandiri_va",
+  "knet",
+  "mb_way",
+  "mobile_pay",
+  "momo",
+  "momo_atm",
+  "multibanco",
+  "online_banking_thailand",
+  "online_banking_czech_republic",
+  "online_banking_finland",
+  "online_banking_fpx",
+  "online_banking_poland",
+  "online_banking_slovakia",
+  "oxxo",
+  "pago_efectivo",
+  "permata_bank_transfer",
+  "open_banking_uk",
+  "pay_bright",
+  "paypal",
+  "pix",
+  "pay_safe_card",
+  "przelewy24",
+  "pse",
+  "red_compra",
+  "red_pagos",
+  "samsung_pay",
+  "sepa",
+  "sofort",
+  "swish",
+  "touch_n_go",
+  "trustly",
+  "twint",
+  "upi_collect",
+  "upi_intent",
+  "vipps",
+  "venmo",
+  "walley",
+  "we_chat_pay",
+  "seven_eleven",
+  "lawson",
+  "mini_stop",
+  "family_mart",
+  "seicomart",
+  "pay_easy",
+  "local_bank_transfer",
 ]);
 
-const RetryActionEnum = z.enum(['manual_retry', 'requeue']);
+const RetryActionEnum = z.enum(["manual_retry", "requeue"]);
 
 // Define the schema for PaymentCreateRequest
 const PaymentCreateRequestSchema = z.object({
@@ -108,8 +111,8 @@ const PaymentCreateRequestSchema = z.object({
   statementDescriptorName: z.string().email().nullable().optional(),
   statementDescriptorSuffix: z.string().email().nullable().optional(),
   // offSession: z.boolean().nullable().optional(),
-  description:  z.string().nullable().optional(),
-  returnUrl:  z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
+  returnUrl: z.string().nullable().optional(),
   // setupFutureUsage:  SetupFutureUsageEnum.nullable().optional(),
   allowedPaymentMethodTypes: z.array(AllowedPaymentMethodTypes).nullable().optional(),
   retryAction: RetryActionEnum.nullable().optional(),
@@ -131,7 +134,6 @@ export function validatePaymentCreateRequest(eventData: unknown): PaymentCreateR
     }
   }
 }
-
 
 const buildAddress = (address?: TransactionInitializeSessionAddressFragment) => {
   if (!address) {
@@ -155,16 +157,16 @@ const buildContact = (phoneNumber?: string | null | undefined) => {
   };
 };
 
-export const buildAddressDetails = (billingAddress?: TransactionInitializeSessionAddressFragment | null, billingEmail?: string | null) => {
+export const buildAddressDetails = (
+  billingAddress?: TransactionInitializeSessionAddressFragment | null,
+  billingEmail?: string | null,
+) => {
   if (!billingAddress) {
     return undefined;
   }
   return {
     address: buildAddress(billingAddress),
     phone: buildContact(billingAddress.phone),
-    email: normalizeValue(billingEmail)
+    email: normalizeValue(billingEmail),
   };
 };
-
-
-

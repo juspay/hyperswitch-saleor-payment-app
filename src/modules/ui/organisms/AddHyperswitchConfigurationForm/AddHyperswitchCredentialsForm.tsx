@@ -107,8 +107,7 @@ export const AddHyperswitchCredentialsForm = ({
   const handleConfigSave: SubmitHandler<PaymentAppFormConfigEntry> = (data) => {
     {
       configurationId
-        ? 
-          updateConfig({
+        ? updateConfig({
             configurationId,
             entry: data,
           })
@@ -124,8 +123,8 @@ export const AddHyperswitchCredentialsForm = ({
       autoComplete="off"
       onSubmit={handleSubmit(handleConfigSave)}
       footer={
-        <Box  flexDirection="row" columnGap={4} display={configurationId? "none": "flex"}>
-          <Button variant="primary" size="medium" type="submit" >
+        <Box flexDirection="row" columnGap={4} display={configurationId ? "none" : "flex"}>
+          <Button variant="primary" size="medium" type="submit">
             Save Configuration
           </Button>
         </Box>
@@ -142,7 +141,7 @@ export const AddHyperswitchCredentialsForm = ({
         />
         <FormInput
           control={control}
-          type = {secretInputType}
+          type={secretInputType}
           autoComplete="off"
           label="API Key"
           name="apiKey"

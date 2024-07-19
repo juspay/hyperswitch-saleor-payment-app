@@ -1,5 +1,5 @@
-import { z, ZodError } from 'zod';
-import { JsonSchemaError } from '@/errors';
+import { z, ZodError } from "zod";
+import { JsonSchemaError } from "@/errors";
 
 export const SaleorMetadataSchema = z.object({
   transaction_id: z.string(),
@@ -72,7 +72,6 @@ export const RefundResponseSchema = z.object({
   error_message: z.string().nullable().optional(),
 });
 
-
 export type RefundResponse = z.infer<typeof RefundResponseSchema>;
 
 export function intoRefundResponse(responseData: any): RefundResponse {
@@ -87,8 +86,7 @@ export function intoRefundResponse(responseData: any): RefundResponse {
   }
 }
 
-
-const CaptureMethodEnum = z.enum(['automatic', 'manual']);
+const CaptureMethodEnum = z.enum(["automatic", "manual"]);
 
 const WebhookObjectBodySchema = z.object({
   status: z.string(),
@@ -111,7 +109,6 @@ const WebhookBodySchema = z.object({
 export type WebhookResponse = z.infer<typeof WebhookBodySchema>;
 
 export type CaptureMethod = z.infer<typeof CaptureMethodEnum>;
-
 
 export function intoWebhookResponse(responseData: any): WebhookResponse {
   return WebhookBodySchema.parse(responseData);

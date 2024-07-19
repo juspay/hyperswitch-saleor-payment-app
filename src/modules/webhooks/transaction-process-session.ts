@@ -1,4 +1,7 @@
-import { SyncWebhookAppErrors, type TransactionProcessSessionResponse } from "@/schemas/TransactionProcessSession/TransactionProcessSessionResponse.mjs";
+import {
+  SyncWebhookAppErrors,
+  type TransactionProcessSessionResponse,
+} from "@/schemas/TransactionProcessSession/TransactionProcessSessionResponse.mjs";
 import { invariant } from "@/lib/invariant";
 import { type JSONObject } from "@/types";
 import { createLogger } from "@/lib/logger";
@@ -11,8 +14,15 @@ import {
 
 import { paymentAppFullyConfiguredEntrySchema } from "@/modules/payment-app-configuration/config-entry";
 import { getWebhookPaymentAppConfigurator } from "@/modules/payment-app-configuration/payment-app-configuration-factory";
-import { ChannelNotConfigured, UnExpectedHyperswitchPaymentStatus, UnsupportedEvent } from "@/errors";
-import { getHyperswitchAmountFromSaleorMoney, getSaleorAmountFromHyperswitchAmount } from "../hyperswitch/currencies";
+import {
+  ChannelNotConfigured,
+  UnExpectedHyperswitchPaymentStatus,
+  UnsupportedEvent,
+} from "@/errors";
+import {
+  getHyperswitchAmountFromSaleorMoney,
+  getSaleorAmountFromHyperswitchAmount,
+} from "../hyperswitch/currencies";
 import { createHyperswitchClient } from "../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
 import { validatePaymentCreateRequest } from "../hyperswitch/hyperswitch-api-request";
@@ -25,12 +35,11 @@ export const hyperswitchPaymentIntentToTransactionProcessResult = (
   transactionFlow: TransactionFlowStrategyEnum,
 ): TransactionProcessSessionResponse["result"] => {
   const prefix =
-  transactionFlow === TransactionFlowStrategyEnum.Authorization
-    ? "AUTHORIZATION"
-    : transactionFlow === TransactionFlowStrategyEnum.Charge
-      ? "CHARGE"
-      :
-        null;
+    transactionFlow === TransactionFlowStrategyEnum.Authorization
+      ? "AUTHORIZATION"
+      : transactionFlow === TransactionFlowStrategyEnum.Charge
+        ? "CHARGE"
+        : null;
 
   invariant(prefix, `Unsupported transactionFlowStrategy: ${transactionFlow}`);
 
@@ -38,23 +47,24 @@ export const hyperswitchPaymentIntentToTransactionProcessResult = (
     case "succeeded":
     case "partially_captured_and_capturable":
     case "partially_captured":
-      return `${prefix}_SUCCESS`
+      return `${prefix}_SUCCESS`;
     case "failed":
     case "cancelled":
-      return `${prefix}_FAILURE`
+      return `${prefix}_FAILURE`;
     case "requires_capture":
-      return "AUTHORIZATION_SUCCESS"
+      return "AUTHORIZATION_SUCCESS";
     case "requires_payment_method":
     case "requires_customer_action":
     case "requires_confirmation":
-      return `${prefix}_ACTION_REQUIRED`
+      return `${prefix}_ACTION_REQUIRED`;
     case "processing":
-      return `${prefix}_REQUEST`
+      return `${prefix}_REQUEST`;
     default:
-      throw new UnExpectedHyperswitchPaymentStatus(`Status received from hyperswitch: ${status}, is not expected . Please check the payment flow.`);
+      throw new UnExpectedHyperswitchPaymentStatus(
+        `Status received from hyperswitch: ${status}, is not expected . Please check the payment flow.`,
+      );
   }
 };
-
 
 export const TransactionProcessSessionWebhookHandler = async (
   event: TransactionProcessSessionEventFragment,
@@ -90,10 +100,13 @@ export const TransactionProcessSessionWebhookHandler = async (
     channelId,
   });
 
-  const retrieveHyperswitchPayment = hyperswitchClient.path("/payments/{payment_id}").method("get").create();
+  const retrieveHyperswitchPayment = hyperswitchClient
+    .path("/payments/{payment_id}")
+    .method("get")
+    .create();
 
   const resource_id: paymentsComponents["schemas"]["PaymentIdType"] = {
-    PaymentIntentId: event.transaction.pspReference
+    PaymentIntentId: event.transaction.pspReference,
   };
 
   const capture_method =
@@ -108,7 +121,7 @@ export const TransactionProcessSessionWebhookHandler = async (
 
   const retrievePaymentResponse = await retrieveHyperswitchPayment({
     ...retrievePaymentPayload,
-    payment_id
+    payment_id,
   });
   const retrievePaymentResponseData = intoPaymentResponse(retrievePaymentResponse.data);
 

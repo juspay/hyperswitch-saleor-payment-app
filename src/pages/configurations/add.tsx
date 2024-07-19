@@ -9,11 +9,11 @@ const AddConfigurationPage = () => {
       title="Hyperswitch > Add configuration"
       description={
         <>
-          <Text as="p"  sizes="medium">
+          <Text as="p" sizes="medium">
             Create new Hyperswitch configuration.
           </Text>
           <Text as="p" sizes="medium">
-          Hyperswitch Webhooks will be created automatically.
+            Hyperswitch Webhooks will be created automatically.
           </Text>
         </>
       }

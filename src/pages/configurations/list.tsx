@@ -57,10 +57,10 @@ function ListConfigurationPage() {
             </Text>
             {!channelMappings.isLoading && !hasAnyMappings && (
               <Box marginTop={6}>
-                <Text as="p"  size={5} color="critical2">
+                <Text as="p" size={5} color="critical2">
                   No channels have configurations assigned.
                 </Text>
-                <Text as="p"  size={5} color="critical2">
+                <Text as="p" size={5} color="critical2">
                   This means payments are not processed by Hypeswitch.
                 </Text>
               </Box>

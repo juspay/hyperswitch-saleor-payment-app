@@ -9,11 +9,18 @@ import {
 export const obfuscateConfigEntry = (
   entry: PaymentAppConfigEntry | PaymentAppUserVisibleConfigEntry,
 ): PaymentAppUserVisibleConfigEntry => {
-  const { apiKey, paymentResponseHashKey, publishableKey, profileId, configurationName, configurationId} = entry;
+  const {
+    apiKey,
+    paymentResponseHashKey,
+    publishableKey,
+    profileId,
+    configurationName,
+    configurationId,
+  } = entry;
 
   const configValuesToObfuscate = {
     apiKey,
-    paymentResponseHashKey
+    paymentResponseHashKey,
   } satisfies PaymentAppEncryptedConfig;
 
   return paymentAppUserVisibleConfigEntrySchema.parse({
@@ -25,8 +32,6 @@ export const obfuscateConfigEntry = (
   } satisfies PaymentAppUserVisibleConfigEntry);
 };
 
-export const normalizeValue = (
-  entry: any |  undefined | null
-) => {
-  return entry ? entry: undefined
-}
+export const normalizeValue = (entry: any | undefined | null) => {
+  return entry ? entry : undefined;
+};

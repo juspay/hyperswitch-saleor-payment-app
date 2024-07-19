@@ -84,7 +84,6 @@ export const addConfigEntry = async (
     { msgPrefix: "[addConfigEntry] " },
   );
 
-
   logger.debug("Creating new webhook for config entry");
 
   const uuid = uuidv7();
@@ -93,8 +92,8 @@ export const addConfigEntry = async (
     configurationId: uuid,
   } satisfies PaymentAppConfigEntryFullyConfigured;
 
-     // webhookSecret,
-    // webhookId,
+  // webhookSecret,
+  // webhookId,
 
   logger.debug({ config: redactLogObject(config) }, "Adding new config entry");
   await configurator.setConfigEntry(config);

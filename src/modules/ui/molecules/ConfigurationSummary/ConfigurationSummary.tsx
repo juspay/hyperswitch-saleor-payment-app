@@ -37,7 +37,6 @@ export const ConfigurationSummary = ({ config }: { config: PaymentAppUserVisible
       <Box as="dd" marginX={4} textAlign="right" fontSize={3}>
         <a>{config.publishableKey}</a>
       </Box>
-      
     </Box>
   );
 };

@@ -64,7 +64,7 @@ export const OrderExample = () => {
     appBridge?.dispatch(
       actions.Redirect({
         to: `/orders/${id}`,
-      })
+      }),
     );
   };
 
