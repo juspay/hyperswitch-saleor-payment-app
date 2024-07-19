@@ -1,5 +1,12 @@
-name: QA
-on: [pull_request]
+name: CI
+on:
+  push:
+    branches:
+      - main
+      - 'feature/*'
+  pull_request:
+    branches:
+      - main
 jobs:
   build:
     runs-on: ubuntu-22.04
@@ -22,5 +29,14 @@ jobs:
         run: pnpm install
       - name: Format the commit
         run: pnpm format
+      - name: Commit formatted changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -m "chore: format code"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build project
         run: pnpm build
