@@ -3,15 +3,20 @@ on:
   push:
     branches:
       - main
-      - 'feature/*'
+      - "feature/*"
   pull_request:
     branches:
       - main
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+    
       - uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
       - uses: actions/setup-node@v4
         with:
@@ -27,16 +32,7 @@ jobs:
             ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.json') }}-
       - name: Install dependencies
         run: pnpm install
-      - name: Format the commit
-        run: pnpm format
-      - name: Commit formatted changes
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add .
-          git commit -m "chore: format code"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check formatting 
+        run: pnpm check-format
       - name: Build project
         run: pnpm build
