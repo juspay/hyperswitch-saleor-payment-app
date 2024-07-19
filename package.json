@@ -131,7 +131,7 @@
     "eslint-plugin-import": "2.29.0",
     "eslint-plugin-require-form-method": "1.0.2",
     "eslint-plugin-testing-library": "6.2.0",
-    "eslint-plugin-vitest": "0.3.16",
+    "eslint-plugin-vitest": "0.4.1",
     "husky": "8.0.3",
     "json-schema-to-typescript": "13.1.1",
     "lint-staged": "15.2.0",
