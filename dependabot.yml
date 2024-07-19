@@ -1,0 +1,6 @@
+version: 2
+updates:
+  - c: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
