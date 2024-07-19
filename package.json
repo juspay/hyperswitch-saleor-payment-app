@@ -10,6 +10,11 @@
     "url": "https://github.com/AkshayaFoiger/saleor-app-payment-hyperswitch",
     "email": "hello@saleor.io"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
+  },
   "type": "module",
   "scripts": {
     "dev": "pnpm generate && next dev",
@@ -137,6 +142,7 @@
     "next-test-api-route-handler": "3.1.10",
     "openapi-typescript": "6.5.4",
     "prettier": "3.3.3",
+    "pretty-quick": "^4.0.0",
     "setup-polly-jest": "0.11.0",
     "ts-node": "10.9.2",
     "typescript": "5.3.3",
