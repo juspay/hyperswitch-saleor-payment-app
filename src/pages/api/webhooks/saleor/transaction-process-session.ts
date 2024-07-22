@@ -8,8 +8,9 @@ import {
   TransactionFlowStrategyEnum,
 } from "generated/graphql";
 import { getSyncWebhookHandler } from "@/backend-lib/api-route-utils";
-import { TransactionProcessSessionWebhookHandler } from "@/modules/webhooks/transaction-process-session";
+import { TransactionProcessSessionHyperswitchWebhookHandler } from "@/modules/webhooks/hyperswitch/transaction-process-session";
 import ValidateTransactionProcessSessionResponse from "@/schemas/TransactionProcessSession/TransactionProcessSessionResponse.mjs";
+import { TransactionProcessSessionConfigHandler } from "@/modules/webhooks/utils/config-handlers";
 
 export const config: PageConfig = {
   api: {
@@ -29,7 +30,9 @@ export const transactionProcessSessionSyncWebhook =
 export default transactionProcessSessionSyncWebhook.createHandler(
   getSyncWebhookHandler(
     "transactionProcessSessionSyncWebhook",
-    TransactionProcessSessionWebhookHandler,
+    TransactionProcessSessionConfigHandler,
+    TransactionProcessSessionHyperswitchWebhookHandler,
+    TransactionProcessSessionHyperswitchWebhookHandler,
     ValidateTransactionProcessSessionResponse,
     (payload, errorResponse) => {
       return {
