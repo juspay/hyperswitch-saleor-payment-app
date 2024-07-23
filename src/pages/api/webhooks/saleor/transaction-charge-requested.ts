@@ -11,7 +11,7 @@ import { getSyncWebhookHandler } from "@/backend-lib/api-route-utils";
 import { TransactionChargeRequestedHyperswitchWebhookHandler } from "@/modules/webhooks/hyperswitch/transaction-charge-requested";
 import ValidateTransactionChargeRequestedResponse from "@/schemas/TransactionChargeRequested/TransactionChargeRequestedResponse.mjs";
 import { TransactionChargeRequestedJuspayWebhookHandler } from "@/modules/webhooks/juspay/transaction-charge-requested";
-import { TransactionChargeRequestedHyperswitchConfigHandler } from "@/modules/webhooks/utils/config-handlers";
+import { TransactionChargeRequestedConfigHandler } from "@/modules/webhooks/utils/config-handlers";
 
 export const config: PageConfig = {
   api: {
@@ -31,7 +31,7 @@ export const transactionChargeRequestedSyncWebhook =
 export default transactionChargeRequestedSyncWebhook.createHandler(
   getSyncWebhookHandler(
     "transactionChargeRequestedSyncWebhook",
-    TransactionChargeRequestedHyperswitchConfigHandler,
+    TransactionChargeRequestedConfigHandler,
     TransactionChargeRequestedHyperswitchWebhookHandler,
     TransactionChargeRequestedJuspayWebhookHandler,
     ValidateTransactionChargeRequestedResponse,

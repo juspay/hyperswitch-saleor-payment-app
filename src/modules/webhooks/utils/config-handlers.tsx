@@ -24,7 +24,7 @@ export const TransactionInitializeSessionConfigHandler = async (
   return appConfig;
 };
 
-export const TransactionChargeRequestedHyperswitchConfigHandler = async (
+export const TransactionChargeRequestedConfigHandler = async (
   event: TransactionChargeRequestedEventFragment,
   saleorApiUrl: string,
 ): Promise<ConfigObject> => {
