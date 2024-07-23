@@ -1,7 +1,7 @@
-import { getWebhookPaymentAppConfigurator } from "../payment-app-configuration/payment-app-configuration-factory";
-import { paymentAppFullyConfiguredEntrySchema } from "../payment-app-configuration/config-entry";
+import { getWebhookHyperswitchConfigurator } from "../payment-app-configuration/payment-app-configuration-factory";
+import { hyperswitchFullyConfiguredEntrySchema } from "../payment-app-configuration/config-entry";
 import { obfuscateConfig, obfuscateValue } from "../app-configuration/utils";
-import { getConfigurationForChannel } from "../payment-app-configuration/payment-app-configuration";
+import { getConfigurationForHyperswitchChannel } from "../payment-app-configuration/payment-app-configuration";
 import {
   SyncWebhookAppErrors,
   type TransactionInitializeSessionResponse,
@@ -93,7 +93,7 @@ export const TransactionInitializeSessionWebhookHandler = async (
   const app = event.recipient;
   invariant(app, "Missing event.recipient!");
   const { privateMetadata } = app;
-  const configurator = getWebhookPaymentAppConfigurator({ privateMetadata }, saleorApiUrl);
+  const configurator = getWebhookHyperswitchConfigurator({ privateMetadata }, saleorApiUrl);
   const errors: SyncWebhookAppErrors = [];
   const currency = event.action.currency;
   const amount = getHyperswitchAmountFromSaleorMoney(event.action.amount, currency);

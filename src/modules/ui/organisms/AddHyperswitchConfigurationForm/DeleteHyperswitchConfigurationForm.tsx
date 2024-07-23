@@ -18,7 +18,7 @@ export const DeleteHyperswitchConfigurationForm = ({
   const { appBridge } = useAppBridge();
 
   const { mutateAsync: deleteConfig } =
-    trpcClient.paymentAppConfigurationRouter.paymentConfig.delete.useMutation({
+    trpcClient.hyperswitchConfigurationRouter.paymentConfig.delete.useMutation({
       onError: (err) => {
         getErrorHandler({
           appBridge,
@@ -35,7 +35,7 @@ export const DeleteHyperswitchConfigurationForm = ({
     }
     await deleteConfig({ configurationId });
     await router.replace("/configurations/list");
-    await context.paymentAppConfigurationRouter.invalidate();
+    await context.hyperswitchConfigurationRouter.invalidate();
   };
 
   return (

@@ -1,14 +1,18 @@
 import { obfuscateConfig } from "../app-configuration/utils";
 import {
-  type PaymentAppConfigEntry,
-  type PaymentAppEncryptedConfig,
-  type PaymentAppUserVisibleConfigEntry,
-  paymentAppUserVisibleConfigEntrySchema,
+  type HyperswitchConfigEntry,
+  type HyperswitchEncryptedConfig,
+  type HyperswitchUserVisibleConfigEntry,
+  hyperswitchUserVisibleConfigEntrySchema,
+  JuspayConfigEntry,
+  JuspayUserVisibleConfigEntry,
+  JuspayEncryptedConfig,
+  juspayUserVisibleConfigEntrySchema,
 } from "./config-entry";
 
-export const obfuscateConfigEntry = (
-  entry: PaymentAppConfigEntry | PaymentAppUserVisibleConfigEntry,
-): PaymentAppUserVisibleConfigEntry => {
+export const obfuscateHyperswitchConfigEntry = (
+  entry: HyperswitchConfigEntry | HyperswitchUserVisibleConfigEntry,
+): HyperswitchUserVisibleConfigEntry => {
   const {
     apiKey,
     paymentResponseHashKey,
@@ -21,15 +25,41 @@ export const obfuscateConfigEntry = (
   const configValuesToObfuscate = {
     apiKey,
     paymentResponseHashKey,
-  } satisfies PaymentAppEncryptedConfig;
+  } satisfies HyperswitchEncryptedConfig;
 
-  return paymentAppUserVisibleConfigEntrySchema.parse({
+  return hyperswitchUserVisibleConfigEntrySchema.parse({
     publishableKey,
     profileId,
     configurationId,
     configurationName,
     ...obfuscateConfig(configValuesToObfuscate),
-  } satisfies PaymentAppUserVisibleConfigEntry);
+  } satisfies HyperswitchUserVisibleConfigEntry);
+};
+
+export const obfuscateJuspayConfigEntry = (
+  entry: JuspayConfigEntry | JuspayUserVisibleConfigEntry,
+): JuspayUserVisibleConfigEntry => {
+  const {
+    apiKey,
+    username,
+    password,
+    clientId,
+    configurationName,
+    configurationId,
+  } = entry;
+
+  const configValuesToObfuscate = {
+    apiKey,
+    password,
+  } satisfies JuspayEncryptedConfig;
+
+  return juspayUserVisibleConfigEntrySchema.parse({
+    username,
+    clientId,
+    configurationId,
+    configurationName,
+    ...obfuscateConfig(configValuesToObfuscate),
+  } satisfies JuspayUserVisibleConfigEntry);
 };
 
 export const normalizeValue = (entry: any | undefined | null) => {

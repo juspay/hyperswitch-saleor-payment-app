@@ -1,6 +1,6 @@
-import { getWebhookPaymentAppConfigurator } from "../payment-app-configuration/payment-app-configuration-factory";
-import { paymentAppFullyConfiguredEntrySchema } from "../payment-app-configuration/config-entry";
-import { getConfigurationForChannel } from "../payment-app-configuration/payment-app-configuration";
+import { getWebhookHyperswitchConfigurator } from "../payment-app-configuration/payment-app-configuration-factory";
+import { hyperswitchFullyConfiguredEntrySchema } from "../payment-app-configuration/config-entry";
+import { getConfigurationForHyperswitchChannel } from "../payment-app-configuration/payment-app-configuration";
 import {
   GetTransactionByIdDocument,
   GetTransactionByIdQuery,
@@ -60,7 +60,7 @@ export const TransactionRefundRequestedWebhookHandler = async (
   const app = event.recipient;
   invariant(app, "Missing event.recipient!");
   const { privateMetadata } = app;
-  const configurator = getWebhookPaymentAppConfigurator({ privateMetadata }, saleorApiUrl);
+  const configurator = getWebhookHyperswitchConfigurator({ privateMetadata }, saleorApiUrl);
   invariant(event.transaction, "Missing sourceObject");
   const sourceObject = event.transaction.sourceObject;
   invariant(sourceObject?.total.gross.currency, "Missing Currency");

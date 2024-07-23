@@ -26,9 +26,9 @@ import {
 } from "generated/graphql";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Event } from "../../../../../generated/graphql";
-import { getPaymentAppConfigurator } from "@/modules/payment-app-configuration/payment-app-configuration-factory";
-import { getConfigurationForChannel } from "@/modules/payment-app-configuration/payment-app-configuration";
-import { paymentAppFullyConfiguredEntrySchema } from "@/modules/payment-app-configuration/config-entry";
+import { getHyperswitchConfigurator } from "@/modules/payment-app-configuration/payment-app-configuration-factory";
+import { getConfigurationForHyperswitchChannel } from "@/modules/payment-app-configuration/payment-app-configuration";
+import { hyperswitchFullyConfiguredEntrySchema } from "@/modules/payment-app-configuration/config-entry";
 import {
   createHyperswitchClient,
   fetchHyperswitchPaymentResponseHashKey,
@@ -148,7 +148,7 @@ export default async function hyperswitchAuthorizationWebhookHandler(
     (event) => event.type === "AUTHORIZATION_SUCCESS",
   );
 
-  const configurator = getPaymentAppConfigurator(client, saleorApiUrl);
+  const configurator = getHyperswitchConfigurator(client, saleorApiUrl);
   invariant(sourceObject, "Missing Source Object");
   const channelId = sourceObject.channel.id;
 

@@ -8,17 +8,17 @@ import { FormInput } from "@/modules/ui/atoms/macaw-ui/FormInput";
 import { trpcClient } from "@/modules/trpc/trpc-client";
 import { getErrorHandler, getFieldErrorHandler, getFormFields } from "@/modules/trpc/utils";
 import { invariant } from "@/lib/invariant";
-import { type HyperswitchFormConfigEntry } from "@/modules/payment-app-configuration/config-entry";
+import { type JuspayFormConfigEntry } from "@/modules/payment-app-configuration/config-entry";
 import { config } from "../../../../pages/api/webhooks/saleor/payment-gateway-initialize-session";
 
 const actionId = "payment-form";
 
-export const AddHyperswitchCredentialsForm = ({
+export const AddJuspayCredentialsForm = ({
   configurationId,
 }: {
   configurationId?: string | undefined | null;
 }) => {
-  const formMethods = useFormContext<HyperswitchFormConfigEntry>();
+  const formMethods = useFormContext<JuspayFormConfigEntry>();
   const { appBridge } = useAppBridge();
   const router = useRouter();
 
@@ -32,8 +32,8 @@ export const AddHyperswitchCredentialsForm = ({
     formState: { defaultValues },
   } = formMethods;
 
-  const { data: hyperswitchConfigurationData } =
-    trpcClient.hyperswitchConfigurationRouter.paymentConfig.get.useQuery(
+  const { data: juspayConfigurationData } =
+    trpcClient.juspayConfigurationRouter.paymentConfig.get.useQuery(
       { configurationId: configurationId! },
       {
         enabled: !!configurationId,
@@ -49,10 +49,10 @@ export const AddHyperswitchCredentialsForm = ({
     );
 
   useEffect(() => {
-    if (hyperswitchConfigurationData) {
-      reset(hyperswitchConfigurationData);
+    if (juspayConfigurationData) {
+      reset(juspayConfigurationData);
     }
-  }, [hyperswitchConfigurationData, reset]);
+  }, [juspayConfigurationData, reset]);
 
   const getOnSuccess = useCallback(
     (message: string) => {
@@ -66,10 +66,10 @@ export const AddHyperswitchCredentialsForm = ({
             actionId,
           },
         });
-        void context.hyperswitchConfigurationRouter.paymentConfig.invalidate();
+        void context.juspayConfigurationRouter.paymentConfig.invalidate();
       };
     },
-    [appBridge, context.hyperswitchConfigurationRouter.paymentConfig],
+    [appBridge, context.juspayConfigurationRouter.paymentConfig],
   );
 
   const onError = getFieldErrorHandler({
@@ -81,7 +81,7 @@ export const AddHyperswitchCredentialsForm = ({
   });
 
   const { mutate: updateConfig } =
-    trpcClient.hyperswitchConfigurationRouter.paymentConfig.update.useMutation({
+    trpcClient.juspayConfigurationRouter.paymentConfig.update.useMutation({
       onSuccess: (data) => {
         invariant(data.configurationId);
         getOnSuccess("App configuration was updated successfully")();
@@ -90,10 +90,10 @@ export const AddHyperswitchCredentialsForm = ({
       onError,
     });
   const { mutate: addNewConfig } =
-    trpcClient.hyperswitchConfigurationRouter.paymentConfig.add.useMutation({
+    trpcClient.juspayConfigurationRouter.paymentConfig.add.useMutation({
       onSuccess: async (data) => {
         invariant(data.configurationId);
-        context.hyperswitchConfigurationRouter.paymentConfig.get.setData(
+        context.juspayConfigurationRouter.paymentConfig.get.setData(
           { configurationId: data.configurationId },
           data,
         );
@@ -104,7 +104,8 @@ export const AddHyperswitchCredentialsForm = ({
       onError,
     });
 
-  const handleConfigSave: SubmitHandler<HyperswitchFormConfigEntry> = (data) => {
+  const handleConfigSave: SubmitHandler<JuspayFormConfigEntry> = (data) => {
+    console.log("****came to fun ",data)
     {
       configurationId
         ? updateConfig({
@@ -144,29 +145,33 @@ export const AddHyperswitchCredentialsForm = ({
           type={secretInputType}
           autoComplete="off"
           label="API Key"
+          helperText="API key you got from juspay dashboard."
           name="apiKey"
           size="medium"
         />
         <FormInput
           control={control}
           autoComplete="off"
-          label="Publishable Key"
-          name="publishableKey"
-          size="medium"
-        />
-        <FormInput
-          control={control}
-          autoComplete="off"
-          label="Profile ID"
-          name="profileId"
+          label="Username"
+          helperText="Username from your juspay dashboard setting for webhook."
+          name="username"
           size="medium"
         />
         <FormInput
           control={control}
           type={secretInputType}
           autoComplete="off"
-          label="Payment Response Hash Key"
-          name="paymentResponseHashKey"
+          label="Passowrd"
+          helperText="Passowrd from your juspay dashboard setting for webhook."
+          name="password"
+          size="medium"
+        />
+        <FormInput
+          control={control}
+          autoComplete="off"
+          label="Client ID"
+          helperText="ClientId for which you are adding configuration."
+          name="clientId"
           size="medium"
         />
       </Box>

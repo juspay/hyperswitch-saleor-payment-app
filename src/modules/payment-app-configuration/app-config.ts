@@ -1,12 +1,15 @@
 import { z } from "zod";
 import {
-  paymentAppConfigEntrySchema,
-  paymentAppUserVisibleConfigEntrySchema,
+  hyperswitchConfigEntrySchema,
+  hyperswitchUserVisibleConfigEntrySchema,
+  juspayConfigEntrySchema,
+  juspayUserVisibleConfigEntrySchema,
 } from "./config-entry";
 
-export const paymentAppConfigEntriesSchema = paymentAppConfigEntrySchema.array();
-export const paymentAppUserVisibleConfigEntriesSchema =
-  paymentAppUserVisibleConfigEntrySchema.array();
+export const hyperswitchConfigEntriesSchema = hyperswitchConfigEntrySchema.array();
+export const juspayConfigEntriesSchema = juspayConfigEntrySchema.array();
+export const hyperswitchUserVisibleConfigEntriesSchema = hyperswitchUserVisibleConfigEntrySchema.array();
+export const juspayUserVisibleConfigEntriesSchema = juspayUserVisibleConfigEntrySchema.array();
 
 // Record<ChannelID, AppConfigEntryId>
 export const channelMappingSchema = z
@@ -15,9 +18,9 @@ export const channelMappingSchema = z
 
 export type ChannelMapping = z.infer<typeof channelMappingSchema>;
 
-export const paymentAppConfigSchema = z
+export const hyperswitchConfigSchema = z
   .object({
-    configurations: paymentAppConfigEntriesSchema,
+    configurations: hyperswitchConfigEntriesSchema,
     channelToConfigurationId: channelMappingSchema,
     lastMigration: z.number().nullish(),
   })
@@ -27,9 +30,21 @@ export const paymentAppConfigSchema = z
     lastMigration: null,
   });
 
-export const paymentAppUserVisibleConfigSchema = z
+export const juspayConfigSchema = z
   .object({
-    configurations: paymentAppUserVisibleConfigEntriesSchema,
+    configurations: juspayConfigEntriesSchema,
+    channelToConfigurationId: channelMappingSchema,
+    lastMigration: z.number().nullish(),
+  })
+  .default({
+    configurations: [],
+    channelToConfigurationId: {},
+    lastMigration: null,
+  });
+
+export const hyperswitchUserVisibleConfigSchema = z
+  .object({
+    configurations: hyperswitchUserVisibleConfigEntriesSchema,
     channelToConfigurationId: channelMappingSchema,
   })
   .default({
@@ -37,12 +52,31 @@ export const paymentAppUserVisibleConfigSchema = z
     channelToConfigurationId: {},
   });
 
-export const defaultPaymentAppConfig: PaymentAppConfig = {
+export const juspayUserVisibleConfigSchema = z
+  .object({
+    configurations: juspayUserVisibleConfigEntriesSchema,
+    channelToConfigurationId: channelMappingSchema,
+  })
+  .default({
+    configurations: [],
+    channelToConfigurationId: {},
+  });
+
+export const defaultHyperswitchConfig: HyperswitchConfig = {
   configurations: [],
   channelToConfigurationId: {},
 };
 
-export type PaymentAppConfigEntries = z.infer<typeof paymentAppConfigEntriesSchema>;
-export type PaymentAppUserVisibleEntries = z.infer<typeof paymentAppUserVisibleConfigEntriesSchema>;
-export type PaymentAppConfig = z.infer<typeof paymentAppConfigSchema>;
-export type PaymentAppConfigUserVisible = z.infer<typeof paymentAppUserVisibleConfigSchema>;
+export const defaultJuspayConfig: JuspayConfig = {
+  configurations: [],
+  channelToConfigurationId: {},
+};
+
+export type HyperswitchConfigEntries = z.infer<typeof hyperswitchConfigEntriesSchema>;
+export type JuspayConfigEntries = z.infer<typeof juspayConfigEntriesSchema>;
+export type HyperswitchUserVisibleEntries = z.infer<typeof hyperswitchUserVisibleConfigEntriesSchema>;
+export type JuspayUserVisibleEntries = z.infer<typeof juspayUserVisibleConfigEntriesSchema>;
+export type HyperswitchConfig = z.infer<typeof hyperswitchConfigSchema>;
+export type JuspayConfig = z.infer<typeof juspayConfigSchema>;
+export type HyperswitchConfigUserVisible = z.infer<typeof hyperswitchUserVisibleConfigSchema>;
+export type JuspayConfigUserVisible = z.infer<typeof juspayUserVisibleConfigSchema>;

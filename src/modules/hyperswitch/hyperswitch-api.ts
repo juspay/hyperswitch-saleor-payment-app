@@ -4,12 +4,12 @@ import { ApiError, Fetcher } from "openapi-typescript-fetch";
 import { intoErrorResponse } from "./hyperswitch-api-response";
 import { SyncWebhookAppError } from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
 import {
-  getConfigurationForChannel,
-  PaymentAppConfigurator,
+  getConfigurationForHyperswitchChannel,
+  HyperswitchConfigurator,
 } from "../payment-app-configuration/payment-app-configuration";
 import {
-  PaymentAppConfigEntryFullyConfigured,
-  paymentAppFullyConfiguredEntrySchema,
+  HyperswitchConfigEntryFullyConfigured,
+  hyperswitchFullyConfiguredEntrySchema,
 } from "../payment-app-configuration/config-entry";
 
 const SANDBOX_BASE_URL: string = "https://sandbox.hyperswitch.io";
@@ -30,53 +30,53 @@ const getHyperswitchBaseUrl = (publishableKey: string) => {
 };
 
 const fetchHyperswitchConfiguration = async (
-  configurator: PaymentAppConfigurator,
+  configurator: HyperswitchConfigurator,
   channelId: string,
-): Promise<PaymentAppConfigEntryFullyConfigured> => {
+): Promise<HyperswitchConfigEntryFullyConfigured> => {
   const appConfig = await configurator.getConfig();
-  const appChannelConfig = getConfigurationForChannel(appConfig, channelId);
+  const appChannelConfig = getConfigurationForHyperswitchChannel(appConfig, channelId);
   if (appChannelConfig == null) {
     throw new ChannelNotConfigured("Please assign a channel for your configuration");
   }
-  return paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
+  return hyperswitchFullyConfiguredEntrySchema.parse(appChannelConfig);
 };
 
 export const fetchHyperswitchProfileID = async (
-  configurator: PaymentAppConfigurator,
+  configurator: HyperswitchConfigurator,
   channelId: string,
 ): Promise<string> => {
   const appConfig = await configurator.getConfig();
-  const appChannelConfig = getConfigurationForChannel(appConfig, channelId);
+  const appChannelConfig = getConfigurationForHyperswitchChannel(appConfig, channelId);
   if (appChannelConfig == null) {
     throw new ChannelNotConfigured("Please assign a channel for your configuration");
   }
-  const HyperswitchConfig = paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
+  const HyperswitchConfig = hyperswitchFullyConfiguredEntrySchema.parse(appChannelConfig);
   return HyperswitchConfig.profileId;
 };
 
 export const fetchHyperswitchPublishableKey = async (
-  configurator: PaymentAppConfigurator,
+  configurator: HyperswitchConfigurator,
   channelId: string,
 ): Promise<string> => {
   const appConfig = await configurator.getConfig();
-  const appChannelConfig = getConfigurationForChannel(appConfig, channelId);
+  const appChannelConfig = getConfigurationForHyperswitchChannel(appConfig, channelId);
   if (appChannelConfig == null) {
     throw new ChannelNotConfigured("Please assign a channel for your configuration");
   }
-  const HyperswitchConfig = paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
+  const HyperswitchConfig = hyperswitchFullyConfiguredEntrySchema.parse(appChannelConfig);
   return HyperswitchConfig.publishableKey;
 };
 
 export const fetchHyperswitchPaymentResponseHashKey = async (
-  configurator: PaymentAppConfigurator,
+  configurator: HyperswitchConfigurator,
   channelId: string,
 ): Promise<string> => {
   const appConfig = await configurator.getConfig();
-  const appChannelConfig = getConfigurationForChannel(appConfig, channelId);
+  const appChannelConfig = getConfigurationForHyperswitchChannel(appConfig, channelId);
   if (appChannelConfig == null) {
     throw new ChannelNotConfigured("Please assign a channel for your configuration");
   }
-  const HyperswitchConfig = paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
+  const HyperswitchConfig = hyperswitchFullyConfiguredEntrySchema.parse(appChannelConfig);
   return HyperswitchConfig.paymentResponseHashKey;
 };
 
@@ -84,7 +84,7 @@ export const createHyperswitchClient = async ({
   configurator,
   channelId,
 }: {
-  configurator: PaymentAppConfigurator;
+  configurator: HyperswitchConfigurator;
   channelId: string;
 }) => {
   const HyperswitchConfig = await fetchHyperswitchConfiguration(configurator, channelId);

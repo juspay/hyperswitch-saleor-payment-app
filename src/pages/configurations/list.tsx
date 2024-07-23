@@ -11,7 +11,7 @@ import { Skeleton } from "@/modules/ui/atoms/Skeleton/Skeleton";
 function ListConfigurationPage() {
   const { appBridge } = useAppBridge();
   const [allConfigurations, channelMappings] = trpcClient.useQueries((t) => [
-    t.paymentAppConfigurationRouter.paymentConfig.getAll(undefined, {
+    t.hyperswitchConfigurationRouter.paymentConfig.getAll(undefined, {
       onError: getErrorHandler({
         appBridge,
         actionId: "list-all-configurations",
@@ -19,7 +19,23 @@ function ListConfigurationPage() {
         title: "API Error",
       }),
     }),
-    t.paymentAppConfigurationRouter.mapping.getAll(undefined, {
+    t.hyperswitchConfigurationRouter.mapping.getAll(undefined, {
+      onError: getErrorHandler({
+        appBridge,
+        actionId: "channel-mappings-get-all",
+        message: "Error while fetching the channel mappings",
+        title: "API Error",
+      }),
+    }),
+    t.juspayConfigurationRouter.paymentConfig.getAll(undefined, {
+      onError: getErrorHandler({
+        appBridge,
+        actionId: "list-all-configurations",
+        message: "Error while fetching the list of configurations",
+        title: "API Error",
+      }),
+    }),
+    t.juspayConfigurationRouter.mapping.getAll(undefined, {
       onError: getErrorHandler({
         appBridge,
         actionId: "channel-mappings-get-all",

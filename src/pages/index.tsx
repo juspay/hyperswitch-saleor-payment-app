@@ -147,7 +147,7 @@ const IndexPage: NextPage = () => {
         <>
           <div>
             <Text as="p">Install this app in your Saleor Dashboard to proceed!</Text>
-            {mounted && <AddToSaleorForm />}
+            {false && <AddToSaleorForm />}
           </div>
 
           <CopyManifest />

@@ -8,10 +8,10 @@ import { trpcClient } from "@/modules/trpc/trpc-client";
 import { type Channel } from "@/types";
 import { getErrorHandler } from "@/modules/trpc/utils";
 import {
-  type PaymentAppUserVisibleEntries,
+  type HyperswitchUserVisibleEntries,
   type ChannelMapping,
 } from "@/modules/payment-app-configuration/app-config";
-import { type PaymentAppConfigEntry } from "@/modules/payment-app-configuration/config-entry";
+import { type HyperswitchConfigEntry } from "@/modules/payment-app-configuration/config-entry";
 import { getEnvironmentFromKey } from "@/modules/hyperswitch/hyperswitch-api";
 
 const ChannelToConfigurationTableRow = ({
@@ -21,8 +21,8 @@ const ChannelToConfigurationTableRow = ({
   disabled,
 }: {
   channel: Channel;
-  configurations: PaymentAppUserVisibleEntries;
-  selectedConfigurationId?: PaymentAppConfigEntry["configurationId"] | null;
+  configurations: HyperswitchUserVisibleEntries;
+  selectedConfigurationId?: HyperswitchConfigEntry["configurationId"] | null;
   disabled?: boolean;
 }) => {
   const { appBridge } = useAppBridge();
@@ -32,9 +32,9 @@ const ChannelToConfigurationTableRow = ({
 
   const context = trpcClient.useContext();
   const { mutate: saveMapping } =
-    trpcClient.paymentAppConfigurationRouter.mapping.update.useMutation({
+    trpcClient.hyperswitchConfigurationRouter.mapping.update.useMutation({
       onSettled: () => {
-        return context.paymentAppConfigurationRouter.mapping.getAll.invalidate();
+        return context.hyperswitchConfigurationRouter.mapping.getAll.invalidate();
       },
       onSuccess: () => {
         void appBridge?.dispatch({
@@ -81,7 +81,7 @@ const ChannelToConfigurationTableRow = ({
               channelId: channel.id,
               configurationId: e === null || typeof e === "string" ? e : e.value,
             };
-            context.paymentAppConfigurationRouter.mapping.getAll.setData(undefined, (mappings) => {
+            context.hyperswitchConfigurationRouter.mapping.getAll.setData(undefined, (mappings) => {
               return {
                 ...mappings,
                 [newMapping.channelId]: newMapping.configurationId,
@@ -112,7 +112,7 @@ export const ChannelToConfigurationTable = ({
 }: {
   channelMappings: ChannelMapping;
   channels: readonly Channel[];
-  configurations: PaymentAppUserVisibleEntries;
+  configurations: HyperswitchUserVisibleEntries;
   disabled?: boolean;
 }) => {
   return (

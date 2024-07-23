@@ -1,20 +1,22 @@
 import { uuidv7 } from "uuidv7";
-import { type ConfigEntryUpdate } from "./input-schemas";
-import { obfuscateConfigEntry } from "./utils";
-import { type PaymentAppConfigurator } from "./payment-app-configuration";
+import { type HyperswitchConfigEntryUpdate, JuspayConfigEntryUpdate } from "./input-schemas";
+import { obfuscateHyperswitchConfigEntry, obfuscateJuspayConfigEntry } from "./utils";
+import { JuspayConfigurator, type HyperswitchConfigurator } from "./payment-app-configuration";
 import {
-  type PaymentAppConfigEntryFullyConfigured,
-  type PaymentAppFormConfigEntry,
+  JuspayFormConfigEntry,
+  type HyperswitchConfigEntryFullyConfigured,
+  type HyperswitchFormConfigEntry,
+  JuspayConfigEntryFullyConfigured,
 } from "./config-entry";
 import { createLogger, redactError, redactLogObject } from "@/lib/logger";
 import { BaseError } from "@/errors";
 
 export const EntryNotFoundError = BaseError.subclass("EntryNotFoundError");
 
-export const getAllConfigEntriesObfuscated = async (configurator: PaymentAppConfigurator) => {
+export const getAllHyperswitchConfigEntriesObfuscated = async (configurator: HyperswitchConfigurator) => {
   const logger = createLogger(
     { saleorApiUrl: configurator.saleorApiUrl },
-    { msgPrefix: "[getAllConfigEntriesObfuscated] " },
+    { msgPrefix: "[getAllHyperswitchConfigEntriesObfuscated] " },
   );
 
   const config = await configurator.getConfigObfuscated();
@@ -23,10 +25,22 @@ export const getAllConfigEntriesObfuscated = async (configurator: PaymentAppConf
   return config.configurations;
 };
 
-export const getAllConfigEntriesDecrypted = async (configurator: PaymentAppConfigurator) => {
+export const getAllJuspayConfigEntriesObfuscated = async (configurator: JuspayConfigurator) => {
   const logger = createLogger(
     { saleorApiUrl: configurator.saleorApiUrl },
-    { msgPrefix: "[getAllConfigEntriesDecrypted] " },
+    { msgPrefix: "[getAllJuspayConfigEntriesObfuscated] " },
+  );
+
+  const config = await configurator.getConfigObfuscated();
+  logger.debug("Got obfuscated config");
+
+  return config.configurations;
+};
+
+export const getAllHyperswitchConfigEntriesDecrypted = async (configurator: HyperswitchConfigurator) => {
+  const logger = createLogger(
+    { saleorApiUrl: configurator.saleorApiUrl },
+    { msgPrefix: "[getAllHyperswitchConfigEntriesDecrypted] " },
   );
 
   const config = await configurator.getConfig();
@@ -35,16 +49,28 @@ export const getAllConfigEntriesDecrypted = async (configurator: PaymentAppConfi
   return config.configurations;
 };
 
-export const getConfigEntryObfuscated = async (
+export const getAllJuspayConfigEntriesDecrypted = async (configurator: JuspayConfigurator) => {
+  const logger = createLogger(
+    { saleorApiUrl: configurator.saleorApiUrl },
+    { msgPrefix: "[getAllJuspayConfigEntriesDecrypted] " },
+  );
+
+  const config = await configurator.getConfig();
+  logger.debug("Got config");
+
+  return config.configurations;
+};
+
+export const getHyperswitchConfigEntryObfuscated = async (
   configurationId: string,
-  configurator: PaymentAppConfigurator,
+  configurator: HyperswitchConfigurator,
 ) => {
   const logger = createLogger(
     { configurationId, saleorApiUrl: configurator.saleorApiUrl },
-    { msgPrefix: "[getConfigEntryObfuscated] " },
+    { msgPrefix: "[getHyperswitchConfigEntryObfuscated] " },
   );
   logger.debug("Fetching all config entries");
-  const entries = await getAllConfigEntriesObfuscated(configurator);
+  const entries = await getAllHyperswitchConfigEntriesObfuscated(configurator);
   const entry = entries.find((entry) => entry.configurationId === configurationId);
   if (!entry) {
     logger.warn("Entry was not found");
@@ -54,17 +80,16 @@ export const getConfigEntryObfuscated = async (
   return entry;
 };
 
-export const getConfigEntryDecrypted = async (
+export const getJuspayConfigEntryObfuscated = async (
   configurationId: string,
-  configurator: PaymentAppConfigurator,
+  configurator: JuspayConfigurator,
 ) => {
   const logger = createLogger(
     { configurationId, saleorApiUrl: configurator.saleorApiUrl },
-    { msgPrefix: "[getConfigEntryDecrypted] " },
+    { msgPrefix: "[getJuspayConfigEntryObfuscated] " },
   );
-
   logger.debug("Fetching all config entries");
-  const entries = await getAllConfigEntriesDecrypted(configurator);
+  const entries = await getAllJuspayConfigEntriesObfuscated(configurator);
   const entry = entries.find((entry) => entry.configurationId === configurationId);
   if (!entry) {
     logger.warn("Entry was not found");
@@ -74,14 +99,54 @@ export const getConfigEntryDecrypted = async (
   return entry;
 };
 
-export const addConfigEntry = async (
-  newConfigEntry: PaymentAppFormConfigEntry,
-  configurator: PaymentAppConfigurator,
+export const getHyperswitchConfigEntryDecrypted = async (
+  configurationId: string,
+  configurator: HyperswitchConfigurator,
+) => {
+  const logger = createLogger(
+    { configurationId, saleorApiUrl: configurator.saleorApiUrl },
+    { msgPrefix: "[getHyperswitchConfigEntryDecrypted] " },
+  );
+
+  logger.debug("Fetching all config entries");
+  const entries = await getAllHyperswitchConfigEntriesDecrypted(configurator);
+  const entry = entries.find((entry) => entry.configurationId === configurationId);
+  if (!entry) {
+    logger.warn("Entry was not found");
+    throw new EntryNotFoundError(`Entry with id ${configurationId} was not found`);
+  }
+  logger.debug({ entryName: entry.configurationName }, "Found entry");
+  return entry;
+};
+
+export const getJuspayConfigEntryDecrypted = async (
+  configurationId: string,
+  configurator: JuspayConfigurator,
+) => {
+  const logger = createLogger(
+    { configurationId, saleorApiUrl: configurator.saleorApiUrl },
+    { msgPrefix: "[getHyperswitchConfigEntryDecrypted] " },
+  );
+
+  logger.debug("Fetching all config entries");
+  const entries = await getAllJuspayConfigEntriesDecrypted(configurator);
+  const entry = entries.find((entry) => entry.configurationId === configurationId);
+  if (!entry) {
+    logger.warn("Entry was not found");
+    throw new EntryNotFoundError(`Entry with id ${configurationId} was not found`);
+  }
+  logger.debug({ entryName: entry.configurationName }, "Found entry");
+  return entry;
+};
+
+export const addHyperswitchConfigEntry = async (
+  newConfigEntry: HyperswitchFormConfigEntry,
+  configurator: HyperswitchConfigurator,
   appUrl: string,
 ) => {
   const logger = createLogger(
     { saleorApiUrl: configurator.saleorApiUrl },
-    { msgPrefix: "[addConfigEntry] " },
+    { msgPrefix: "[addHyperswitchConfigEntry] " },
   );
 
   logger.debug("Creating new webhook for config entry");
@@ -90,7 +155,7 @@ export const addConfigEntry = async (
   const config = {
     ...newConfigEntry,
     configurationId: uuid,
-  } satisfies PaymentAppConfigEntryFullyConfigured;
+  } satisfies HyperswitchConfigEntryFullyConfigured;
 
   // webhookSecret,
   // webhookId,
@@ -99,21 +164,49 @@ export const addConfigEntry = async (
   await configurator.setConfigEntry(config);
   logger.info({ configurationId: config.configurationId }, "Config entry added");
 
-  return obfuscateConfigEntry(config);
+  return obfuscateHyperswitchConfigEntry(config);
 };
 
-export const updateConfigEntry = async (
-  input: ConfigEntryUpdate,
-  configurator: PaymentAppConfigurator,
+export const addJuspayConfigEntry = async (
+  newConfigEntry: JuspayFormConfigEntry,
+  configurator: JuspayConfigurator,
+  appUrl: string,
 ) => {
   const logger = createLogger(
     { saleorApiUrl: configurator.saleorApiUrl },
-    { msgPrefix: "[updateConfigEntry] " },
+    { msgPrefix: "[addJuspayConfigEntry] " },
+  );
+
+  logger.debug("Creating new webhook for config entry");
+
+  const uuid = uuidv7();
+  const config = {
+    ...newConfigEntry,
+    configurationId: uuid,
+  } satisfies JuspayConfigEntryFullyConfigured;
+
+  // webhookSecret,
+  // webhookId,
+
+  logger.debug({ config: redactLogObject(config) }, "Adding new config entry");
+  await configurator.setConfigEntry(config);
+  logger.info({ configurationId: config.configurationId }, "Config entry added");
+
+  return obfuscateJuspayConfigEntry(config);
+};
+
+export const updateHyperswitchConfigEntry = async (
+  input: HyperswitchConfigEntryUpdate,
+  configurator: HyperswitchConfigurator,
+) => {
+  const logger = createLogger(
+    { saleorApiUrl: configurator.saleorApiUrl },
+    { msgPrefix: "[updateHyperswitchConfigEntry] " },
   );
 
   const { entry, configurationId } = input;
   logger.debug("Checking if config entry with provided ID exists");
-  const existingEntry = await getConfigEntryDecrypted(configurationId, configurator);
+  const existingEntry = await getHyperswitchConfigEntryDecrypted(configurationId, configurator);
   logger.debug({ existingEntry: redactLogObject(existingEntry) }, "Found entry");
 
   await configurator.setConfigEntry({
@@ -122,23 +215,49 @@ export const updateConfigEntry = async (
   });
   logger.info({ configurationId }, "Config entry updated");
 
-  return obfuscateConfigEntry({
+  return obfuscateHyperswitchConfigEntry({
     ...existingEntry,
     ...entry,
   });
 };
 
-export const deleteConfigEntry = async (
+export const updateJuspayConfigEntry = async (
+  input: JuspayConfigEntryUpdate,
+  configurator: JuspayConfigurator,
+) => {
+  const logger = createLogger(
+    { saleorApiUrl: configurator.saleorApiUrl },
+    { msgPrefix: "[updateHyperswitchConfigEntry] " },
+  );
+
+  const { entry, configurationId } = input;
+  logger.debug("Checking if config entry with provided ID exists");
+  const existingEntry = await getJuspayConfigEntryDecrypted(configurationId, configurator);
+  logger.debug({ existingEntry: redactLogObject(existingEntry) }, "Found entry");
+
+  await configurator.setConfigEntry({
+    ...entry,
+    configurationId,
+  });
+  logger.info({ configurationId }, "Config entry updated");
+
+  return obfuscateJuspayConfigEntry({
+    ...existingEntry,
+    ...entry,
+  });
+};
+
+export const deleteHyperswitchConfigEntry = async (
   configurationId: string,
-  configurator: PaymentAppConfigurator,
+  configurator: HyperswitchConfigurator,
 ) => {
   const logger = createLogger(
     { configurationId, saleorApiUrl: configurator.saleorApiUrl },
-    { msgPrefix: "[deleteConfigEntry] " },
+    { msgPrefix: "[deleteHyperswitchConfigEntry] " },
   );
 
   logger.debug("Checking if config entry with provided ID exists");
-  const entries = await getAllConfigEntriesDecrypted(configurator);
+  const entries = await getAllHyperswitchConfigEntriesDecrypted(configurator);
   const existingEntry = entries.find((entry) => entry.configurationId === configurationId);
 
   if (!existingEntry) {
@@ -150,6 +269,32 @@ export const deleteConfigEntry = async (
 
   const otherEntries = entries.filter((entry) => entry.configurationId !== configurationId);
 
-  await configurator.deleteConfigEntry(configurationId);
+  await configurator.deleteHyperswitchConfigEntry(configurationId);
+  logger.info({ configurationId }, "Config entry deleted");
+};
+
+export const deleteJuspayConfigEntry = async (
+  configurationId: string,
+  configurator: JuspayConfigurator,
+) => {
+  const logger = createLogger(
+    { configurationId, saleorApiUrl: configurator.saleorApiUrl },
+    { msgPrefix: "[deleteJuspayConfigEntry] " },
+  );
+
+  logger.debug("Checking if config entry with provided ID exists");
+  const entries = await getAllJuspayConfigEntriesDecrypted(configurator);
+  const existingEntry = entries.find((entry) => entry.configurationId === configurationId);
+
+  if (!existingEntry) {
+    logger.error({ configurationId }, "Entry was not found");
+    throw new EntryNotFoundError(`Entry with id ${configurationId} was not found`);
+  }
+
+  logger.debug({ existingEntry: redactLogObject(existingEntry) }, "Found entry");
+
+  const otherEntries = entries.filter((entry) => entry.configurationId !== configurationId);
+
+  await configurator.deleteHyperswitchConfigEntry(configurationId);
   logger.info({ configurationId }, "Config entry deleted");
 };

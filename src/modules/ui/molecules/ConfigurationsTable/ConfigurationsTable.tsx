@@ -3,10 +3,10 @@ import Link from "next/link";
 import { ConfigurationSummary } from "../ConfigurationSummary/ConfigurationSummary";
 import * as tableStyles from "./configurationsTable.css";
 import { Tr, Td, Table, Tbody, Th, Thead } from "@/modules/ui/atoms/Table/Table";
-import { type PaymentAppUserVisibleConfigEntry } from "@/modules/payment-app-configuration/config-entry";
-import { type PaymentAppUserVisibleEntries } from "@/modules/payment-app-configuration/app-config";
+import { type HyperswitchUserVisibleConfigEntry } from "@/modules/payment-app-configuration/config-entry";
+import { type HyperswitchUserVisibleEntries } from "@/modules/payment-app-configuration/app-config";
 
-const ConfigurationsTableRow = ({ item }: { item: PaymentAppUserVisibleConfigEntry }) => {
+const ConfigurationsTableRow = ({ item }: { item: HyperswitchUserVisibleConfigEntry }) => {
   return (
     <Tr>
       <Td>
@@ -39,7 +39,7 @@ const ConfigurationsTableRow = ({ item }: { item: PaymentAppUserVisibleConfigEnt
 export const ConfigurationsTable = ({
   configurations,
 }: {
-  configurations: PaymentAppUserVisibleEntries;
+  configurations: HyperswitchUserVisibleEntries;
 }) => {
   return (
     <Table>

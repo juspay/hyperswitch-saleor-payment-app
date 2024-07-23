@@ -6,14 +6,14 @@ import { invariant } from "@/lib/invariant";
 import { type JSONObject } from "@/types";
 import { createLogger } from "@/lib/logger";
 import { obfuscateConfig } from "@/modules/app-configuration/utils";
-import { getConfigurationForChannel } from "@/modules/payment-app-configuration/payment-app-configuration";
+import { getConfigurationForHyperswitchChannel } from "@/modules/payment-app-configuration/payment-app-configuration";
 import {
   TransactionFlowStrategyEnum,
   type TransactionProcessSessionEventFragment,
 } from "generated/graphql";
 
-import { paymentAppFullyConfiguredEntrySchema } from "@/modules/payment-app-configuration/config-entry";
-import { getWebhookPaymentAppConfigurator } from "@/modules/payment-app-configuration/payment-app-configuration-factory";
+import { hyperswitchFullyConfiguredEntrySchema } from "@/modules/payment-app-configuration/config-entry";
+import { getWebhookHyperswitchConfigurator } from "@/modules/payment-app-configuration/payment-app-configuration-factory";
 import {
   ChannelNotConfigured,
   UnExpectedHyperswitchPaymentStatus,
@@ -91,7 +91,7 @@ export const TransactionProcessSessionWebhookHandler = async (
   const app = event.recipient;
   invariant(app, "Missing event.recipient!");
   const { privateMetadata } = app;
-  const configurator = getWebhookPaymentAppConfigurator({ privateMetadata }, saleorApiUrl);
+  const configurator = getWebhookHyperswitchConfigurator({ privateMetadata }, saleorApiUrl);
   const errors: SyncWebhookAppErrors = [];
   const currency = event.action.currency;
   const channelId = event.sourceObject.channel.id;

@@ -1,6 +1,6 @@
-import { paymentAppFullyConfiguredEntrySchema } from "../payment-app-configuration/config-entry";
-import { getConfigurationForChannel } from "../payment-app-configuration/payment-app-configuration";
-import { getWebhookPaymentAppConfigurator } from "../payment-app-configuration/payment-app-configuration-factory";
+import { hyperswitchFullyConfiguredEntrySchema } from "../payment-app-configuration/config-entry";
+import { getConfigurationForHyperswitchChannel } from "../payment-app-configuration/payment-app-configuration";
+import { getWebhookHyperswitchConfigurator } from "../payment-app-configuration/payment-app-configuration-factory";
 import { type TransactionChargeRequestedResponse } from "@/schemas/TransactionChargeRequested/TransactionChargeRequestedResponse.mjs";
 
 import { invariant } from "@/lib/invariant";
@@ -65,7 +65,7 @@ export const TransactionChargeRequestedWebhookHandler = async (
   const app = event.recipient;
   invariant(app, "Missing event.recipient!");
   const { privateMetadata } = app;
-  const configurator = getWebhookPaymentAppConfigurator({ privateMetadata }, saleorApiUrl);
+  const configurator = getWebhookHyperswitchConfigurator({ privateMetadata }, saleorApiUrl);
   invariant(event.transaction, "Missing transaction");
 
   // Fetch Transaction Details

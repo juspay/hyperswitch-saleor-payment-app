@@ -1,6 +1,6 @@
 import { type Client } from "urql";
 import { type MappingUpdate } from "./input-schemas";
-import { type PaymentAppConfigurator } from "./payment-app-configuration";
+import { type HyperswitchConfigurator } from "./payment-app-configuration";
 import { createLogger } from "@/lib/logger";
 import { BaseError, FieldError } from "@/errors";
 import { FetchChannelsDocument, type FetchChannelsQuery } from "generated/graphql";
@@ -25,7 +25,7 @@ export const fetchChannels = async (client: Client) => {
 
 export const getMappingFromAppConfig = async (
   client: Client,
-  configurator: PaymentAppConfigurator,
+  configurator: HyperswitchConfigurator,
 ) => {
   const logger = createLogger(
     { saleorApiUrl: configurator.saleorApiUrl },
@@ -50,7 +50,7 @@ export const getMappingFromAppConfig = async (
 
 export const setMappingInAppConfig = async (
   input: MappingUpdate,
-  configurator: PaymentAppConfigurator,
+  configurator: HyperswitchConfigurator,
 ) => {
   const { configurationId, channelId } = input;
   const logger = createLogger(

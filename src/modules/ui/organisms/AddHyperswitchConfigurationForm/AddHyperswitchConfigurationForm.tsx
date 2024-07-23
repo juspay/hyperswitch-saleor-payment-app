@@ -5,13 +5,14 @@ import { useForm, FormProvider } from "react-hook-form";
 import { AppLayoutRow } from "../../templates/AppLayout";
 import { FullPageError } from "../../molecules/FullPageError/FullPageError";
 import { AddHyperswitchCredentialsForm } from "./AddHyperswitchCredentialsForm";
+import { AddJuspayCredentialsForm } from "./AddJuspayCredentialsForm";
 import { DeleteHyperswitchConfigurationForm } from "./DeleteHyperswitchConfigurationForm";
 import { checkTokenPermissions } from "@/modules/jwt/check-token-offline";
 import { REQUIRED_SALEOR_PERMISSIONS } from "@/modules/jwt/consts";
 import { trpcClient } from "@/modules/trpc/trpc-client";
 import {
-  type PaymentAppFormConfigEntry,
-  paymentAppFormConfigEntrySchema,
+  type HyperswitchFormConfigEntry,
+  hyperswitchFormConfigEntrySchema,
 } from "@/modules/payment-app-configuration/config-entry";
 import Link from "next/link";
 
@@ -25,8 +26,8 @@ export const HyperswitchConfigurationForm = ({
 
   const hasPermissions = true || checkTokenPermissions(token, REQUIRED_SALEOR_PERMISSIONS);
 
-  const formMethods = useForm<PaymentAppFormConfigEntry>({
-    resolver: zodResolver(paymentAppFormConfigEntrySchema),
+  const formMethods = useForm<HyperswitchFormConfigEntry>({
+    resolver: zodResolver(hyperswitchFormConfigEntrySchema),
     defaultValues: {
       publishableKey: "",
       apiKey: "",
@@ -36,7 +37,7 @@ export const HyperswitchConfigurationForm = ({
     },
   });
 
-  const { data } = trpcClient.paymentAppConfigurationRouter.paymentConfig.get.useQuery(
+  const { data } = trpcClient.hyperswitchConfigurationRouter.paymentConfig.get.useQuery(
     { configurationId: configurationId! },
     { enabled: !!configurationId },
   );
@@ -52,6 +53,7 @@ export const HyperswitchConfigurationForm = ({
   return (
     <FormProvider {...formMethods}>
       <AppLayoutRow title="Hyperswitch Credentials">
+        {/* <AddJuspayCredentialsForm configurationId={configurationId} /> */}
         <AddHyperswitchCredentialsForm configurationId={configurationId} />
       </AppLayoutRow>
       {data && configurationId && (

@@ -1,10 +1,10 @@
 import { Box } from "@saleor/macaw-ui";
 import { ChipSuccess, ChipHyperswitchOrange, ChipInfo } from "@/modules/ui/atoms/Chip/Chip";
-import { type PaymentAppUserVisibleConfigEntry } from "@/modules/payment-app-configuration/config-entry";
+import { type HyperswitchUserVisibleConfigEntry } from "@/modules/payment-app-configuration/config-entry";
 import { getEnvironmentFromKey } from "@/modules/hyperswitch/hyperswitch-api";
 import { appBridgeInstance } from "@/app-bridge-instance";
 
-export const ConfigurationSummary = ({ config }: { config: PaymentAppUserVisibleConfigEntry }) => {
+export const ConfigurationSummary = ({ config }: { config: HyperswitchUserVisibleConfigEntry }) => {
   return (
     <Box
       as="dl"

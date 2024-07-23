@@ -4,7 +4,7 @@ import { RoundedActionBox, RoundedBox } from "../../atoms/RoundedActionBox/Round
 import { ChannelToConfigurationTable } from "../../molecules/ConfigurationsTable/ChannelToConfigurationTable/ChannelToConfigurationTable";
 import { type Channel } from "@/types";
 import {
-  type PaymentAppUserVisibleEntries,
+  type HyperswitchUserVisibleEntries,
   type ChannelMapping,
 } from "@/modules/payment-app-configuration/app-config";
 
@@ -15,7 +15,7 @@ export const ChannelToConfigurationList = ({
   disabled,
 }: {
   channelMappings: ChannelMapping;
-  configurations: PaymentAppUserVisibleEntries;
+  configurations: HyperswitchUserVisibleEntries;
   channels: readonly Channel[];
   disabled?: boolean;
 }) => {
@@ -38,7 +38,7 @@ const NotEmpty = ({
   disabled,
 }: {
   channelMappings: ChannelMapping;
-  configurations: PaymentAppUserVisibleEntries;
+  configurations: HyperswitchUserVisibleEntries;
   channels: readonly Channel[];
   disabled?: boolean;
 }) => {
