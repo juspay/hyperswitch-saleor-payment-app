@@ -9,7 +9,7 @@ import {
 } from "generated/graphql";
 import { getSyncWebhookHandler } from "@/backend-lib/api-route-utils";
 import { TransactionProcessSessionHyperswitchWebhookHandler } from "@/modules/webhooks/hyperswitch/transaction-process-session";
-import ValidateTransactionProcessSessionResponse from "@/schemas/TransactionProcessSession/TransactionProcessSessionResponse.mjs";
+import ValidateTransactionProcessSessionResponse from "@/schemas/HyperswitchTransactionProcessSession/HyperswitchTransactionProcessSessionResponse.mjs";
 import { TransactionProcessSessionConfigHandler } from "@/modules/webhooks/utils/config-handlers";
 import { TransactionProcessSessionJuspayWebhookHandler } from "@/modules/webhooks/juspay/transaction-process-session";
 

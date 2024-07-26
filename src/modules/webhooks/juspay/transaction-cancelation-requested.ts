@@ -1,32 +1,20 @@
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
-import { paymentAppFullyConfiguredEntrySchema } from "../../payment-app-configuration/config-entry";
-import { getConfigurationForChannel } from "../../payment-app-configuration/payment-app-configuration";
-import { type TransactionCancelationRequestedResponse } from "@/schemas/TransactionCancelationRequested/TransactionCancelationRequestedResponse.mjs";
+import { type JuspayTransactionCancelationRequestedResponse } from "@/schemas/JuspayTransactionCancelationRequested/JuspayTransactionCancelationRequestedResponse.mjs";
 import {
-  TransactionEventTypeEnum,
   type TransactionCancelationRequestedEventFragment,
-  TransactionActionEnum,
-  GetTransactionByIdQuery,
-  GetTransactionByIdQueryVariables,
-  GetTransactionByIdDocument,
 } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
-import { saleorApp } from "@/saleor-app";
-import { createClient } from "@/lib/create-graphq-client";
 import { createLogger } from "@/lib/logger";
-import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
-import { ChannelNotConfigured } from "@/errors";
+import { createHyperswitchClient, createJuspayClient } from "../../hyperswitch/hyperswitch-api";
 import {
-  getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
 } from "../../hyperswitch/currencies";
-import { SyncWebhookAppErrors } from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
 import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 
-export const hyperswitchPaymentCancelStatusToSaleorTransactionResult = (
+export const juspayPaymentCancelStatusToSaleorTransactionResult = (
   status: string,
-): TransactionCancelationRequestedResponse["result"] | null => {
+): JuspayTransactionCancelationRequestedResponse["result"] | null => {
   switch (status) {
     case "cancelled":
       return "CANCEL_SUCCESS";
@@ -43,7 +31,7 @@ export const TransactionCancelationRequestedJuspayWebhookHandler = async (
   event: TransactionCancelationRequestedEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<TransactionCancelationRequestedResponse> => {
+): Promise<JuspayTransactionCancelationRequestedResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionCancelationRequestedWebhookHandler] " },
@@ -66,16 +54,16 @@ export const TransactionCancelationRequestedJuspayWebhookHandler = async (
   const payment_id = event.transaction.pspReference;
   const channelId = sourceObject.channel.id;
 
-  const hyperswitchClient = await createHyperswitchClient({
+  const juspayClient = await createJuspayClient({
     configData,
   });
 
-  const cancelHyperswitchPayment = hyperswitchClient
-    .path("/payments/{payment_id}/cancel")
+  const cancelJuspayPayment = juspayClient
+    .path("/v2/txns/{txn_uuid}/void")
     .method("post")
     .create();
 
-  const cancelPaymentResponse = await cancelHyperswitchPayment({
+  const cancelPaymentResponse = await cancelJuspayPayment({
     ...{
       metadata: {
         channel_id: sourceObject.channel.id,
@@ -87,11 +75,11 @@ export const TransactionCancelationRequestedJuspayWebhookHandler = async (
   });
 
   const cancelPaymentResponseData = intoPaymentResponse(cancelPaymentResponse.data);
-  const result = hyperswitchPaymentCancelStatusToSaleorTransactionResult(
+  const result = juspayPaymentCancelStatusToSaleorTransactionResult(
     cancelPaymentResponseData.status,
   );
 
-  const transactionCancelationRequestedResponse: TransactionCancelationRequestedResponse =
+  const transactionCancelationRequestedResponse: JuspayTransactionCancelationRequestedResponse =
     result === undefined
       ? {
           pspReference: cancelPaymentResponseData.payment_id,

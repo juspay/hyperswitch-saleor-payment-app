@@ -157,9 +157,10 @@ export type ConfigObject = {
 async function getOrchestra<TPayload>(configData: ConfigObject): Promise<Error | Orchersta> {
   const appConfig = await configData.configurator.getConfig();
   const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
-  if (!appChannelConfig?.paymentResponseHashKey) {
-    return Orchersta.Juspay;
-  } else {
-    return Orchersta.Hyperswitch;
-  }
+  return  Orchersta.Juspay
+  // if (!appChannelConfig?.paymentResponseHashKey) {
+  //   return Orchersta.Juspay;
+  // } else {
+  //   return Orchersta.Hyperswitch;
+  // }
 }

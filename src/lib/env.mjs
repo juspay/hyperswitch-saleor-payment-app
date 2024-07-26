@@ -26,6 +26,7 @@ export const env = createEnv({
     REST_APL_TOKEN: z.string().optional(),
     APP_API_BASE_URL: z.string().optional(),
     APP_IFRAME_BASE_URL: z.string().optional(),
+    JUSPAY_BASEURL: z.string()
   },
 
   /*
@@ -46,7 +47,8 @@ export const env = createEnv({
   runtimeEnv: {
     ENV: process.env.ENV,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
-
+    
+    JUSPAY_BASEURL: process.env.JUSPAY_BASEURL,
     SECRET_KEY: process.env.SECRET_KEY,
     SENTRY_DSN: process.env.SENTRY_DSN,
     APL: process.env.APL,

@@ -1,7 +1,7 @@
 import { paymentAppFullyConfiguredEntrySchema } from "../../payment-app-configuration/config-entry";
 import { getConfigurationForChannel } from "../../payment-app-configuration/payment-app-configuration";
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
-import { type TransactionChargeRequestedResponse } from "@/schemas/TransactionChargeRequested/TransactionChargeRequestedResponse.mjs";
+import { type HyperswitchTransactionChargeRequestedResponse } from "@/schemas/HyperswitchTransactionChargeRequested/HyperswitchTransactionChargeRequestedResponse.mjs";
 
 import { invariant } from "@/lib/invariant";
 import {
@@ -26,14 +26,14 @@ import {
   HyperswitchHttpClientError,
   UnExpectedHyperswitchPaymentStatus,
 } from "@/errors";
-import { SyncWebhookAppErrors } from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
+import { SyncWebhookAppErrors } from "@/schemas/HyperswitchTransactionInitializeSession/HyperswitchTransactionInitializeSessionResponse.mjs";
 import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 
 export const hyperswitchPaymentCaptureStatusToSaleorTransactionResult = (
   status: string,
-): TransactionChargeRequestedResponse["result"] | null => {
+): HyperswitchTransactionChargeRequestedResponse["result"] | null => {
   switch (status) {
     case "succeeded":
     case "partially_captured":
@@ -52,7 +52,7 @@ export const TransactionChargeRequestedHyperswitchWebhookHandler = async (
   event: TransactionChargeRequestedEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<TransactionChargeRequestedResponse> => {
+): Promise<HyperswitchTransactionChargeRequestedResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionChargeRequestedWebhookHandler] " },
@@ -101,7 +101,7 @@ export const TransactionChargeRequestedHyperswitchWebhookHandler = async (
   const result = hyperswitchPaymentCaptureStatusToSaleorTransactionResult(
     capturePaymentResponseData.status,
   );
-  const transactionChargeRequestedResponse: TransactionChargeRequestedResponse =
+  const transactionChargeRequestedResponse: HyperswitchTransactionChargeRequestedResponse =
     result === undefined
       ? {
           pspReference: capturePaymentResponseData.payment_id,

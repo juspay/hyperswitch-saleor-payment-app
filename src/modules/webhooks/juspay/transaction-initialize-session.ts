@@ -1,11 +1,11 @@
+
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
-import { paymentAppFullyConfiguredEntrySchema } from "../../payment-app-configuration/config-entry";
-import { obfuscateConfig, obfuscateValue } from "../../app-configuration/utils";
-import { getConfigurationForChannel } from "../../payment-app-configuration/payment-app-configuration";
 import {
   SyncWebhookAppErrors,
-  type TransactionInitializeSessionResponse,
-} from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
+  type JuspayTransactionInitializeSessionResponse,
+  PaymentLinks,
+  SdkPayload,
+} from "@/schemas/JuspayTransactionInitializeSession/JuspayTransactionInitializeSessionResponse.mjs";
 import {
   TransactionFlowStrategyEnum,
   type TransactionInitializeSessionEventFragment,
@@ -21,28 +21,25 @@ import {
   validatePaymentCreateRequest,
 } from "../../hyperswitch/hyperswitch-api-request";
 import {
-  ChannelNotConfigured,
-  UnExpectedHyperswitchPaymentStatus,
-  UnsupportedEvent,
+  UnExpectedHyperswitchPaymentStatus
 } from "@/errors";
 import {
   createHyperswitchClient,
+  createJuspayClient,
   fetchHyperswitchProfileID,
   fetchHyperswitchPublishableKey,
 } from "../../hyperswitch/hyperswitch-api";
-import { type components as paymentsComponents } from "generated/hyperswitch-payments";
-import { Channel } from "../../../types";
+import { type components as paymentsComponents } from "generated/juspay-payments";
 import {
-  intoPaymentResponse,
-  PaymentResponseSchema,
-} from "../../hyperswitch/hyperswitch-api-response";
+  intoPaymentResponse
+} from "../../juspay/juspay-api-response";
 import { normalizeValue } from "../../payment-app-configuration/utils";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 
-export const hyperswitchPaymentIntentToTransactionResult = (
+export const juspayPaymentIntentToTransactionResult = (
   status: string,
   transactionFlow: TransactionFlowStrategyEnum,
-): TransactionInitializeSessionResponse["result"] => {
+): JuspayTransactionInitializeSessionResponse["result"] => {
   const prefix =
     transactionFlow === TransactionFlowStrategyEnum.Authorization
       ? "AUTHORIZATION"
@@ -53,18 +50,20 @@ export const hyperswitchPaymentIntentToTransactionResult = (
   invariant(prefix, `Unsupported transactionFlowStrategy: ${transactionFlow}`);
 
   switch (status) {
-    case "requires_payment_method":
+    case "NEW":
       return `${prefix}_ACTION_REQUIRED`;
-    case "requires_capture":
+    case "TO_BE_CHARGED":
       return "AUTHORIZATION_SUCCESS";
-    case "failed":
-    case "cancelled":
+    case "NOT_FOUND":
+    case "ERROR":
+    case "JUSPAY_DECLINED":
       return `${prefix}_FAILURE`;
-    case "processing":
+    case "PENDING_AUTHENTICATION":
+    case "AUTHORIZING": 
       return `${prefix}_REQUEST`;
     default:
       throw new UnExpectedHyperswitchPaymentStatus(
-        `Status received from hyperswitch: ${status}, is not expected . Please check the payment flow.`,
+        `Status received from juspay: ${status}, is not expected . Please check the payment flow.`,
       );
   }
 };
@@ -73,7 +72,7 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
   event: TransactionInitializeSessionEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<TransactionInitializeSessionResponse> => {
+): Promise<JuspayTransactionInitializeSessionResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionInitializeSessionWebhookHandler] " },
@@ -105,61 +104,45 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
   }
   const channelId = event.sourceObject.channel.id;
 
-  const hyperswitchClient = await createHyperswitchClient({
+  const juspayClient = await createJuspayClient({
     configData,
   });
 
-  const profileId = await fetchHyperswitchProfileID(configData);
+  const createJuspayPayment = juspayClient.path("/session").method("post").create();
+  
 
-  const createHyperswitchPayment = hyperswitchClient.path("/payments").method("post").create();
-  const capture_method =
-    event.action.actionType == TransactionFlowStrategyEnum.Authorization ? "manual" : "automatic";
+  const createOrderPayload: paymentsComponents["schemas"]["SessionRequest"] = {
+    order_id: normalizeValue("001f055e14d041c7bb3c39164552acd5"),
+    amount: normalizeValue("1.0"),
+    customer_id: normalizeValue("testing-customer-one"),
+    customer_email: normalizeValue("mrudul.vajpayee@juspay.in"),
+    customer_phone: normalizeValue("9876543210"),
+    payment_page_client_id: normalizeValue("geddit"),
+    return_url: normalizeValue("https://shop.merchant.com"),
+    description: normalizeValue("Complete your payment"),
+    first_name: normalizeValue("John"),
+    last_name: normalizeValue("wick"),
+    currency: normalizeValue("INR")
+};
 
-  const userEmail = requestData?.billingEmail
-    ? requestData?.billingEmail
-    : event.sourceObject.userEmail;
+  const createOrderResponse = await createJuspayPayment(createOrderPayload);
+  const createPaymentResponseData = intoPaymentResponse(createOrderResponse.data);
+  invariant(createPaymentResponseData.status && createPaymentResponseData.order_id && createPaymentResponseData.payment_links && createPaymentResponseData.sdk_payload, `Required fields not found session call response`);
 
-  const createPaymentPayload: paymentsComponents["schemas"]["PaymentsCreateRequest"] = {
-    amount,
-    confirm: false,
-    currency: currency as paymentsComponents["schemas"]["PaymentsCreateRequest"]["currency"],
-    capture_method,
-    profile_id: profileId,
-    email: normalizeValue(userEmail),
-    statement_descriptor_name: normalizeValue(requestData?.statementDescriptorName),
-    statement_descriptor_suffix: normalizeValue(requestData?.statementDescriptorSuffix),
-    customer_id: normalizeValue(requestData?.customerId),
-    authentication_type: normalizeValue(requestData?.authenticationType),
-    return_url: normalizeValue(requestData?.returnUrl),
-    description: normalizeValue(requestData?.description),
-    billing: buildAddressDetails(event.sourceObject.billingAddress, userEmail),
-    shipping: buildAddressDetails(event.sourceObject.shippingAddress, requestData?.shippingEmail),
-    metadata: {
-      transaction_id: event.transaction.id,
-      saleor_api_url: saleorApiUrl,
-    },
-  };
-
-  const publishableKey = await fetchHyperswitchPublishableKey(configData);
-
-  const createPaymentResponse = await createHyperswitchPayment(createPaymentPayload);
-  const createPaymentResponseData = intoPaymentResponse(createPaymentResponse.data);
-  const result = hyperswitchPaymentIntentToTransactionResult(
+  const result = juspayPaymentIntentToTransactionResult(
     createPaymentResponseData.status,
     event.action.actionType,
   );
-  const transactionInitializeSessionResponse: TransactionInitializeSessionResponse = {
+  const transactionInitializeSessionResponse: JuspayTransactionInitializeSessionResponse = {
+    pspReference:createPaymentResponseData.order_id,
     data: {
-      clientSecret: createPaymentResponseData.client_secret,
-      publishableKey,
+      order_id: createPaymentResponseData.order_id,
+      payment_links: createPaymentResponseData.payment_links as PaymentLinks,
+      sdk_payload: createPaymentResponseData.sdk_payload as SdkPayload,
       errors,
     },
-    pspReference: createPaymentResponseData.payment_id,
     result,
-    amount: getSaleorAmountFromHyperswitchAmount(
-      createPaymentResponseData.amount,
-      createPaymentResponseData.currency,
-    ),
+    amount: 1.0,
     time: new Date().toISOString(),
   };
   return transactionInitializeSessionResponse;

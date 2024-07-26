@@ -25,6 +25,7 @@ export const UnExpectedHyperswitchPaymentStatus = BaseError.subclass(
   "UnExpectedHyperswitchPaymentStatusError",
 );
 export const HyperswitchHttpClientError = BaseError.subclass("HyperswitchHttpClientError");
+export const JuspayHttpClientError = BaseError.subclass("JuspayHttpClientError");
 export const HttpRequestError = BaseError.subclass("HttpRequestError", {
   props: {} as { statusCode: number; body: string; headers: IncomingHttpHeaders },
 });

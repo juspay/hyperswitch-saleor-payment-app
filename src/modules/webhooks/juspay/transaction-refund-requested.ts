@@ -11,7 +11,7 @@ import {
 } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
-import { type TransactionRefundRequestedResponse } from "@/schemas/TransactionRefundRequested/TransactionRefundRequestedResponse.mjs";
+import { type HyperswitchTransactionRefundRequestedResponse } from "@/schemas/HyperswitchTransactionRefundRequested/HyperswitchTransactionRefundRequestedResponse.mjs";
 import { saleorApp } from "@/saleor-app";
 import { createClient } from "@/lib/create-graphq-client";
 import {
@@ -30,7 +30,7 @@ export type PaymentRefundResponse = {
 
 export const hyperswitchRefundToTransactionResult = (
   status: string,
-): TransactionRefundRequestedResponse["result"] | null => {
+): HyperswitchTransactionRefundRequestedResponse["result"] | null => {
   switch (status) {
     case "succeeded":
       return "REFUND_SUCCESS";
@@ -47,7 +47,7 @@ export const TransactionRefundRequestedJuspayWebhookHandler = async (
   event: TransactionRefundRequestedEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<TransactionRefundRequestedResponse> => {
+): Promise<HyperswitchTransactionRefundRequestedResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionRefundRequestedWebhookHandler] " },
@@ -92,7 +92,7 @@ export const TransactionRefundRequestedJuspayWebhookHandler = async (
   const refundPaymentResponseData = intoRefundResponse(refundPaymentResponse.data);
   const result = hyperswitchRefundToTransactionResult(refundPaymentResponseData.status);
 
-  const transactionRefundRequestedResponse: TransactionRefundRequestedResponse =
+  const transactionRefundRequestedResponse: HyperswitchTransactionRefundRequestedResponse =
     result === undefined
       ? {
           pspReference: refundPaymentResponseData.refund_id,

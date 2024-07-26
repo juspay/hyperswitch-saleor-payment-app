@@ -1,7 +1,7 @@
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
 import { paymentAppFullyConfiguredEntrySchema } from "../../payment-app-configuration/config-entry";
 import { getConfigurationForChannel } from "../../payment-app-configuration/payment-app-configuration";
-import { type TransactionCancelationRequestedResponse } from "@/schemas/TransactionCancelationRequested/TransactionCancelationRequestedResponse.mjs";
+import { type HyperswitchTransactionCancelationRequestedResponse } from "@/schemas/HyperswitchTransactionCancelationRequested/HyperswitchTransactionCancelationRequestedResponse.mjs";
 import {
   TransactionEventTypeEnum,
   type TransactionCancelationRequestedEventFragment,
@@ -20,13 +20,13 @@ import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
 } from "../../hyperswitch/currencies";
-import { SyncWebhookAppErrors } from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
+import { SyncWebhookAppErrors } from "@/schemas/HyperswitchTransactionInitializeSession/HyperswitchTransactionInitializeSessionResponse.mjs";
 import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 
 export const hyperswitchPaymentCancelStatusToSaleorTransactionResult = (
   status: string,
-): TransactionCancelationRequestedResponse["result"] | null => {
+): HyperswitchTransactionCancelationRequestedResponse["result"] | null => {
   switch (status) {
     case "cancelled":
       return "CANCEL_SUCCESS";
@@ -43,7 +43,7 @@ export const TransactionCancelationRequestedHyperswitchWebhookHandler = async (
   event: TransactionCancelationRequestedEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<TransactionCancelationRequestedResponse> => {
+): Promise<HyperswitchTransactionCancelationRequestedResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionCancelationRequestedWebhookHandler] " },
@@ -90,7 +90,7 @@ export const TransactionCancelationRequestedHyperswitchWebhookHandler = async (
     cancelPaymentResponseData.status,
   );
 
-  const transactionCancelationRequestedResponse: TransactionCancelationRequestedResponse =
+  const transactionCancelationRequestedResponse: HyperswitchTransactionCancelationRequestedResponse =
     result === undefined
       ? {
           pspReference: cancelPaymentResponseData.payment_id,

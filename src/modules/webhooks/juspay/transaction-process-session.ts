@@ -1,7 +1,7 @@
 import {
   SyncWebhookAppErrors,
-  type TransactionProcessSessionResponse,
-} from "@/schemas/TransactionProcessSession/TransactionProcessSessionResponse.mjs";
+  type HyperswitchTransactionProcessSessionResponse,
+} from "@/schemas/HyperswitchTransactionProcessSession/HyperswitchTransactionProcessSessionResponse.mjs";
 import { invariant } from "@/lib/invariant";
 import { type JSONObject } from "@/types";
 import { createLogger } from "@/lib/logger";
@@ -34,7 +34,7 @@ import { ConfigObject } from "@/backend-lib/api-route-utils";
 export const hyperswitchPaymentIntentToTransactionProcessResult = (
   status: string,
   transactionFlow: TransactionFlowStrategyEnum,
-): TransactionProcessSessionResponse["result"] => {
+): HyperswitchTransactionProcessSessionResponse["result"] => {
   const prefix =
     transactionFlow === TransactionFlowStrategyEnum.Authorization
       ? "AUTHORIZATION"
@@ -71,7 +71,7 @@ export const TransactionProcessSessionJuspayWebhookHandler = async (
   event: TransactionProcessSessionEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<TransactionProcessSessionResponse> => {
+): Promise<HyperswitchTransactionProcessSessionResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionProcessSessionWebhookHandler] " },
@@ -130,7 +130,7 @@ export const TransactionProcessSessionJuspayWebhookHandler = async (
     retrievePaymentResponseData.status,
     event.action.actionType,
   );
-  const transactionProcessSessionResponse: TransactionProcessSessionResponse = {
+  const transactionProcessSessionResponse: HyperswitchTransactionProcessSessionResponse = {
     data: {
       errors,
     },
