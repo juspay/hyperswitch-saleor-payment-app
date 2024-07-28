@@ -5,7 +5,7 @@ import {
   RoundedBoxWithFooter,
 } from "@/modules/ui/atoms/RoundedActionBox/RoundedActionBox";
 import { ConfigurationsTable } from "@/modules/ui/molecules/ConfigurationsTable/ConfigurationsTable";
-import { type PaymentAppUserVisibleEntries } from "@/modules/payment-app-configuration/app-config";
+import { type PaymentAppUserVisibleEntries } from "@/modules/payment-app-configuration/common-app-configuration/app-config";
 
 export const HyperswitchConfigurationsList = ({
   configurations,

@@ -4,7 +4,7 @@ import {
   PrivateMetadataAppConfigurator,
 } from "../app-configuration/app-configuration";
 import { type BrandedEncryptedMetadataManager } from "../app-configuration/metadata-manager";
-import { type PaymentAppConfig, paymentAppConfigSchema, type ChannelMapping } from "./app-config";
+import { type PaymentAppConfig, paymentAppConfigSchema, type ChannelMapping } from "./app-config";./common-app-configuration/app-config
 import {
   type PaymentAppConfigEntryUpdate,
   type PaymentAppConfigEntry,

@@ -4,7 +4,7 @@ import { ConfigurationSummary } from "../ConfigurationSummary/ConfigurationSumma
 import * as tableStyles from "./configurationsTable.css";
 import { Tr, Td, Table, Tbody, Th, Thead } from "@/modules/ui/atoms/Table/Table";
 import { type PaymentAppUserVisibleConfigEntry } from "@/modules/payment-app-configuration/config-entry";
-import { type PaymentAppUserVisibleEntries } from "@/modules/payment-app-configuration/app-config";
+import { type PaymentAppUserVisibleEntries } from "@/modules/payment-app-configuration/common-app-configuration/app-config";
 
 const ConfigurationsTableRow = ({ item }: { item: PaymentAppUserVisibleConfigEntry }) => {
   return (

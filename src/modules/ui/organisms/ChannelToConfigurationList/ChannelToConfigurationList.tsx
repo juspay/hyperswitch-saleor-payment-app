@@ -6,7 +6,7 @@ import { type Channel } from "@/types";
 import {
   type PaymentAppUserVisibleEntries,
   type ChannelMapping,
-} from "@/modules/payment-app-configuration/app-config";
+} from "@/modules/payment-app-configuration/common-app-configuration/app-config";
 
 export const ChannelToConfigurationList = ({
   channelMappings,

@@ -1,7 +1,10 @@
 import { z } from "zod";
 import { protectedClientProcedure } from "../trpc/protected-client-procedure";
 import { router } from "../trpc/trpc-server";
-import { channelMappingSchema, paymentAppUserVisibleConfigEntriesSchema } from "./app-config";
+import {
+  channelMappingSchema,
+  paymentAppUserVisibleConfigEntriesSchema,
+} from "./common-app-configuration/app-config";
 import { mappingUpdate, paymentConfigEntryDelete, paymentConfigEntryUpdate } from "./input-schemas";
 import { getMappingFromAppConfig, setMappingInAppConfig } from "./mapping-manager";
 import { getPaymentAppConfigurator } from "./payment-app-configuration-factory";
