@@ -4,10 +4,11 @@ import {
   RoundedActionBox,
   RoundedBoxWithFooter,
 } from "@/modules/ui/atoms/RoundedActionBox/RoundedActionBox";
-import { ConfigurationsTable } from "@/modules/ui/molecules/ConfigurationsTable/ConfigurationsTable";
 import { type PaymentAppUserVisibleEntries } from "@/modules/payment-app-configuration/common-app-configuration/app-config";
+import { AddConfigButton } from "../../molecules/AddConfigButton/AddConfigButton";
+import { ConfigurationsTable } from "../../molecules/ConfigurationsTable/ConfigurationsTable";
 
-export const HyperswitchConfigurationsList = ({
+export const ConfigurationsList = ({
   configurations,
 }: {
   configurations: PaymentAppUserVisibleEntries;
@@ -17,15 +18,7 @@ export const HyperswitchConfigurationsList = ({
 
 const NotEmpty = ({ configurations }: { configurations: PaymentAppUserVisibleEntries }) => {
   return (
-    <RoundedBoxWithFooter
-      footer={
-        <Link href={"/configurations/add"} passHref legacyBehavior>
-          <Button as="a" size="large" variant="primary">
-            Add new configuration
-          </Button>
-        </Link>
-      }
-    >
+    <RoundedBoxWithFooter footer={<AddConfigButton>Add new configuration</AddConfigButton>}>
       <ConfigurationsTable configurations={configurations} />
     </RoundedBoxWithFooter>
   );
@@ -38,11 +31,7 @@ const Empty = () => {
         <Text as="p">No Hyperswitch configurations added.</Text>
         <Text as="p">This means payments are not processed by Hyperswitch.</Text>
       </Box>
-      <Link href={"/configurations/add"} passHref legacyBehavior>
-        <Button as="a" size="large" variant="primary">
-          Add new configuration
-        </Button>
-      </Link>
+      <AddConfigButton>Add new configuration</AddConfigButton>
     </RoundedActionBox>
   );
 };

@@ -1,4 +1,9 @@
-import { ChannelNotConfigured, HttpRequestError, HyperswitchHttpClientError } from "@/errors";
+import {
+  ChannelNotConfigured,
+  ConfigurationNotFound,
+  HttpRequestError,
+  HyperswitchHttpClientError,
+} from "@/errors";
 import { type paths as PaymentPaths } from "generated/hyperswitch-payments";
 import { ApiError, Fetcher } from "openapi-typescript-fetch";
 import { intoErrorResponse } from "./hyperswitch-api-response";
@@ -10,19 +15,20 @@ import {
 import {
   PaymentAppConfigEntryFullyConfigured,
   paymentAppFullyConfiguredEntrySchema,
-} from "../payment-app-configuration/config-entry";
+} from "../payment-app-configuration/common-app-configuration/config-entry";
+import { config } from "../../pages/api/webhooks/saleor/transaction-initialize-session";
+import { HyperswitchFullyConfiguredEntry } from "../payment-app-configuration/hyperswitch-app-configuration/config-entry";
+import { invariant } from "@/lib/invariant";
 
 const SANDBOX_BASE_URL: string = "https://sandbox.hyperswitch.io";
 const PROD_BASE_URL: string = "https://api.hyperswitch.io";
 
-export const getEnvironmentFromKey = (publishableKey: string) => {
-  return publishableKey.startsWith("pk_snd_") || publishableKey.startsWith("pk_dev_")
-    ? "test"
-    : "live";
+export const getEnvironmentFromKey = (): string => {
+  return "production";
 };
 
 const getHyperswitchBaseUrl = (publishableKey: string) => {
-  if (getEnvironmentFromKey(publishableKey) == "live") {
+  if (getEnvironmentFromKey() == "production") {
     return PROD_BASE_URL;
   } else {
     return SANDBOX_BASE_URL;
@@ -32,13 +38,13 @@ const getHyperswitchBaseUrl = (publishableKey: string) => {
 const fetchHyperswitchConfiguration = async (
   configurator: PaymentAppConfigurator,
   channelId: string,
-): Promise<PaymentAppConfigEntryFullyConfigured> => {
+): Promise<HyperswitchFullyConfiguredEntry> => {
   const appConfig = await configurator.getConfig();
   const appChannelConfig = getConfigurationForChannel(appConfig, channelId);
   if (appChannelConfig == null) {
     throw new ChannelNotConfigured("Please assign a channel for your configuration");
   }
-  return paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
+  return getHyperswitchConfig(paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig));
 };
 
 export const fetchHyperswitchProfileID = async (
@@ -50,7 +56,9 @@ export const fetchHyperswitchProfileID = async (
   if (appChannelConfig == null) {
     throw new ChannelNotConfigured("Please assign a channel for your configuration");
   }
-  const HyperswitchConfig = paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
+  const HyperswitchConfig = getHyperswitchConfig(
+    paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig),
+  );
   return HyperswitchConfig.profileId;
 };
 
@@ -63,7 +71,9 @@ export const fetchHyperswitchPublishableKey = async (
   if (appChannelConfig == null) {
     throw new ChannelNotConfigured("Please assign a channel for your configuration");
   }
-  const HyperswitchConfig = paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
+  const HyperswitchConfig = getHyperswitchConfig(
+    paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig),
+  );
   return HyperswitchConfig.publishableKey;
 };
 
@@ -76,7 +86,9 @@ export const fetchHyperswitchPaymentResponseHashKey = async (
   if (appChannelConfig == null) {
     throw new ChannelNotConfigured("Please assign a channel for your configuration");
   }
-  const HyperswitchConfig = paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
+  const HyperswitchConfig = getHyperswitchConfig(
+    paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig),
+  );
   return HyperswitchConfig.paymentResponseHashKey;
 };
 
@@ -114,3 +126,13 @@ export const createHyperswitchClient = async ({
   });
   return fetcher;
 };
+
+export function getHyperswitchConfig(
+  config: PaymentAppConfigEntryFullyConfigured,
+): HyperswitchFullyConfiguredEntry {
+  if (config.hyperswitchConfiguration) {
+    return config.hyperswitchConfiguration;
+  } else {
+    throw new ConfigurationNotFound("Please add Hyperswitch configuration");
+  }
+}

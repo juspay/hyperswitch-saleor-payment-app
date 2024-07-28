@@ -28,7 +28,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { Event } from "../../../../../generated/graphql";
 import { getPaymentAppConfigurator } from "@/modules/payment-app-configuration/payment-app-configuration-factory";
 import { getConfigurationForChannel } from "@/modules/payment-app-configuration/payment-app-configuration";
-import { paymentAppFullyConfiguredEntrySchema } from "@/modules/payment-app-configuration/config-entry";
+import { paymentAppFullyConfiguredEntrySchema } from "@/modules/payment-app-configuration/common-app-configuration/config-entry";
 import {
   createHyperswitchClient,
   fetchHyperswitchPaymentResponseHashKey,

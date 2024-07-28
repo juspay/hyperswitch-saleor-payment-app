@@ -1,7 +1,12 @@
 import { z } from "zod";
+import {
+  paymentAppConfigEntrySchema,
+  paymentAppUserVisibleConfigEntrySchema,
+} from "./config-entry";
 
-export const paymentAppConfigEntriesSchema = // todo paymentAppConfigEntrySchema.array();
-export const paymentAppUserVisibleConfigEntriesSchema = //todo paymentAppUserVisibleConfigEntrySchema.array();
+export const paymentAppConfigEntriesSchema = paymentAppConfigEntrySchema.array();
+export const paymentAppUserVisibleConfigEntriesSchema =
+  paymentAppUserVisibleConfigEntrySchema.array();
 
 // Record<ChannelID, AppConfigEntryId>
 export const channelMappingSchema = z

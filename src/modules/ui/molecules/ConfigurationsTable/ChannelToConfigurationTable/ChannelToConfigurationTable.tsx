@@ -11,7 +11,7 @@ import {
   type PaymentAppUserVisibleEntries,
   type ChannelMapping,
 } from "@/modules/payment-app-configuration/common-app-configuration/app-config";
-import { type PaymentAppConfigEntry } from "@/modules/payment-app-configuration/config-entry";
+import { type PaymentAppConfigEntry } from "@/modules/payment-app-configuration/common-app-configuration/config-entry";
 import { getEnvironmentFromKey } from "@/modules/hyperswitch/hyperswitch-api";
 
 const ChannelToConfigurationTableRow = ({

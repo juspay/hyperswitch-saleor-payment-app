@@ -1,13 +1,11 @@
 import { uuidv7 } from "uuidv7";
-import { type ConfigEntryUpdate } from "./input-schemas";
-import { obfuscateConfigEntry } from "./utils";
-import { type PaymentAppConfigurator } from "./payment-app-configuration";
-import {
-  type PaymentAppConfigEntryFullyConfigured,
-  type PaymentAppFormConfigEntry,
-} from "./config-entry";
+import { type ConfigEntryUpdate } from "../input-schemas";
+import { obfuscateConfigEntry } from "../utils";
+import { type PaymentAppConfigurator } from "../payment-app-configuration";
 import { createLogger, redactError, redactLogObject } from "@/lib/logger";
 import { BaseError } from "@/errors";
+import { PaymentAppConfigEntryFullyConfigured, PaymentAppFormConfigEntry } from "./config-entry";
+import { invariant } from "@/lib/invariant";
 
 export const EntryNotFoundError = BaseError.subclass("EntryNotFoundError");
 
@@ -77,29 +75,46 @@ export const getConfigEntryDecrypted = async (
 export const addConfigEntry = async (
   newConfigEntry: PaymentAppFormConfigEntry,
   configurator: PaymentAppConfigurator,
-  appUrl: string,
+  _appUrl: string,
 ) => {
   const logger = createLogger(
     { saleorApiUrl: configurator.saleorApiUrl },
     { msgPrefix: "[addConfigEntry] " },
   );
 
-  logger.debug("Creating new webhook for config entry");
-
   const uuid = uuidv7();
-  const config = {
-    ...newConfigEntry,
-    configurationId: uuid,
-  } satisfies PaymentAppConfigEntryFullyConfigured;
 
-  // webhookSecret,
-  // webhookId,
-
-  logger.debug({ config: redactLogObject(config) }, "Adding new config entry");
-  await configurator.setConfigEntry(config);
-  logger.info({ configurationId: config.configurationId }, "Config entry added");
-
-  return obfuscateConfigEntry(config);
+  if (newConfigEntry.hyperswitchConfiguration) {
+    const config = {
+      hyperswitchConfiguration: {
+        apiKey: newConfigEntry.hyperswitchConfiguration.apiKey,
+        paymentResponseHashKey: newConfigEntry.hyperswitchConfiguration.paymentResponseHashKey,
+        publishableKey: newConfigEntry.hyperswitchConfiguration.publishableKey,
+        profileId: newConfigEntry.hyperswitchConfiguration.profileId,
+      },
+      juspayConfiguration: undefined,
+      configurationName: newConfigEntry.configurationName,
+      configurationId: uuid,
+    } satisfies PaymentAppConfigEntryFullyConfigured;
+    await configurator.setConfigEntry(config);
+    const result = obfuscateConfigEntry(config);
+    return result;
+  } else {
+    invariant(newConfigEntry.juspayConfiguration, "Missing Configuration Entry");
+    const config = {
+      hyperswitchConfiguration: undefined,
+      juspayConfiguration: {
+        apiKey: newConfigEntry.juspayConfiguration.apiKey,
+        clientId: newConfigEntry.juspayConfiguration.clientId,
+        username: newConfigEntry.juspayConfiguration.username,
+        password: newConfigEntry.juspayConfiguration.password,
+      },
+      configurationName: newConfigEntry.configurationName,
+      configurationId: uuid,
+    } satisfies PaymentAppConfigEntryFullyConfigured;
+    await configurator.setConfigEntry(config);
+    return obfuscateConfigEntry(config);
+  }
 };
 
 export const updateConfigEntry = async (

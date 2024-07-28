@@ -9,16 +9,19 @@ import { DeleteHyperswitchConfigurationForm } from "./DeleteHyperswitchConfigura
 import { checkTokenPermissions } from "@/modules/jwt/check-token-offline";
 import { REQUIRED_SALEOR_PERMISSIONS } from "@/modules/jwt/consts";
 import { trpcClient } from "@/modules/trpc/trpc-client";
-import {
-  type PaymentAppFormConfigEntry,
-  paymentAppFormConfigEntrySchema,
-} from "@/modules/payment-app-configuration/config-entry";
 import Link from "next/link";
+import {
+  PaymentAppFormConfigEntry,
+  paymentAppFormConfigEntrySchema,
+} from "@/modules/payment-app-configuration/common-app-configuration/config-entry";
+import { AddJuspayCredentialsForm } from "./AddJuspayCredentialsForm";
 
-export const HyperswitchConfigurationForm = ({
+export const ConfigurationForm = ({
   configurationId,
+  orchestra,
 }: {
   configurationId: string | undefined | null;
+  orchestra: string;
 }) => {
   const { appBridgeState } = useAppBridge();
   const { token } = appBridgeState ?? {};
@@ -28,11 +31,8 @@ export const HyperswitchConfigurationForm = ({
   const formMethods = useForm<PaymentAppFormConfigEntry>({
     resolver: zodResolver(paymentAppFormConfigEntrySchema),
     defaultValues: {
-      publishableKey: "",
-      apiKey: "",
-      paymentResponseHashKey: "",
-      profileId: "",
-      configurationName: "",
+      hyperswitchConfiguration: undefined,
+      juspayConfiguration: undefined,
     },
   });
 
@@ -51,9 +51,30 @@ export const HyperswitchConfigurationForm = ({
 
   return (
     <FormProvider {...formMethods}>
-      <AppLayoutRow title="Hyperswitch Credentials">
-        <AddHyperswitchCredentialsForm configurationId={configurationId} />
-      </AppLayoutRow>
+      <FormProvider {...formMethods}>
+        {orchestra === "Juspay" ? (
+          <FormProvider {...formMethods}>
+            <AppLayoutRow title="Juspay Credentials">
+              <AddJuspayCredentialsForm configurationId={configurationId} />
+            </AppLayoutRow>
+          </FormProvider>
+        ) : (
+          <FormProvider {...formMethods}>
+            <AppLayoutRow title="Hyperswitch Credentials">
+              <AddHyperswitchCredentialsForm configurationId={configurationId} />
+            </AppLayoutRow>
+          </FormProvider>
+        )}
+        {data && configurationId && (
+          <AppLayoutRow error={true} title="Danger zone">
+            <DeleteHyperswitchConfigurationForm
+              configurationName={data.configurationName}
+              configurationId={configurationId}
+            />
+          </AppLayoutRow>
+        )}
+      </FormProvider>
+      ;
       {data && configurationId && (
         <AppLayoutRow error={true} title="Danger zone">
           <DeleteHyperswitchConfigurationForm

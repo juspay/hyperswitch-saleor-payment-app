@@ -1,24 +1,75 @@
 import { Text, EditIcon, Box, InfoIcon, ViewListIcon, ViewTableIcon } from "@saleor/macaw-ui";
 import Link from "next/link";
-import { ConfigurationSummary } from "../ConfigurationSummary/ConfigurationSummary";
+import {
+  HyperswitchConfigurationSummary,
+  JuspayConfigurationSummary,
+} from "../ConfigurationSummary/ConfigurationSummary";
 import * as tableStyles from "./configurationsTable.css";
 import { Tr, Td, Table, Tbody, Th, Thead } from "@/modules/ui/atoms/Table/Table";
-import { type PaymentAppUserVisibleConfigEntry } from "@/modules/payment-app-configuration/config-entry";
 import { type PaymentAppUserVisibleEntries } from "@/modules/payment-app-configuration/common-app-configuration/app-config";
+import { HyperswitchUserVisibleConfigEntry } from "@/modules/payment-app-configuration/hyperswitch-app-configuration/config-entry";
+import { JuspayUserVisibleConfigEntry } from "@/modules/payment-app-configuration/juspay-app-configuration/config-entry";
+import { invariant } from "@/lib/invariant";
 
-const ConfigurationsTableRow = ({ item }: { item: PaymentAppUserVisibleConfigEntry }) => {
+const HyperswitchConfigurationsTableRow = ({
+  item,
+  configurationName,
+  configurationId,
+}: {
+  item: HyperswitchUserVisibleConfigEntry;
+  configurationName: string;
+  configurationId: string;
+}) => {
   return (
     <Tr>
       <Td>
         <Text size={4} fontWeight="regular">
-          {item.configurationName}
+          {configurationName}
         </Text>
       </Td>
       <Td className={tableStyles.summaryColumnTd}>
-        <ConfigurationSummary config={item} />
+        <HyperswitchConfigurationSummary config={item} />
       </Td>
       <Td className={tableStyles.actionsColumnTd}>
-        <Link href={`/configurations/edit/${item.configurationId}`} passHref legacyBehavior>
+        <Link href={`/configurations/edit/hyperswitch/${configurationId}`} passHref legacyBehavior>
+          <Text
+            as="a"
+            size={4}
+            color="default2"
+            textDecoration="none"
+            display="inline-flex"
+            alignItems="center"
+          >
+            <ViewTableIcon size="small" />
+            View Config
+          </Text>
+        </Link>
+      </Td>
+    </Tr>
+  );
+};
+
+const JuspayConfigurationsTableRow = ({
+  item,
+  configurationName,
+  configurationId,
+}: {
+  item: JuspayUserVisibleConfigEntry;
+  configurationName: string;
+  configurationId: string;
+}) => {
+  return (
+    <Tr>
+      <Td>
+        <Text size={4} fontWeight="regular">
+          {configurationName}
+        </Text>
+      </Td>
+      <Td className={tableStyles.summaryColumnTd}>
+        <JuspayConfigurationSummary config={item} />
+      </Td>
+      <Td className={tableStyles.actionsColumnTd}>
+        <Link href={`/configurations/edit/juspay/${configurationId}`} passHref legacyBehavior>
           <Text
             as="a"
             size={4}
@@ -46,16 +97,35 @@ export const ConfigurationsTable = ({
       <Thead>
         <Tr>
           <Th>Configuration name</Th>
-          <Th className={tableStyles.summaryColumnTd}>Hyperswitch Configuration</Th>
+          <Th className={tableStyles.summaryColumnTd}>Hyperswitch/Juspay Configuration</Th>
           <Th className={tableStyles.actionsColumnTd}>
             <span className="visually-hidden">Actions</span>
           </Th>
         </Tr>
       </Thead>
       <Tbody>
-        {configurations.map((item) => (
-          <ConfigurationsTableRow key={item.configurationId} item={item} />
-        ))}
+        {configurations.map((item) => {
+          if (item.hyperswitchConfiguration) {
+            return (
+              <HyperswitchConfigurationsTableRow
+                key={item.configurationId}
+                item={item.hyperswitchConfiguration}
+                configurationName={item.configurationName}
+                configurationId={item.configurationId}
+              />
+            );
+          } else {
+            invariant(item.juspayConfiguration, "Configuration Not found");
+            return (
+              <JuspayConfigurationsTableRow
+                key={item.configurationId}
+                item={item.juspayConfiguration}
+                configurationName={item.configurationName}
+                configurationId={item.configurationId}
+              />
+            );
+          }
+        })}
       </Tbody>
     </Table>
   );
