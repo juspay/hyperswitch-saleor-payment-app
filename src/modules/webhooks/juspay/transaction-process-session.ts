@@ -1,40 +1,25 @@
 import {
   SyncWebhookAppErrors,
-  type HyperswitchTransactionProcessSessionResponse,
-} from "@/schemas/HyperswitchTransactionProcessSession/HyperswitchTransactionProcessSessionResponse.mjs";
+  type JuspayTransactionProcessSessionResponse,
+} from "@/schemas/JuspayTransactionProcessSession/JuspayTransactionProcessSessionResponse.mjs";
 import { invariant } from "@/lib/invariant";
-import { type JSONObject } from "@/types";
 import { createLogger } from "@/lib/logger";
-import { obfuscateConfig } from "@/modules/app-configuration/utils";
-import { getConfigurationForChannel } from "@/modules/payment-app-configuration/payment-app-configuration";
 import {
   TransactionFlowStrategyEnum,
   type TransactionProcessSessionEventFragment,
 } from "generated/graphql";
 
-import { paymentAppFullyConfiguredEntrySchema } from "@/modules/payment-app-configuration/config-entry";
-import { getWebhookPaymentAppConfigurator } from "@/modules/payment-app-configuration/payment-app-configuration-factory";
 import {
-  ChannelNotConfigured,
   UnExpectedHyperswitchPaymentStatus,
-  UnsupportedEvent,
 } from "@/errors";
-import {
-  getHyperswitchAmountFromSaleorMoney,
-  getSaleorAmountFromHyperswitchAmount,
-} from "../../hyperswitch/currencies";
-import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
-import { type components as paymentsComponents } from "generated/hyperswitch-payments";
-import { validatePaymentCreateRequest } from "../../hyperswitch/hyperswitch-api-request";
-import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
-import { hyperswitchPaymentIntentToTransactionResult } from "./transaction-initialize-session";
-import { hyperswitchStatusToSaleorTransactionResult } from "@/pages/api/webhooks/hyperswitch/authorization";
+import { createJuspayClient } from "../../hyperswitch/hyperswitch-api";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
+import { intoOrderStatusResponse } from "@/modules/juspay/juspay-api-response";
 
-export const hyperswitchPaymentIntentToTransactionProcessResult = (
+export const juspayOrderStatusResult = (
   status: string,
   transactionFlow: TransactionFlowStrategyEnum,
-): HyperswitchTransactionProcessSessionResponse["result"] => {
+): JuspayTransactionProcessSessionResponse["result"] => {
   const prefix =
     transactionFlow === TransactionFlowStrategyEnum.Authorization
       ? "AUTHORIZATION"
@@ -45,24 +30,36 @@ export const hyperswitchPaymentIntentToTransactionProcessResult = (
   invariant(prefix, `Unsupported transactionFlowStrategy: ${transactionFlow}`);
 
   switch (status) {
-    case "succeeded":
-    case "partially_captured_and_capturable":
-    case "partially_captured":
+    case "SUCCESS":
+    case "PARTIAL_CHARGED":
+    case "AUTO_REFUNDED":
+    case "VOIDED":
+    case "COD_INITIATED":
       return `${prefix}_SUCCESS`;
-    case "failed":
-    case "cancelled":
+    case "DECLINED":
+    case "ERROR":
+    case "NOT_FOUND":
+    case "VOID_FAILED":
+    case "CAPTURE_FAILED":
+    case "AUTHORIZATION_FAILED":
+    case "AUTHENTICATION_FAILED":
+    case "JUSPAY_DECLINED":
+    case "AUTHENTICATION_FAILED":
       return `${prefix}_FAILURE`;
-    case "requires_capture":
+    case "CAPTURE_INITIATED":
+    case "AUTHORIZED":
+    case "VOID_INITIATED":
       return "AUTHORIZATION_SUCCESS";
-    case "requires_payment_method":
-    case "requires_customer_action":
+    case "NEW":
+    case "CREATED":
+    case "PENDING_AUTHENTICATION":
     case "requires_confirmation":
       return `${prefix}_ACTION_REQUIRED`;
-    case "processing":
+    case "AUTHORIZING":
       return `${prefix}_REQUEST`;
     default:
       throw new UnExpectedHyperswitchPaymentStatus(
-        `Status received from hyperswitch: ${status}, is not expected . Please check the payment flow.`,
+        `Status received from juspay: ${status}, is not expected . Please check the payment flow.`,
       );
   }
 };
@@ -71,7 +68,7 @@ export const TransactionProcessSessionJuspayWebhookHandler = async (
   event: TransactionProcessSessionEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<HyperswitchTransactionProcessSessionResponse> => {
+): Promise<JuspayTransactionProcessSessionResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionProcessSessionWebhookHandler] " },
@@ -92,54 +89,32 @@ export const TransactionProcessSessionJuspayWebhookHandler = async (
 
   const app = event.recipient;
   invariant(app, "Missing event.recipient!");
-  const { privateMetadata } = app;
-  const configurator = getWebhookPaymentAppConfigurator({ privateMetadata }, saleorApiUrl);
   const errors: SyncWebhookAppErrors = [];
-  const currency = event.action.currency;
-  const channelId = event.sourceObject.channel.id;
-  const hyperswitchClient = await createHyperswitchClient({
+  const juspayClient = await createJuspayClient({
     configData,
   });
 
-  const retrieveHyperswitchPayment = hyperswitchClient
-    .path("/payments/{payment_id}")
+  const juspayOrderStatus = juspayClient
+    .path("/orders/{order_id}")
     .method("get")
     .create();
 
-  const resource_id: paymentsComponents["schemas"]["PaymentIdType"] = {
-    PaymentIntentId: event.transaction.pspReference,
-  };
-
-  const capture_method =
-    event.action.actionType == TransactionFlowStrategyEnum.Authorization ? "manual" : "automatic";
-
-  const retrievePaymentPayload: paymentsComponents["schemas"]["PaymentsRetrieveRequest"] = {
-    force_sync: true,
-    resource_id,
-  };
-
-  const payment_id = event.transaction.pspReference;
-
-  const retrievePaymentResponse = await retrieveHyperswitchPayment({
-    ...retrievePaymentPayload,
-    payment_id,
+  const orderStatusResponse = await juspayOrderStatus({
+    order_id: event.transaction.pspReference,
   });
-  const retrievePaymentResponseData = intoPaymentResponse(retrievePaymentResponse.data);
-
-  const result = hyperswitchPaymentIntentToTransactionProcessResult(
-    retrievePaymentResponseData.status,
+  const parsedOrderStatusRespData = intoOrderStatusResponse(orderStatusResponse.data);
+  invariant(parsedOrderStatusRespData.order_id && parsedOrderStatusRespData.amount , `Required fields not found session call response`);
+  const result = juspayOrderStatusResult(
+    parsedOrderStatusRespData.status,
     event.action.actionType,
   );
-  const transactionProcessSessionResponse: HyperswitchTransactionProcessSessionResponse = {
+  const transactionProcessSessionResponse: JuspayTransactionProcessSessionResponse = {
     data: {
       errors,
     },
-    pspReference: retrievePaymentResponseData.payment_id,
+    pspReference: parsedOrderStatusRespData.order_id,
     result,
-    amount: getSaleorAmountFromHyperswitchAmount(
-      retrievePaymentResponseData.amount,
-      retrievePaymentResponseData.currency,
-    ),
+    amount: parsedOrderStatusRespData.amount,
     time: new Date().toISOString(),
   };
   return transactionProcessSessionResponse;

@@ -9,7 +9,7 @@ export const SaleorMetadataSchema = z.object({
 export const SessionPaymentlinks = z.object({
     web: z.string().nullable(),
     expiry: z.string().nullable(),
-    deep_link: z.string().nullable(),
+    deep_link: z.string().nullable().optional(),
   });
 
 export const Payload = z.object({
@@ -53,12 +53,54 @@ export function intoPaymentResponse(responseData: any): PaymentCreateResponse {
     return PaymentResponseSchema.parse(responseData);
   } catch (error) {
     if (error instanceof ZodError) {
-      throw new JsonSchemaError(`Failed to parse payment create response`);
+      throw new JsonSchemaError(`Failed to parse payment create response: ${error}`);
     } else {
       throw error;
     }
   }
 }
+
+export const PreAuthPaymentResponse = z.object({
+  status: z.string().nullable(),
+  order_id: z.string().nullable(),
+  amount: z.number().nullable(),
+  currency: z.string().nullable()
+});
+
+export type PaymentPreAuthResponse = z.infer<typeof PreAuthPaymentResponse>
+
+export function intoPreAuthTxnResponse(responseData : any): PaymentPreAuthResponse {
+  try {
+    return PreAuthPaymentResponse.parse(responseData);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new JsonSchemaError(`Failed to parse payment void response`);
+    } else {
+      throw error;
+    }
+ }
+}
+
+export const OrderStatusResponse = z.object({
+  status: z.string(),
+  order_id: z.string().nullable().optional(),
+  amount: z.number().nullable().optional()
+});
+
+export type GetOrderStatusResponse = z.infer<typeof OrderStatusResponse>
+
+export function intoOrderStatusResponse(responseData : any): GetOrderStatusResponse {
+  try {
+    return OrderStatusResponse.parse(responseData);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new JsonSchemaError(`Failed to parse order status response`);
+    } else {
+      throw error;
+    }
+ }
+}
+
 
 // Define the schema for the ErrorResponse
 const ErrorDataSchema = z.object({
@@ -87,16 +129,12 @@ export function intoErrorResponse(eventData: unknown): ErrorResponse {
 }
 
 export const RefundResponseSchema = z.object({
-  refund_id: z.string(),
-  payment_id: z.string(),
+  uniqueRequestId: z.string(),
+  txnDetailId: z.string(),
   amount: z.number(),
   status: z.string(),
-  currency: z.string(),
-  connector: z.string().nullable(),
-  reason: z.string().nullable(),
-  metadata: SaleorMetadataSchema,
-  error_code: z.string().nullable().optional(),
-  error_message: z.string().nullable().optional(),
+  responseCode: z.string().nullable().optional(),
+  errorMessage: z.string().nullable().optional(),
 });
 
 export type RefundResponse = z.infer<typeof RefundResponseSchema>;

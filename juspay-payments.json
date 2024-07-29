@@ -84,7 +84,7 @@
               "content": {
                 "application/json": {
                   "schema": {
-                    "$ref": "#/components/schemas/OrdersResponse"
+                    "$ref": "#/components/schemas/OrderStatusResponseV1"
                   }
                 }
               }
@@ -121,7 +121,7 @@
             "content": {
               "x-www-form-urlencoded": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrderRefundRequest"
+                  "$ref": "#/components/schemas/RefundReq"
                 },
                 "examples": {}
               }
@@ -134,7 +134,7 @@
               "content": {
                 "application/json": {
                   "schema": {
-                    "$ref": "#/components/schemas/OrderRefundResponse"
+                    "$ref": "#/components/schemas/RefundResponse"
                   }
                 }
               }
@@ -606,13 +606,6 @@
             }
           }
         },
-        "OrderRefundRequest" : {
-          "type": "object",
-          "properties": {
-            "unique_request_id": { "type": "string"},
-            "amount": {"type": "number","format": "float"}
-          }
-        },
         "OrderTxnDetails":{
           "type": "object",
           "properties":{
@@ -769,135 +762,6 @@
             "type": "string","nullable": true
           }
         },
-        "OrderRefundResponse": {
-          "type": "object",
-          "properties": {
-            "udf9": {
-              "type": "string","nullable": true
-            },
-            "udf8": {
-              "type": "string","nullable": true
-            },
-            "udf7": {
-              "type": "string","nullable": true
-            },
-            "udf6": {
-              "type": "string","nullable": true
-            },
-            "udf5": {
-              "type": "string","nullable": true
-            },
-            "udf4": {
-              "type": "string","nullable": true
-            },
-            "udf3": {
-              "type": "string","nullable": true
-            },
-            "udf2": {
-              "type": "string","nullable": true
-            },
-            "udf10": {
-              "type": "string","nullable": true
-            },
-            "udf1": {
-              "type": "string","nullable": true
-            },
-            "txn_uuid": {
-              "type": "string","nullable": true
-            },
-            "txn_id": {
-              "type": "string","nullable": true
-            },
-            "txn_detail": {
-              "$ref": "#/components/schemas/OrderTxnDetails"
-            },
-            "status_id": {
-              "type": "string","nullable": true
-            },
-            "status": {
-              "type": "string","nullable": true
-            },
-            "return_url": {
-              "type": "string","nullable": true
-            },
-            "refunds": {
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/OrderRefunds"
-              }
-            },
-            "refunded": {
-              "type": "boolean","nullable": true
-            },
-            "product_id": {
-              "type": "string","nullable": true
-            },
-            "payment_method_type": {
-              "type": "string","nullable": true
-            },
-            "payment_method": {
-              "type": "string","nullable": true
-            },
-            "payment_links": {
-              "$ref": "#/components/schemas/orderPaymentlinks"
-            },
-            "payment_gateway_response": {
-              "$ref": "#/components/schemas/paymentGatewayResponse"
-            },
-            "order_id": {
-              "type": "string","nullable": true
-            },
-            "merchant_id": {
-              "type": "string","nullable": true
-            },
-            "id": {
-              "type": "string","nullable": true
-            },
-            "gateway_reference_id": {
-              "type": "string","nullable": true
-            },
-            "gateway_id": {
-              "type": "integer","nullable": true
-            },
-            "effective_amount": {
-              "type": "number", "format": "float","nullable": true
-            },
-            "date_created": {
-              "type": "string","nullable": true,
-              "format": "date-time"
-            },
-            "customer_phone": {
-              "type": "string","nullable": true
-            },
-            "customer_id": {
-              "type": "string","nullable": true
-            },
-            "customer_email": {
-              "type": "string","nullable": true
-            },
-            "currency": {
-              "type": "string","nullable": true
-            },
-            "card": {
-              "$ref": "#/components/schemas/OrderCard"
-            },
-            "bank_error_message": {
-              "type": "string","nullable": true
-            },
-            "bank_error_code": {
-              "type": "string","nullable": true
-            },
-            "auth_type": {
-              "type": "string","nullable": true
-            },
-            "amount_refunded": {
-              "type": "number","format": "float","nullable": true
-            },
-            "amount": {
-              "type": "number","format": "float","nullable": true
-            }
-          }
-        },
         "OrderStatus":{
           "type": "string",
           "enum": [
@@ -933,8 +797,8 @@
             "metadata": {
               "type": "string","nullable": true
             },
-            "ref": {
-              "idempotence_key": "string","nullable": true
+            "idempotence_key": {
+              "type": "string","nullable": true
             }
           }
         },
@@ -1107,6 +971,17 @@
             "MERCHANT_VOIDED"
           ]
         },
+        "PreAuthStatus": {
+          "type": "string",
+          "enum": [ "VOIDED",
+          "VOID_INITIATED",
+          "CAPTURE_INITIATED",
+          "AUTHORIZED",
+          "CAPTURE_FAILED",
+          "VOID_FAILED",
+          "PARTIAL_CHARGED"
+        ]
+        },
         "PaymentGatewayInfo": {
           "type": "object",
           "properties": {
@@ -1141,7 +1016,7 @@
           "oneOf": [
             { "$ref": "#/components/schemas/RazorpayVoidResp" },
             { "$ref": "#/components/schemas/PreAuthErrorResponse" },
-            { "$ref": "#/components/schemas/CaptureTxnResponse" }
+            { "$ref": "#/components/schemas/VoidTxnResponse" }
           ]
         },
         "RazorpayVoidResp": {
@@ -1151,6 +1026,7 @@
             { "$ref": "#/components/schemas/RazorpayCheckStatusResponse" }
           ]
         },
+
         "RazorpayVoidSuccessResponse": {
           "type": "object",
           "properties": {
@@ -1186,7 +1062,583 @@
             "epgTxnId": { "type": "string", "nullable": true },
             "apiMetadata": { "$ref": "#/components/schemas/ApiMetadata", "nullable": true }
           }
+        },
+        "RefundReq": {
+          "type": "object",
+          "properties": {
+            "unique_request_id": { "type": "string" },
+            "amount": { "type": "number" },
+            "txn_id": { "type": "string", "nullable": true },
+            "initiated_by": { "type": "string", "nullable": true },
+            "refund_type": { "type": "string", "nullable": true },
+            "order_type": { "type": "string", "nullable": true },
+            "beneficiary_details": { "type": "string", "nullable": true },
+            "is_refund_response": { "type": "string", "nullable": true },
+            "metaData": { "type": "string", "nullable": true },
+            "include_surcharge": { "type": "boolean", "nullable": true },
+            "direct_refund_response": { "type": "boolean", "nullable": true }
+          }
+        },
+        "RefundResponse": {
+          "type": "object",
+          "properties": {
+            "_id": { "type": "string" },
+            "amount": { "type": "number" },
+            "gateway": { "type": "string" },
+            "processed": { "type": "boolean" },
+            "txnDetailId": { "type": "string" },
+            "status": { "$ref": "#/components/schemas/RefundStatus" },
+            "uniqueRequestId": { "type": "string" },
+            "sentToGateway": { "type": "boolean" },
+            "internalReferenceId": { "type": "string" },
+            "initiatedBy": { "type": "string" },
+            "refundType": { "type": "string" },
+            "dateCreated": { "type": "string", "format": "date" },
+            "lastModified": { "type": "string", "format": "date" },
+            "authorizationId": { "type": "string", "nullable": true },
+            "epgTxnId": { "type": "string", "nullable": true },
+            "rootReferenceNumber": { "type": "string", "nullable": true },
+            "referenceId": { "type": "string", "nullable": true },
+            "errorMessage": { "type": "string", "nullable": true },
+            "responseCode": { "type": "string", "nullable": true },
+            "refundArn": { "type": "string", "nullable": true },
+            "refundSource": { "type": "string", "nullable": true },
+            "refundSubStatus": { "$ref": "#/components/schemas/RefundSubStatus" },
+            "refundEta": { "$ref": "#/components/schemas/RefundEta" },
+            "refundTimeline": { "type": "object", "additionalProperties": { "type": "string", "format": "date" } },
+            "statusUpdatedAt": { "type": "string", "format": "date" },
+            "executeSystem": { "type": "string", "nullable": true },
+            "syncSystem": { "type": "string", "nullable": true },
+            "updatedBy": { "$ref": "#/components/schemas/UpdatedBy", "nullable": true },
+            "retryType": { "$ref": "#/components/schemas/RetryType", "nullable": true },
+            "splitSettlementDetails": { "$ref": "#/components/schemas/RefundSplitSettlementDetails", "nullable": true },
+            "enforceRouteToRemoteGateway": { "type": "boolean" },
+            "gatewaySpecificMetadata": { "type": "object", "nullable": true },
+            "merchantId": { "type": "string" },
+            "internalMetadata": { "$ref": "#/components/schemas/InternalMetaData", "nullable": true },
+            "internalTrackingInfo": { "$ref": "#/components/schemas/RefundInternalTrackingInfo", "nullable": true },
+            "gatewayResponse": { "type": "string", "nullable": true },
+            "isLatest": { "type": "boolean" },
+            "previousErrorMessage": { "type": "string", "nullable": true },
+            "previousResponseCode": { "type": "string", "nullable": true },
+            "previousRefundStatus": { "type": "string", "nullable": true },
+            "refundParentId": { "type": "string", "nullable": true },
+            "metadata": { "type": "string", "nullable": true },
+            "refundDomainType": { "$ref": "#/components/schemas/RefundDomainType", "nullable": true },
+            "merchantInitiatedRefundAmount": { "type": "number", "nullable": true },
+            "merchantCaptureId": { "type": "string", "nullable": true },
+            "reversalType": { "$ref": "#/components/schemas/ReversalType", "nullable": true }
+          }
+        },
+        "RefundStatus": {
+          "type": "string",
+          "enum": ["FAILURE", "MANUAL_REVIEW", "PENDING", "SUCCESS"]
+        },
+        "RefundSubStatus": {
+          "type": "string",
+          "enum": [
+            "JUSPAY_ACCEPTED",
+            "JUSPAY_PROCESSING",
+            "PG_PROCESSED",
+            "PG_PROCESSING",
+            "PG_DECLINED",
+            "BANK_PROCESSED",
+            "BANK_PROCESSING",
+            "BANK_DECLINED",
+            "SYNC_INITIATED"
+          ]
+        },
+        "UpdatedBy": {
+          "type": "string",
+          "enum": [
+            "IncomingWebhook",
+            "ForceSyncAPI",
+            "RefundScheduler",
+            "Dashboard",
+            "API"
+          ]
+        },
+        "RefundEta": {
+          "type": "object",
+          "properties": {
+            "min": { "type": "string", "format": "date" },
+            "max": { "type": "string", "format": "date" }
+          }
+        },
+        "RetryType": {
+          "type": "string",
+          "enum": [
+            "HealthCheck",
+            "Idempotent",
+            "Dropped",
+            "Throttle",
+            "Failure",
+            "AutoRefund"
+          ]
+        },
+        "RefundSplitSettlementDetails": {
+          "type": "object",
+          "properties": {
+            "marketplace": { "$ref": "#/components/schemas/MarketPlaceRefundSplitDetail" },
+            "vendor": { "$ref": "#/components/schemas/VendorRefundSplitDetail" }
+          }
+        },
+        "MarketPlaceRefundSplitDetail": {
+          "type": "object",
+          "properties": {
+            "refund_amount": { "type": "number" }
+          }
+        },
+        "VendorRefundSplitDetail": {
+          "type": "object",
+          "properties": {
+            "split": {
+              "type": "array",
+              "items": { "$ref": "#/components/schemas/RefundMetaSplitDetailArray" }
+            }
+          }
+        },
+        "RefundMetaSplitDetailArray": {
+          "type": "object",
+          "properties": {
+            "sub_mid": { "type": "string" },
+            "refund_amount": { "type": "number" },
+            "gw_sub_mid": { "type": "string", "nullable": true },
+            "reference_id": { "type": "string", "nullable": true },
+            "merchant_commission": { "type": "number", "nullable": true },
+            "notes": { "type": "string", "nullable": true }
+          }
+        },
+        "InternalMetaData": {
+          "type": "object",
+          "properties": {
+            "include_surcharge": { "type": "boolean" },
+            "surchargeBasedAmount": { "type": "number", "nullable": true },
+            "refundDetails": { "type": "string", "nullable": true }
+          }
+        },
+        "RefundInternalTrackingInfo": {
+          "type": "object",
+          "properties": {
+            "statusInterpretation": { "$ref": "#/components/schemas/RefundStatusInterpretation" },
+            "gatewayHelperData": { "type": "string", "nullable": true },
+            "alert": { "type": "string", "nullable": true },
+            "alertMessage": { "type": "string", "nullable": true },
+            "refundCreationSystem": { "type": "string", "nullable": true },
+            "txnUuid": { "type": "string", "nullable": true },
+            "orderUuid": { "type": "string", "nullable": true },
+            "refundRetryCount": { "type": "integer", "nullable": true },
+            "cellSelector": { "type": "string", "nullable": true }
+          }
+        },
+        "RefundStatusInterpretation": {
+          "type": "string",
+          "enum": ["DEFAULT", "UNKNOWN", "KNOWN"]
+        },
+        "RefundDomainType": {
+          "type": "string",
+          "enum": ["NORMAL", "SPLIT", "PARTIAL_CAPTURED"]
+        },
+        "ReversalType": {
+          "type": "string",
+          "enum": ["VOIDED", "SETTLED"]
+        },
+        "PaymentLinks":{
+          "iframe":{ "type": "string", "nullable": true },
+          "web":{ "type": "string", "nullable": true },
+          "mobile":{ "type": "string", "nullable": true }
+        },
+        "OrderStatusResponseV1": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "nullable": true },
+            "merchantId": { "type": "string", "nullable": true },
+            "amount": { "type": "number", "nullable": true },
+            "currency": { "type": "string", "nullable": true },
+            "orderId": { "type": "string", "nullable": true },
+            "dateCreated": { "type": "string", "nullable": true },
+            "returnUrl": { "type": "string", "nullable": true },
+            "productId": { "type": "string", "nullable": true },
+            "customerEmail": { "type": "string", "nullable": true },
+            "customerPhone": { "type": "string", "nullable": true },
+            "customerId": { "type": "string", "nullable": true },
+            "paymentLinks": { "$ref": "#/components/schemas/PaymentLinks", "nullable": true },
+            "udf1": { "type": "string", "nullable": true },
+            "udf2": { "type": "string", "nullable": true },
+            "udf3": { "type": "string", "nullable": true },
+            "udf4": { "type": "string", "nullable": true },
+            "udf5": { "type": "string", "nullable": true },
+            "udf6": { "type": "string", "nullable": true },
+            "udf7": { "type": "string", "nullable": true },
+            "udf8": { "type": "string", "nullable": true },
+            "udf9": { "type": "string", "nullable": true },
+            "udf10": { "type": "string", "nullable": true },
+            "txnId": { "type": "string", "nullable": true },
+            "statusId": { "type": "integer" },
+            "status": { "type": "string" },
+            "paymentMethodType": { "type": "string", "nullable": true },
+            "authType": { "type": "string", "nullable": true },
+            "card": { "$ref": "#/components/schemas/CardV1", "nullable": true },
+            "paymentMethod": { "type": "string", "nullable": true },
+            "refunded": { "type": "boolean", "nullable": true },
+            "effectiveAmount": { "type": "number", "nullable": true },
+            "amountRefunded": { "type": "number", "nullable": true },
+            "chargebacks": { "type": "array", "items": { "$ref": "#/components/schemas/ChargebackV1" }, "nullable": true },
+            "refunds": { "type": "array", "items": { "$ref": "#/components/schemas/RefundV1" }, "nullable": true },
+            "promotion": { "$ref": "#/components/schemas/PromotionV1", "nullable": true },
+            "risk": { "$ref": "#/components/schemas/RiskV1", "nullable": true },
+            "riskChecks": { "type": "array", "items": { "$ref": "#/components/schemas/RiskV1" }, "nullable": true },
+            "respCode": { "type": "string", "nullable": true },
+            "respMessage": { "type": "string", "nullable": true },
+            "bankErrorCode": { "type": "string", "nullable": true },
+            "bankErrorMessage": { "type": "string", "nullable": true },
+            "txnUuid": { "type": "string", "nullable": true },
+            "gatewayPayload": { "type": "string", "nullable": true },
+            "txnDetail": { "$ref": "#/components/schemas/TxnDetailV1", "nullable": true },
+            "paymentGatewayResponse": { "$ref": "#/components/schemas/MerchantPaymentGatewayResponseV1", "nullable": true },
+            "gatewayId": { "type": "integer", "nullable": true },
+            "emiBank": { "type": "string", "nullable": true },
+            "emiTenure": { "type": "integer", "nullable": true },
+            "gatewayReferenceId": { "type": "string", "nullable": true },
+            "payerVpa": { "type": "string", "nullable": true },
+            "payerAppName": { "type": "string", "nullable": true },
+            "juspay": { "$ref": "#/components/schemas/OrderTokenRespV1", "nullable": true },
+            "secondFactorResponse": { "$ref": "#/components/schemas/MerchantSecondFactorResponseV1", "nullable": true },
+            "txnFlowInfo": { "$ref": "#/components/schemas/TxnFlowInfoV1", "nullable": true },
+            "upi": { "$ref": "#/components/schemas/UPIDetailsV1", "nullable": true },
+            "rtp": { "$ref": "#/components/schemas/RTPDetailsV1", "nullable": true },
+            "txnSubDetails": { "type": "array", "items": { "$ref": "#/components/schemas/TxnDetailV1" }, "nullable": true },
+            "capturedAmount": { "type": "number", "nullable": true },
+            "refundableAmount": { "type": "number", "nullable": true },
+            "maximumEligibleRefundAmount": { "type": "number", "nullable": true },
+            "amountDebited": { "type": "number", "nullable": true },
+            "sourceObject": { "type": "string", "nullable": true },
+            "sourceObjectId": { "type": "string", "nullable": true },
+            "installmentPlanBlock": { "type": "string", "nullable": true },
+            "orderExpiry": { "type": "string", "format": "date-time", "nullable": true },
+            "respCategory": { "type": "string", "nullable": true },
+            "paymentFormCustomerInfo": { "type": "string", "nullable": true },
+            "paymentSubDetails": { "type": "string", "nullable": true },
+            "rewardsBreakup": { "type": "string", "nullable": true },
+            "bankPg": { "type": "string", "nullable": true },
+            "paidAmount": { "type": "number", "nullable": true }
+          },
+          "required": ["statusId", "status"]
+        },
+        "CardV1": {
+          "type": "object",
+          "properties": {
+            "expiryYear": { "type": "string", "nullable": true },
+            "cardReference": { "type": "string", "nullable": true },
+            "savedToLocker": { "type": "boolean" },
+            "expiryMonth": { "type": "string", "nullable": true },
+            "nameOnCard": { "type": "string", "nullable": true },
+            "cardIssuer": { "type": "string", "nullable": true },
+            "lastFourDigits": { "type": "string", "nullable": true },
+            "usingSavedCard": { "type": "boolean" },
+            "cardFingerprint": { "type": "string", "nullable": true },
+            "cardIsin": { "type": "string", "nullable": true },
+            "cardType": { "type": "string", "nullable": true },
+            "cardBrand": { "type": "string", "nullable": true },
+            "cardSubType": { "type": "string", "nullable": true },
+            "tokenizationUserConsent": { "type": "boolean", "nullable": true },
+            "tokenCreated": { "$ref": "#/components/schemas/TokenCreatedV1", "nullable": true },
+            "tokenizationFailureReason": { "type": "string", "nullable": true },
+            "issuerTokenizationFailureReason": { "type": "string", "nullable": true },
+            "usingToken": { "type": "boolean" },
+            "token": { "$ref": "#/components/schemas/TokenV1", "nullable": true },
+            "tokens": { "type": "array", "items": { "$ref": "#/components/schemas/TokenV1" } },
+            "tokenType": { "type": "string", "nullable": true },
+            "cardIssuerCountry": { "type": "string", "nullable": true },
+            "juspayBankCode": { "type": "string", "nullable": true },
+            "extendedCardType": { "type": "string", "nullable": true },
+            "paymentAccountReference": { "type": "string", "nullable": true }
+          }
+        },
+        "TokenCreatedV1": {
+          "type": "object",
+          "properties": {
+            "cardReference": { "type": "string" },
+            "cardFingerprint": { "type": "string", "nullable": true },
+            "tokenizationStatus": { "type": "string", "nullable": true }
+          },
+          "required": ["cardReference"]
+        },
+        "TokenV1": {
+          "type": "object",
+          "properties": {
+            "cardReference": { "type": "string" },
+            "cardFingerprint": { "type": "string", "nullable": true },
+            "lastFourDigits": { "type": "string", "nullable": true },
+            "cardIsin": { "type": "string", "nullable": true },
+            "expiryYear": { "type": "string" },
+            "expiryMonth": { "type": "string" },
+            "par": { "type": "string", "nullable": true },
+            "tokenizationStatus": { "type": "string", "nullable": true },
+            "provider": { "type": "string", "nullable": true },
+            "providerCategory": { "type": "string" }
+          },
+          "required": ["cardReference", "expiryYear", "expiryMonth", "providerCategory"]
+        },
+        "ChargebackV1": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "amount": { "type": "number" },
+            "objectReferenceId": { "type": "string", "nullable": true },
+            "txn": { "$ref": "#/components/schemas/TxnDetailV1", "nullable": true },
+            "dateResolved": { "type": "string", "nullable": true },
+            "dateCreated": { "type": "string" },
+            "lastUpdated": { "type": "string" },
+            "object": { "type": "string", "nullable": true },
+            "chargebackStatus": { "type": "string", "nullable": true },
+            "reason": { "type": "string", "nullable": true },
+            "metadata": { "type": "string", "nullable": true }
+          },
+          "required": ["id", "amount", "dateCreated", "lastUpdated"]
+        },
+        "TxnDetailV1": {
+          "type": "object",
+          "properties": {
+            "txnId": { "type": "string" },
+            "orderId": { "type": "string" },
+            "txnUuid": { "type": "string", "nullable": true },
+            "gatewayId": { "type": "integer", "nullable": true },
+            "status": { "type": "string" },
+            "gateway": { "type": "string", "nullable": true },
+            "expressCheckout": { "type": "boolean", "nullable": true },
+            "redirect": { "type": "boolean", "nullable": true },
+            "netAmount": { "type": "number", "nullable": true },
+            "surchargeAmount": { "type": "number", "nullable": true },
+            "offerDeductionAmount": { "type": "number", "nullable": true },
+            "taxAmount": { "type": "number", "nullable": true },
+            "txnAmount": { "type": "number", "nullable": true },
+            "currency": { "type": "string", "nullable": true },
+            "responseMessage": { "type": "string", "nullable": true },
+            "responseCode": { "type": "string", "nullable": true },
+            "errorMessage": { "type": "string", "nullable": true },
+            "errorCode": { "type": "string", "nullable": true },
+            "txnObjectType": { "type": "string", "nullable": true },
+            "sourceObject": { "type": "string", "nullable": true },
+            "sourceObjectId": { "type": "string", "nullable": true },
+            "created": { "type": "string", "nullable": true },
+            "lastUpdated": { "type": "string", "nullable": true },
+            "metadata": {
+              "type": "object",
+              "additionalProperties": { "type": "string" },
+              "nullable": true
+            },
+            "orderAmount": { "type": "number", "nullable": true },
+            "txnFlowType": { "type": "string", "nullable": true },
+            "paymentGatewayResponse": { "type": "string", "nullable": true },
+            "virtualPaymentDetails": { "type": "string", "nullable": true },
+            "txnIntentId": { "type": "string", "nullable": true },
+            "additionalInfo": { "$ref": "#/components/schemas/AdditionalInfoInTxnV1", "nullable": true },
+            "isCvvLessTxn": { "type": "boolean", "nullable": true },
+            "txnAmountBreakup": { "type": "array", "items": { "type": "number" }, "nullable": true },
+            "remainingRefundableAmount": { "type": "number", "nullable": true }
+          },
+          "required": ["txnId", "orderId", "status"]
+        },
+        "MerchantPaymentGatewayResponseV1": {
+          "type": "object",
+          "properties": {
+            "respCode": { "type": "string", "nullable": true },
+            "rrn": { "type": "string", "nullable": true },
+            "created": { "type": "string", "nullable": true },
+            "epgTxnId": { "type": "string", "nullable": true },
+            "respMessage": { "type": "string", "nullable": true },
+            "authIdCode": { "type": "string", "nullable": true },
+            "txnId": { "type": "string", "nullable": true },
+            "offer": { "type": "string", "nullable": true },
+            "offerType": { "type": "string", "nullable": true },
+            "offerAvailed": { "type": "string", "nullable": true },
+            "discountAmount": { "type": "string", "nullable": true },
+            "offerFailureReason": { "type": "string", "nullable": true },
+            "gatewayResponse": { "type": "string", "nullable": true },
+            "merchantSubventionAmountInterest": { "type": "string", "nullable": true },
+            "debitAmount": { "type": "string", "nullable": true },
+            "paymentMode": { "type": "string", "nullable": true },
+            "networkErrorMessage": { "type": "string", "nullable": true },
+            "networkErrorCode": { "type": "string", "nullable": true },
+            "arn": { "type": "string", "nullable": true },
+            "gatewayMerchantId": { "type": "string", "nullable": true }
+          }
+        },
+        "VirtualPaymentDetailsV1": {
+          "type": "object",
+          "properties": {
+            "virtualAccount": { "type": "string", "nullable": true },
+            "virtualIfsc": { "type": "string", "nullable": true },
+            "virtualAccountReference": { "type": "string", "nullable": true },
+            "rrn": { "type": "string", "nullable": true },
+            "remitterName": { "type": "string", "nullable": true },
+            "remitterAccount": { "type": "string", "nullable": true },
+            "remitterIfsc": { "type": "string", "nullable": true }
+          }
+        },
+        "AdditionalInfoInTxnV1": {
+          "type": "object",
+          "properties": {
+            "isTechnicalRetried": { "type": "string", "nullable": true },
+            "isBusinessRetried": { "type": "string", "nullable": true },
+            "isRetargetted": { "type": "string", "nullable": true },
+            "isRequeued": { "type": "string", "nullable": true }
+          }
+        },
+        "RefundV1": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "nullable": true },
+            "amount": { "type": "number" },
+            "uniqueRequestId": { "type": "string" },
+            "ref": { "type": "string", "nullable": true },
+            "created": { "type": "string" },
+            "lastUpdated": { "type": "string" },
+            "status": { "type": "string" },
+            "errorMessage": { "type": "string" },
+            "errorCode": { "type": "string", "nullable": true },
+            "sentToGateway": { "type": "boolean" },
+            "arn": { "type": "string", "nullable": true },
+            "expectedRefundCreditTime": { "type": "string", "nullable": true },
+            "initiatedBy": { "type": "string", "nullable": true },
+            "internalReferenceId": { "type": "string", "nullable": true },
+            "refundSource": { "type": "string", "nullable": true },
+            "refundType": { "type": "string", "nullable": true },
+            "gatewayRefundResponse": {
+              "type": "object",
+              "additionalProperties": { "type": "string" },
+              "nullable": true
+            },
+            "metadata": {
+              "type": "object",
+              "additionalProperties": { "type": "string" },
+              "nullable": true
+            },
+            "previousAttempts": {
+              "type": "array",
+              "items": { "$ref": "#/components/schemas/RefundAttemptV1" },
+              "nullable": true
+            },
+            "pgProcessedAt": { "type": "string", "nullable": true },
+            "pgDeclinedAt": { "type": "string", "nullable": true },
+            "bankProcessedAt": { "type": "string", "nullable": true }
+          },
+          "required": ["amount", "uniqueRequestId", "created", "lastUpdated", "status", "errorMessage", "sentToGateway"]
+        },
+        "RefundAttemptV1": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "nullable": true },
+            "created": { "type": "string" },
+            "ref": { "type": "string", "nullable": true },
+            "errorMessage": { "type": "string", "nullable": true },
+            "errorCode": { "type": "string", "nullable": true },
+            "lastModified": { "type": "string", "nullable": true }
+          },
+          "required": ["created"]
+        },
+        "PromotionV1": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "nullable": true },
+            "orderId": { "type": "string", "nullable": true },
+            "rules": {
+              "type": "array",
+              "items": { "$ref": "#/components/schemas/Rules" },
+              "nullable": true
+            },
+            "created": { "type": "string", "nullable": true },
+            "discountAmount": { "type": "number", "nullable": true },
+            "status": { "type": "string", "nullable": true }
+          }
+        },
+        "Rules":{
+          "type": "object",
+          "properties": {
+            "dimension": { "type": "string"},
+            "value": { "type": "string" }
+          },
+          "required": ["dimension","value"]
+        },
+        "RiskV1": {
+          "type": "object",
+          "properties": {
+            "provider": { "type": "string", "nullable": true },
+            "status": { "type": "string", "nullable": true },
+            "message": { "type": "string", "nullable": true },
+            "flagged": { "type": "boolean", "nullable": true },
+            "recommendedAction": { "type": "string", "nullable": true },
+            "ebsRiskLevel": { "type": "string", "nullable": true },
+            "ebsPaymentStatus": { "type": "string", "nullable": true },
+            "ebsBinCountry": { "type": "string", "nullable": true },
+            "ebsRiskPercentage": { "type": "integer", "nullable": true },
+            "completeResponse": { "type": "string", "nullable": true },
+            "invocationMode": { "type": "string", "nullable": true },
+            "txnId": { "type": "string", "nullable": true }
+          }
+        },
+        "OrderTokenRespV1": {
+          "type": "object",
+          "properties": {
+            "clientAuthToken": { "type": "string" },
+            "clientAuthTokenExpiry": { "type": "string" }
+          },
+          "required": ["clientAuthToken", "clientAuthTokenExpiry"]
+        },
+        "MerchantSecondFactorResponseV1": {
+          "type": "object",
+          "properties": {
+            "cavv": { "type": "string", "nullable": true },
+            "cavvAlgorithm": { "type": "string", "nullable": true },
+            "eci": { "type": "string", "nullable": true },
+            "threeDSVersion": { "type": "string" },
+            "threeDSTransId": { "type": "string" },
+            "threeDSTransStatus": { "type": "string" },
+            "threeDSServerTransID": { "type": "string" },
+            "threeDSTransStatusReason": { "type": "string", "nullable": true }
+          },
+          "required": ["threeDSVersion", "threeDSTransId", "threeDSTransStatus", "threeDSServerTransID"]
+        },
+        "TxnFlowInfoV1": {
+          "type": "object",
+          "properties": {
+            "flowType": { "type": "string", "nullable": true },
+            "status": { "type": "string", "nullable": true },
+            "errorCode": { "type": "string", "nullable": true },
+            "errorMessage": { "type": "string", "nullable": true },
+            "crid": { "type": "string", "nullable": true }
+          }
+        },
+        "UPIDetailsV1": {
+          "type": "object",
+          "properties": {
+            "txnType": { "type": "string", "nullable": true },
+            "maskedBankAccountNumber": { "type": "string", "nullable": true },
+            "bankName": { "type": "string", "nullable": true },
+            "bankCode": { "type": "string", "nullable": true },
+            "upiBankAccountReferenceId": { "type": "string", "nullable": true },
+            "payerApp": { "type": "string", "nullable": true },
+            "payerVpa": { "type": "string", "nullable": true },
+            "juspayBankCode": { "type": "string", "nullable": true },
+            "txnFlowType": { "type": "string", "nullable": true },
+            "paymentMethodSubDetail": {
+              "type": "object",
+              "properties": {
+                "mode": { "type": "string", "nullable": true },
+                "purpose": { "type": "string", "nullable": true }
+              },
+              "nullable": true
+            }
+          }
+        },
+        "RTPDetailsV1": {
+          "type": "object",
+          "properties": {
+            "payerName": { "type": "string", "nullable": true }
+          }
         }
+
       },
       "securitySchemes": {
         "BasicAuth": {

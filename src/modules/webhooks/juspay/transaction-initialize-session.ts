@@ -1,5 +1,3 @@
-
-import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
 import {
   SyncWebhookAppErrors,
   type JuspayTransactionInitializeSessionResponse,
@@ -13,10 +11,6 @@ import {
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
 import {
-  getHyperswitchAmountFromSaleorMoney,
-  getSaleorAmountFromHyperswitchAmount,
-} from "../../hyperswitch/currencies";
-import {
   buildAddressDetails,
   validatePaymentCreateRequest,
 } from "../../hyperswitch/hyperswitch-api-request";
@@ -24,10 +18,7 @@ import {
   UnExpectedHyperswitchPaymentStatus
 } from "@/errors";
 import {
-  createHyperswitchClient,
-  createJuspayClient,
-  fetchHyperswitchProfileID,
-  fetchHyperswitchPublishableKey,
+  createJuspayClient
 } from "../../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/juspay-payments";
 import {
@@ -35,6 +26,7 @@ import {
 } from "../../juspay/juspay-api-response";
 import { normalizeValue } from "../../payment-app-configuration/utils";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
+import { v4 as uuidv4 } from 'uuid';
 
 export const juspayPaymentIntentToTransactionResult = (
   status: string,
@@ -93,36 +85,55 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
 
   const app = event.recipient;
   invariant(app, "Missing event.recipient!");
-  const { privateMetadata } = app;
-  const configurator = getWebhookPaymentAppConfigurator({ privateMetadata }, saleorApiUrl);
   const errors: SyncWebhookAppErrors = [];
-  const currency = event.action.currency;
-  const amount = getHyperswitchAmountFromSaleorMoney(event.action.amount, currency);
   let requestData = null;
   if (event.data != null) {
     requestData = validatePaymentCreateRequest(event.data);
   }
-  const channelId = event.sourceObject.channel.id;
+
+  const userEmail = requestData?.billingEmail
+    ? requestData?.billingEmail
+    : event.sourceObject.userEmail;
 
   const juspayClient = await createJuspayClient({
     configData,
   });
 
   const createJuspayPayment = juspayClient.path("/session").method("post").create();
-  
+
+  const billingAddress = buildAddressDetails(event.sourceObject.billingAddress, userEmail);
+  const shippingAddress = buildAddressDetails(event.sourceObject.shippingAddress, requestData?.shippingEmail);
 
   const createOrderPayload: paymentsComponents["schemas"]["SessionRequest"] = {
-    order_id: normalizeValue("001f055e14d041c7bb3c39164552acd5"),
-    amount: normalizeValue("1.0"),
-    customer_id: normalizeValue("testing-customer-one"),
-    customer_email: normalizeValue("mrudul.vajpayee@juspay.in"),
-    customer_phone: normalizeValue("9876543210"),
+    order_id: normalizeValue(uuidv4()),
+    amount: event.action.amount,
+    customer_id: normalizeValue(requestData?.customerId),
+    customer_email: normalizeValue(userEmail),
+    customer_phone: normalizeValue(event.sourceObject.billingAddress?.phone),
     payment_page_client_id: normalizeValue("geddit"),
-    return_url: normalizeValue("https://shop.merchant.com"),
-    description: normalizeValue("Complete your payment"),
-    first_name: normalizeValue("John"),
-    last_name: normalizeValue("wick"),
-    currency: normalizeValue("INR")
+    return_url: normalizeValue(requestData?.returnUrl),
+    description: normalizeValue(requestData?.description),
+    first_name: normalizeValue(event.sourceObject.billingAddress?.firstName),
+    last_name: normalizeValue(event.sourceObject.billingAddress?.lastName),
+    currency: event.action.currency,
+    udf1: normalizeValue(event.transaction.id),
+    udf2: normalizeValue(saleorApiUrl),
+    billing_address_first_name: normalizeValue(billingAddress?.address?.first_name),
+    billing_address_last_name: normalizeValue(billingAddress?.address?.last_name),
+    billing_address_line1: normalizeValue(billingAddress?.address?.line1),
+    billing_address_line2: normalizeValue(billingAddress?.address?.line2),
+    billing_address_city: normalizeValue(billingAddress?.address?.city),
+    billing_address_state: normalizeValue(billingAddress?.address?.state),
+    billing_address_country: normalizeValue(billingAddress?.address?.zip),
+    billing_address_postal_code: normalizeValue(billingAddress?.address?.zip),
+    shipping_address_first_name: normalizeValue(shippingAddress?.address?.first_name),
+    shipping_address_last_name: normalizeValue(shippingAddress?.address?.last_name),
+    shipping_address_line1: normalizeValue(shippingAddress?.address?.line1),
+    shipping_address_line2: normalizeValue(shippingAddress?.address?.line2),
+    shipping_address_city: normalizeValue(shippingAddress?.address?.city),
+    shipping_address_state: normalizeValue(shippingAddress?.address?.state),
+    shipping_address_country: normalizeValue(shippingAddress?.address?.zip),
+    shipping_address_postal_code: normalizeValue(shippingAddress?.address?.zip)
 };
 
   const createOrderResponse = await createJuspayPayment(createOrderPayload);
@@ -142,7 +153,7 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
       errors,
     },
     result,
-    amount: 1.0,
+    amount: event.action.amount,
     time: new Date().toISOString(),
   };
   return transactionInitializeSessionResponse;

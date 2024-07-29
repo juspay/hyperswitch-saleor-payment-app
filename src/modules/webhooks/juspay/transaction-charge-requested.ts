@@ -1,47 +1,33 @@
-import { paymentAppFullyConfiguredEntrySchema } from "../../payment-app-configuration/config-entry";
-import { getConfigurationForChannel } from "../../payment-app-configuration/payment-app-configuration";
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
-import { type HyperswitchTransactionChargeRequestedResponse } from "@/schemas/HyperswitchTransactionChargeRequested/HyperswitchTransactionChargeRequestedResponse.mjs";
+import { type JuspayTransactionChargeRequestedResponse } from "@/schemas/JuspayTransactionChargeRequested/JuspayTransactionChargeRequestedResponse.mjs";
 
 import { invariant } from "@/lib/invariant";
 import {
-  GetTransactionByIdDocument,
-  type GetTransactionByIdQuery,
-  type GetTransactionByIdQueryVariables,
-  TransactionEventReportDocument,
-  TransactionEventTypeEnum,
-  TransactionActionEnum,
   TransactionChargeRequestedEventFragment,
 } from "generated/graphql";
-import { saleorApp } from "@/saleor-app";
-import { createClient } from "@/lib/create-graphq-client";
-import { intoErrorResponse, intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
+import { intoPreAuthTxnResponse } from "../../juspay/juspay-api-response";
 import { createLogger } from "@/lib/logger";
-import {
-  getHyperswitchAmountFromSaleorMoney,
-  getSaleorAmountFromHyperswitchAmount,
-} from "../../hyperswitch/currencies";
-import {
-  ChannelNotConfigured,
-  HyperswitchHttpClientError,
-  UnExpectedHyperswitchPaymentStatus,
-} from "@/errors";
 import { SyncWebhookAppErrors } from "@/schemas/HyperswitchTransactionInitializeSession/HyperswitchTransactionInitializeSessionResponse.mjs";
-import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
-import { type components as paymentsComponents } from "generated/hyperswitch-payments";
+import { createJuspayClient } from "../../hyperswitch/hyperswitch-api";
+import { type components as paymentsComponents } from "generated/juspay-payments";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
+import { normalizeValue } from "../../payment-app-configuration/utils";
+
+[ 
+          "CAPTURE_INITIATED",
+          "AUTHORIZED",
+          
+        ]
 
 export const hyperswitchPaymentCaptureStatusToSaleorTransactionResult = (
   status: string,
-): HyperswitchTransactionChargeRequestedResponse["result"] | null => {
+): JuspayTransactionChargeRequestedResponse["result"] | null => {
   switch (status) {
-    case "succeeded":
-    case "partially_captured":
-    case "partially_captured_and_capturable":
+    case "PARTIAL_CHARGED":
       return "CHARGE_SUCCESS";
-    case "failed":
+    case "CAPTURE_FAILED":
       return "CHARGE_FAILURE";
-    case "processing":
+    case "CAPTURE_INITIATED":
       return undefined;
     default:
       return null;
@@ -52,7 +38,7 @@ export const TransactionChargeRequestedJuspayWebhookHandler = async (
   event: TransactionChargeRequestedEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<HyperswitchTransactionChargeRequestedResponse> => {
+): Promise<JuspayTransactionChargeRequestedResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionChargeRequestedWebhookHandler] " },
@@ -74,51 +60,49 @@ export const TransactionChargeRequestedJuspayWebhookHandler = async (
   invariant(event.transaction.sourceObject, "Missing sourceObject");
   const sourceObject = event.transaction.sourceObject;
   invariant(sourceObject?.total.gross.currency, "Missing Currency");
-  const amount_to_capture = getHyperswitchAmountFromSaleorMoney(
-    event.action.amount,
-    sourceObject?.total.gross.currency,
-  );
+  const amount_to_capture = event.action.amount;
   const payment_id = event.transaction.pspReference;
   const errors: SyncWebhookAppErrors = [];
   const channelId = sourceObject.channel.id;
-  const hyperswitchClient = await createHyperswitchClient({
+  const juspayClient = await createJuspayClient({
     configData,
   });
-  const captureHyperswitchPayment = hyperswitchClient
-    .path("/payments/{payment_id}/capture")
+  const captureJuspayPayment = juspayClient
+    .path("/v2/txns/{txn_uuid}/capture")
     .method("post")
     .create();
-  const capturePaymentPayload: paymentsComponents["schemas"]["PaymentsCaptureRequest"] = {
-    amount_to_capture,
-  };
+  
+  const preAuthCaptureTxnPayload: paymentsComponents["schemas"]["PreAuthTxnRequest"] = {
+      amount: "1.0",
+      metadata: normalizeValue(""),
+      idempotence_key: normalizeValue("")
+    };
 
-  const capturePaymentResponse = await captureHyperswitchPayment({
-    ...capturePaymentPayload,
-    payment_id,
+  const capturePaymentResponse = await captureJuspayPayment({
+    ...preAuthCaptureTxnPayload,
+    txn_uuid:payment_id,
   });
 
-  const capturePaymentResponseData = intoPaymentResponse(capturePaymentResponse.data);
+  const capturePaymentResponseData = intoPreAuthTxnResponse(capturePaymentResponse.data);
+  invariant(capturePaymentResponseData.status && capturePaymentResponseData.order_id && capturePaymentResponseData.amount, `Required fields not found session call response`);
   const result = hyperswitchPaymentCaptureStatusToSaleorTransactionResult(
     capturePaymentResponseData.status,
   );
-  const transactionChargeRequestedResponse: HyperswitchTransactionChargeRequestedResponse =
+  const transactionChargeRequestedResponse: JuspayTransactionChargeRequestedResponse =
     result === undefined
       ? {
-          pspReference: capturePaymentResponseData.payment_id,
+          pspReference: capturePaymentResponseData.order_id,
           message: "processing",
         }
       : result === null
         ? {
-            pspReference: capturePaymentResponseData.payment_id,
+            pspReference: capturePaymentResponseData.order_id,
             message: `Unexpected status: ${capturePaymentResponseData.status} recieved from hyperswitch. Please check the payment flow.`,
           }
         : {
             result,
-            pspReference: capturePaymentResponseData.payment_id,
-            amount: getSaleorAmountFromHyperswitchAmount(
-              capturePaymentResponseData.amount,
-              capturePaymentResponseData.currency,
-            ),
+            pspReference: capturePaymentResponseData.order_id,
+            amount: capturePaymentResponseData.amount,
           };
   return transactionChargeRequestedResponse;
 };

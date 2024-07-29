@@ -133,6 +133,7 @@ export const createJuspayClient = async ({ configData }: { configData: ConfigObj
       headers: {
         "Authorization": "Basic RUVDQ0U1MzA3MTg0NEQ5Qjc0M0VEOUI0QzE3Q0JGOg==",
         "content-type": "application/json",
+        "x-merchantid": "resellerkol"
       },
     },
     use: [

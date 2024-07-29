@@ -5,29 +5,28 @@ import {
 } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
-import { createHyperswitchClient, createJuspayClient } from "../../hyperswitch/hyperswitch-api";
-import {
-  getSaleorAmountFromHyperswitchAmount,
-} from "../../hyperswitch/currencies";
-import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
+import { createJuspayClient } from "../../hyperswitch/hyperswitch-api";
+import { intoPreAuthTxnResponse} from "../../juspay/juspay-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
+import { normalizeValue } from "../../payment-app-configuration/utils";
+import { type components as paymentsComponents } from "generated/juspay-payments";
 
 export const juspayPaymentCancelStatusToSaleorTransactionResult = (
   status: string,
 ): JuspayTransactionCancelationRequestedResponse["result"] | null => {
   switch (status) {
-    case "cancelled":
+    case "VOIDED":
       return "CANCEL_SUCCESS";
-    case "failed":
+    case "VOID_FAILED":
       return "CANCEL_FAILURE";
-    case "processing":
+    case "VOID_INITIATED":
       return undefined;
     default:
       return null;
   }
 };
 
-export const TransactionCancelationRequestedJuspayWebhookHandler = async (
+export const TransactionCancelationRequestedHyperswitchWebhookHandler = async (
   event: TransactionCancelationRequestedEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
@@ -45,14 +44,13 @@ export const TransactionCancelationRequestedJuspayWebhookHandler = async (
   );
   const app = event.recipient;
   invariant(app, "Missing event.recipient!");
-  const { privateMetadata } = app;
-  const configurator = getWebhookPaymentAppConfigurator({ privateMetadata }, saleorApiUrl);
   invariant(event.transaction, "Missing transaction");
   // Fetch Transaction Details
   invariant(event.transaction.sourceObject, "Missing sourceObject");
-  const sourceObject = event.transaction.sourceObject;
-  const payment_id = event.transaction.pspReference;
-  const channelId = sourceObject.channel.id;
+
+  
+
+  const txn_uuid = event.transaction.pspReference;
 
   const juspayClient = await createJuspayClient({
     configData,
@@ -63,18 +61,19 @@ export const TransactionCancelationRequestedJuspayWebhookHandler = async (
     .method("post")
     .create();
 
-  const cancelPaymentResponse = await cancelJuspayPayment({
-    ...{
-      metadata: {
-        channel_id: sourceObject.channel.id,
-        transaction_id: event.transaction.id,
-        saleor_api_url: saleorApiUrl,
-      },
-    },
-    payment_id,
-  });
+  const preAuthVoidTxnPayload: paymentsComponents["schemas"]["PreAuthTxnRequest"] = {
+    amount: "1.0",
+    metadata: normalizeValue(""),
+    idempotence_key: normalizeValue("")
+  };
 
-  const cancelPaymentResponseData = intoPaymentResponse(cancelPaymentResponse.data);
+  const preAuthVoidTxnResponse = await cancelJuspayPayment(
+    {...preAuthVoidTxnPayload,
+      txn_uuid
+    });
+
+  const cancelPaymentResponseData = intoPreAuthTxnResponse(preAuthVoidTxnResponse.data);
+  invariant(cancelPaymentResponseData.status && cancelPaymentResponseData.order_id && cancelPaymentResponseData.amount, `Required fields not found session call response`);
   const result = juspayPaymentCancelStatusToSaleorTransactionResult(
     cancelPaymentResponseData.status,
   );
@@ -82,21 +81,18 @@ export const TransactionCancelationRequestedJuspayWebhookHandler = async (
   const transactionCancelationRequestedResponse: JuspayTransactionCancelationRequestedResponse =
     result === undefined
       ? {
-          pspReference: cancelPaymentResponseData.payment_id,
+          pspReference: cancelPaymentResponseData.order_id,
           message: "processing",
         }
       : result === null
         ? {
-            pspReference: cancelPaymentResponseData.payment_id,
-            message: `Unexpected status: ${cancelPaymentResponseData.status} recieved from hyperswitch. Please check the payment flow.`,
+            pspReference: cancelPaymentResponseData.order_id,
+            message: `Unexpected status: ${cancelPaymentResponseData.status} recieved from juspay. Please check the payment flow.`,
           }
         : {
-            pspReference: cancelPaymentResponseData.payment_id,
+            pspReference: cancelPaymentResponseData.order_id,
             result,
-            amount: getSaleorAmountFromHyperswitchAmount(
-              cancelPaymentResponseData.amount,
-              cancelPaymentResponseData.currency,
-            ),
+            amount:cancelPaymentResponseData.amount,
           };
 
   return transactionCancelationRequestedResponse;

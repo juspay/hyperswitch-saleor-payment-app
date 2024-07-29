@@ -1,10 +1,3 @@
-import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
-import { paymentAppFullyConfiguredEntrySchema } from "../../payment-app-configuration/config-entry";
-import { obfuscateConfig, obfuscateValue } from "../../app-configuration/utils";
-import {
-  getConfigurationForChannel,
-  PaymentAppConfigurator,
-} from "../../payment-app-configuration/payment-app-configuration";
 import {
   SyncWebhookAppErrors,
   type HyperswitchTransactionInitializeSessionResponse,
@@ -24,9 +17,7 @@ import {
   validatePaymentCreateRequest,
 } from "../../hyperswitch/hyperswitch-api-request";
 import {
-  ChannelNotConfigured,
-  UnExpectedHyperswitchPaymentStatus,
-  UnsupportedEvent,
+UnExpectedHyperswitchPaymentStatus
 } from "@/errors";
 import {
   createHyperswitchClient,
@@ -35,8 +26,7 @@ import {
 } from "../../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
 import {
-  intoPaymentResponse,
-  PaymentResponseSchema,
+  intoPaymentResponse
 } from "../../hyperswitch/hyperswitch-api-response";
 import { normalizeValue } from "../../payment-app-configuration/utils";
 import { ConfigObject } from "@/backend-lib/api-route-utils";

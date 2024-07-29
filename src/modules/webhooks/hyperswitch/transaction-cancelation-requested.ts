@@ -1,26 +1,14 @@
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
-import { paymentAppFullyConfiguredEntrySchema } from "../../payment-app-configuration/config-entry";
-import { getConfigurationForChannel } from "../../payment-app-configuration/payment-app-configuration";
 import { type HyperswitchTransactionCancelationRequestedResponse } from "@/schemas/HyperswitchTransactionCancelationRequested/HyperswitchTransactionCancelationRequestedResponse.mjs";
 import {
-  TransactionEventTypeEnum,
   type TransactionCancelationRequestedEventFragment,
-  TransactionActionEnum,
-  GetTransactionByIdQuery,
-  GetTransactionByIdQueryVariables,
-  GetTransactionByIdDocument,
 } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
-import { saleorApp } from "@/saleor-app";
-import { createClient } from "@/lib/create-graphq-client";
 import { createLogger } from "@/lib/logger";
 import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
-import { ChannelNotConfigured } from "@/errors";
 import {
-  getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
 } from "../../hyperswitch/currencies";
-import { SyncWebhookAppErrors } from "@/schemas/HyperswitchTransactionInitializeSession/HyperswitchTransactionInitializeSessionResponse.mjs";
 import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 

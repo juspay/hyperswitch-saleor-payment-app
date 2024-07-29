@@ -1,42 +1,27 @@
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
-import { paymentAppFullyConfiguredEntrySchema } from "../../payment-app-configuration/config-entry";
-import { getConfigurationForChannel } from "../../payment-app-configuration/payment-app-configuration";
 import {
-  GetTransactionByIdDocument,
-  GetTransactionByIdQuery,
-  GetTransactionByIdQueryVariables,
-  TransactionFlowStrategyEnum,
   TransactionRefundRequestedEventFragment,
-  type TransactionInitializeSessionEventFragment,
 } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
-import { type HyperswitchTransactionRefundRequestedResponse } from "@/schemas/HyperswitchTransactionRefundRequested/HyperswitchTransactionRefundRequestedResponse.mjs";
-import { saleorApp } from "@/saleor-app";
-import { createClient } from "@/lib/create-graphq-client";
-import {
-  getHyperswitchAmountFromSaleorMoney,
-  getSaleorAmountFromHyperswitchAmount,
-} from "../../hyperswitch/currencies";
-import { ChannelNotConfigured } from "@/errors";
-import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
-import { type components as paymentsComponents } from "generated/hyperswitch-payments";
-import { intoRefundResponse } from "../../hyperswitch/hyperswitch-api-response";
+import { type JuspayTransactionRefundRequestedResponse } from "@/schemas/JuspayTransactionRefundRequested/JuspayTransactionRefundRequestedResponse.mjs";
+import { createJuspayClient } from "../../hyperswitch/hyperswitch-api";
+import { type components as paymentsComponents } from "generated/juspay-payments";
+import { intoRefundResponse } from "../../juspay/juspay-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
+import { normalizeValue } from "@/modules/payment-app-configuration/utils";
+import { v4 as uuidv4 } from 'uuid';
 
-export type PaymentRefundResponse = {
-  status: string;
-};
-
-export const hyperswitchRefundToTransactionResult = (
+export const juspayRefundToTransactionResult = (
   status: string,
-): HyperswitchTransactionRefundRequestedResponse["result"] | null => {
+): JuspayTransactionRefundRequestedResponse["result"] | null => {
   switch (status) {
-    case "succeeded":
+    case "SUCCESS":
       return "REFUND_SUCCESS";
-    case "failed":
+    case "FAILURE":
       return "REFUND_FAILURE";
-    case "pending":
+    case "PENDING":
+    case "MANUAL_REVIEW":
       return undefined;
     default:
       return null;
@@ -47,7 +32,7 @@ export const TransactionRefundRequestedJuspayWebhookHandler = async (
   event: TransactionRefundRequestedEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<HyperswitchTransactionRefundRequestedResponse> => {
+): Promise<JuspayTransactionRefundRequestedResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionRefundRequestedWebhookHandler] " },
@@ -66,50 +51,46 @@ export const TransactionRefundRequestedJuspayWebhookHandler = async (
   invariant(event.transaction, "Missing sourceObject");
   const sourceObject = event.transaction.sourceObject;
   invariant(sourceObject?.total.gross.currency, "Missing Currency");
-  const amount = getHyperswitchAmountFromSaleorMoney(
-    event.action.amount,
-    sourceObject?.total.gross.currency,
-  );
-  const payment_id = event.transaction.pspReference;
+
+  const order_id = event.transaction.pspReference;
   const channelId = sourceObject.channel.id;
-  const hyperswitchClient = await createHyperswitchClient({
+  const juspayClient = await createJuspayClient({
     configData,
   });
 
-  const refundHyperswitchPayment = hyperswitchClient.path("/refunds").method("post").create();
-
-  const refundPayload: paymentsComponents["schemas"]["RefundRequest"] = {
-    payment_id,
-    amount,
-    metadata: {
+  const refundJuspayPayment = juspayClient.path("/orders/{order_id}/refunds").method("post").create();
+  const refundPayload: paymentsComponents["schemas"]["RefundReq"] = {
+    unique_request_id: uuidv4(),
+    amount: event.action.amount,
+    metaData: normalizeValue(JSON.stringify({
       transaction_id: event.transaction.id,
       saleor_api_url: saleorApiUrl,
-    },
+    })),
   };
 
-  const refundPaymentResponse = await refundHyperswitchPayment(refundPayload);
+  const refundPaymentResponse = await refundJuspayPayment({
+    ...refundPayload,
+    order_id,
+  });
 
   const refundPaymentResponseData = intoRefundResponse(refundPaymentResponse.data);
-  const result = hyperswitchRefundToTransactionResult(refundPaymentResponseData.status);
+  const result = juspayRefundToTransactionResult(refundPaymentResponseData.status);
 
-  const transactionRefundRequestedResponse: HyperswitchTransactionRefundRequestedResponse =
+  const transactionRefundRequestedResponse: JuspayTransactionRefundRequestedResponse =
     result === undefined
       ? {
-          pspReference: refundPaymentResponseData.refund_id,
+          pspReference: refundPaymentResponseData.txnDetailId,
           message: "pending",
         }
       : result === null
         ? {
-            pspReference: refundPaymentResponseData.payment_id,
+            pspReference: refundPaymentResponseData.uniqueRequestId,
             message: `Unexpected status: ${refundPaymentResponseData.status} recieved from hyperswitch. Please check the payment flow.`,
           }
         : {
-            pspReference: refundPaymentResponseData.refund_id,
+            pspReference: refundPaymentResponseData.txnDetailId,
             result,
-            amount: getSaleorAmountFromHyperswitchAmount(
-              refundPaymentResponseData.amount,
-              refundPaymentResponseData.currency,
-            ),
+            amount: refundPaymentResponseData.amount,
           };
   return transactionRefundRequestedResponse;
 };
