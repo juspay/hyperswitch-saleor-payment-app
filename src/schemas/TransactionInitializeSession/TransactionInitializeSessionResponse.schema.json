@@ -9,6 +9,13 @@
       "properties": {
         "clientSecret": { "type": "string" },
         "publishableKey": { "type": "string" },
+        "paymentLink": {
+          "type": "object",
+          "properties": {
+            "link": { "type": "string" },
+            "paymentLinkId": { "type": "string" }
+          }
+        },
         "errors": { "$ref": "definitions.json#/definitions/SyncWebhookAppErrors" }
       }
     },

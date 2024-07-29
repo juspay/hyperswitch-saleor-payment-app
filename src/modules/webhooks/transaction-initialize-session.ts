@@ -121,6 +121,7 @@ export const TransactionInitializeSessionWebhookHandler = async (
   const createPaymentPayload: paymentsComponents["schemas"]["PaymentsCreateRequest"] = {
     amount,
     confirm: false,
+    payment_link: true,
     currency: currency as paymentsComponents["schemas"]["PaymentsCreateRequest"]["currency"],
     capture_method,
     profile_id: profileId,
@@ -140,7 +141,6 @@ export const TransactionInitializeSessionWebhookHandler = async (
   };
 
   const publishableKey = await fetchHyperswitchPublishableKey(configurator, channelId);
-
   const createPaymentResponse = await createHyperswitchPayment(createPaymentPayload);
   const createPaymentResponseData = intoPaymentResponse(createPaymentResponse.data);
   const result = hyperswitchPaymentIntentToTransactionResult(
@@ -151,6 +151,10 @@ export const TransactionInitializeSessionWebhookHandler = async (
     data: {
       clientSecret: createPaymentResponseData.client_secret,
       publishableKey,
+      paymentLink: {
+        link: createPaymentResponseData.payment_link?.link,
+        paymentLinkId: createPaymentResponseData.payment_link?.payment_link_id,
+      },
       errors,
     },
     pspReference: createPaymentResponseData.payment_id,
