@@ -12,9 +12,6 @@ const AddConfigurationPage = () => {
           <Text as="p" sizes="medium">
             Create new Hyperswitch configuration.
           </Text>
-          <Text as="p" sizes="medium">
-            Hyperswitch Webhooks will be created automatically.
-          </Text>
         </>
       }
     >
