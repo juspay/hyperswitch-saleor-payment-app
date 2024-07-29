@@ -1,4 +1,4 @@
-import { Button, Text } from "@saleor/macaw-ui";
+import { Box, Button, Text } from "@saleor/macaw-ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppBridge } from "@saleor/app-sdk/app-bridge";
 import { useForm, FormProvider } from "react-hook-form";
@@ -14,6 +14,7 @@ import {
   paymentAppFormConfigEntrySchema,
 } from "@/modules/payment-app-configuration/config-entry";
 import Link from "next/link";
+import router from "next/router";
 
 export const HyperswitchConfigurationForm = ({
   configurationId,
@@ -55,12 +56,23 @@ export const HyperswitchConfigurationForm = ({
         <AddHyperswitchCredentialsForm configurationId={configurationId} />
       </AppLayoutRow>
       {data && configurationId && (
-        <AppLayoutRow error={true} title="Danger zone">
-          <DeleteHyperswitchConfigurationForm
-            configurationName={data.configurationName}
-            configurationId={configurationId}
-          />
-        </AppLayoutRow>
+        <>
+          <AppLayoutRow error={true} title="Danger zone">
+            <DeleteHyperswitchConfigurationForm
+              configurationName={data.configurationName}
+              configurationId={configurationId}
+            />
+          </AppLayoutRow>
+          <Button
+            as="a"
+            size="large"
+            variant="primary"
+            marginX={"auto"}
+            onClick={async () => await router.replace("/configurations/list")}
+          >
+            Return to Hyperswitch Home Page
+          </Button>
+        </>
       )}
     </FormProvider>
   );
