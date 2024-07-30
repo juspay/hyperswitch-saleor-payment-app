@@ -110,12 +110,10 @@ const PaymentCreateRequestSchema = z.object({
   shippingEmail: z.string().email().nullable().optional(),
   statementDescriptorName: z.string().email().nullable().optional(),
   statementDescriptorSuffix: z.string().email().nullable().optional(),
-  // offSession: z.boolean().nullable().optional(),
   description: z.string().nullable().optional(),
   returnUrl: z.string().nullable().optional(),
-  // setupFutureUsage:  SetupFutureUsageEnum.nullable().optional(),
   allowedPaymentMethodTypes: z.array(AllowedPaymentMethodTypes).nullable().optional(),
-  retryAction: RetryActionEnum.nullable().optional(),
+  manualRetryAllowed: z.boolean().nullable().optional(),
 });
 
 // Type definition for PaymentCreateRequest

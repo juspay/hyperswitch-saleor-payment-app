@@ -13443,6 +13443,11 @@
             "example": "It's my first payment request",
             "nullable": true
           },
+          "manual_retry_allowed": {
+            "type": "boolean",
+            "description": "If true the payment can be retried with same or different payment method which means the confirm call can be made again.",
+            "nullable": true
+          },
           "return_url": {
             "type": "string",
             "description": "The URL to redirect after the completion of the operation",

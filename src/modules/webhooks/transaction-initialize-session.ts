@@ -134,6 +134,7 @@ export const TransactionInitializeSessionWebhookHandler = async (
     description: normalizeValue(requestData?.description),
     billing: buildAddressDetails(event.sourceObject.billingAddress, userEmail),
     shipping: buildAddressDetails(event.sourceObject.shippingAddress, requestData?.shippingEmail),
+    manual_retry_allowed: normalizeValue(requestData?.manualRetryAllowed),
     metadata: {
       transaction_id: event.transaction.id,
       saleor_api_url: saleorApiUrl,
@@ -151,12 +152,10 @@ export const TransactionInitializeSessionWebhookHandler = async (
     data: {
       clientSecret: createPaymentResponseData.client_secret,
       publishableKey,
-      paymentLink: {
-        link: createPaymentResponseData.payment_link?.link,
-        paymentLinkId: createPaymentResponseData.payment_link?.payment_link_id,
-      },
+      paymentLinkId: createPaymentResponseData.payment_link?.payment_link_id,
       errors,
     },
+    externalUrl: createPaymentResponseData.payment_link?.link,
     pspReference: createPaymentResponseData.payment_id,
     result,
     amount: getSaleorAmountFromHyperswitchAmount(
