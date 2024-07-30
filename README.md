@@ -11,11 +11,12 @@
 
 <img alt="saleor-app-template" src="./public/switch.png">
 
-## Hyperswitch
+## Overview
+### Hyperswitch
 
 Hyperswitch is a community-led, open payments switch that provides access to the best payments infrastructure for every digital business. By using Hyperswitch, you can reduce dependency on a single processor, decrease development effort by 90% for adding and maintaining integrations, lower processing fees with smart routing, improve success rates with seamless failover and auto-retries, and expand business reach with local and alternate payment methods.
 
-## Saleor
+### Saleor
 
 Saleor is an open-source e-commerce platform designed to meet the needs of modern digital businesses. With Saleor, you can easily create and customize your online store, leveraging a flexible architecture and a robust set of features. It allows for seamless integration with various services, provides scalable solutions to accommodate growth, and supports multiple sales channels to reach a wider audience. Saleor's API-first approach ensures efficient development workflows and a superior shopping experience for customers
 
