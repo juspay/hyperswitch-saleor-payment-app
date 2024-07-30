@@ -2,7 +2,7 @@
 </div>
 
 <div align="center">
-  <h1>Hyperswitch Saleor Payments App</h1>
+  <h1>Hyperswitch Saleor Payment App</h1>
 </div>
 
 <div align="center">
