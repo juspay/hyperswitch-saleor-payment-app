@@ -11,6 +11,7 @@
 
 <img alt="saleor-app-template" src="./public/switch.png">
 
+> Access our hosted hyperswitch saleor payment app [here](hyperswitch-saleor-payment-app-wh8j.vercel.app)
 ## Overview
 ### Hyperswitch
 
@@ -80,3 +81,5 @@ If you use Saleor Cloud or your local server is exposed, you can install your ap
 ### Generated schema and typings
 
 Commands `build` and `dev` would generate required schema and typed functions for Saleor's GraphQL endpoint and Hyperswitch's Rest API. Commit the `generated` folder to your repo as they are necessary for queries and keeping track of the schema changes.
+
+
