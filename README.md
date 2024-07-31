@@ -11,7 +11,7 @@
 
 <img alt="saleor-app-template" src="./public/switch.png">
 
-> Access our hosted hyperswitch saleor payment app [here](hyperswitch-saleor-payment-app-wh8j.vercel.app)
+> Access our hosted hyperswitch saleor payment app [here](https://hyperswitch-saleor-payment-app-wh8j.vercel.app/)
 ## Overview
 ### Hyperswitch
 
