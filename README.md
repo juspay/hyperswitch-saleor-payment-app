@@ -12,7 +12,9 @@
 <img alt="saleor-app-template" src="./public/switch.png">
 
 > Access our hosted hyperswitch saleor payment app [here](https://hyperswitch-saleor-payment-app-wh8j.vercel.app/)
+
 ## Overview
+
 ### Hyperswitch
 
 Hyperswitch is a community-led, open payments switch that provides access to the best payments infrastructure for every digital business. By using Hyperswitch, you can reduce dependency on a single processor, decrease development effort by 90% for adding and maintaining integrations, lower processing fees with smart routing, improve success rates with seamless failover and auto-retries, and expand business reach with local and alternate payment methods.
@@ -81,5 +83,3 @@ If you use Saleor Cloud or your local server is exposed, you can install your ap
 ### Generated schema and typings
 
 Commands `build` and `dev` would generate required schema and typed functions for Saleor's GraphQL endpoint and Hyperswitch's Rest API. Commit the `generated` folder to your repo as they are necessary for queries and keeping track of the schema changes.
-
-
