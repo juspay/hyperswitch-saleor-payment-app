@@ -150,6 +150,15 @@ export const AddJuspayCredentialsForm = ({
         />
         <FormInput
           control={control}
+          type={secretInputType}
+          autoComplete="off"
+          label="Merchant ID"
+          helperText="Merchant ID for which you are adding configuration."
+          name="juspayConfiguration.merchantId"
+          size="medium"
+        />
+        <FormInput
+          control={control}
           autoComplete="off"
           label="Username"
           helperText="Username from your juspay dashboard setting for webhook."

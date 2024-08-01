@@ -18,20 +18,21 @@ import {
 } from "../payment-app-configuration/common-app-configuration/config-entry";
 import { config } from "../../pages/api/webhooks/saleor/transaction-initialize-session";
 import { HyperswitchFullyConfiguredEntry } from "../payment-app-configuration/hyperswitch-app-configuration/config-entry";
+import { env } from "@/lib/env.mjs";
 import { invariant } from "@/lib/invariant";
 
-const SANDBOX_BASE_URL: string = "https://sandbox.hyperswitch.io";
-const PROD_BASE_URL: string = "https://api.hyperswitch.io";
-
 export const getEnvironmentFromKey = (): string => {
-  return "production";
+  console.log(env.NEXT_PUBLIC_ENV);
+  return env.NEXT_PUBLIC_ENV;
 };
 
-const getHyperswitchBaseUrl = (publishableKey: string) => {
+const getHyperswitchBaseUrl = () => {
   if (getEnvironmentFromKey() == "production") {
-    return PROD_BASE_URL;
+    invariant(env.HYPERSWITCH_PROD_BASE_URL, "ENV variable HYPERSWITCH_PROD_BASE_URL not set");
+    return env.HYPERSWITCH_PROD_BASE_URL;
   } else {
-    return SANDBOX_BASE_URL;
+    invariant(env.HYPERSWITCH_PROD_BASE_URL, "ENV variable HYPERSWITCH_SANDBOX_BASE_URL not set");
+    return env.HYPERSWITCH_SANDBOX_BASE_URL;
   }
 };
 
@@ -44,6 +45,7 @@ const fetchHyperswitchConfiguration = async (
   if (appChannelConfig == null) {
     throw new ChannelNotConfigured("Please assign a channel for your configuration");
   }
+  console.log(appChannelConfig);
   return getHyperswitchConfig(paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig));
 };
 
@@ -102,7 +104,7 @@ export const createHyperswitchClient = async ({
   const HyperswitchConfig = await fetchHyperswitchConfiguration(configurator, channelId);
   const fetcher = Fetcher.for<PaymentPaths>();
   fetcher.configure({
-    baseUrl: getHyperswitchBaseUrl(HyperswitchConfig.publishableKey),
+    baseUrl: getHyperswitchBaseUrl(),
     init: {
       headers: {
         "api-key": HyperswitchConfig.apiKey,

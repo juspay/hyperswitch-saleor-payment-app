@@ -65,16 +65,7 @@ export const ConfigurationForm = ({
             </AppLayoutRow>
           </FormProvider>
         )}
-        {data && configurationId && (
-          <AppLayoutRow error={true} title="Danger zone">
-            <DeleteHyperswitchConfigurationForm
-              configurationName={data.configurationName}
-              configurationId={configurationId}
-            />
-          </AppLayoutRow>
-        )}
       </FormProvider>
-      ;
       {data && configurationId && (
         <AppLayoutRow error={true} title="Danger zone">
           <DeleteHyperswitchConfigurationForm

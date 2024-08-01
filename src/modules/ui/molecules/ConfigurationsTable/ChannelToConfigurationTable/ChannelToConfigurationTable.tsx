@@ -94,7 +94,7 @@ const ChannelToConfigurationTableRow = ({
       <Td className={classNames(tableStyles.td, tableStyles.statusColumnTd)}>
         {!selectedConfiguration ? (
           <ChipNeutral>Disabled</ChipNeutral>
-        ) : getEnvironmentFromKey(selectedConfiguration.publishableKey) === "live" ? (
+        ) : getEnvironmentFromKey() === "live" ? (
           <ChipSuccess>LIVE</ChipSuccess>
         ) : (
           <ChipHyperswitchOrange>TESTING</ChipHyperswitchOrange>

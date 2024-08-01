@@ -8,6 +8,9 @@ export const juspayConfigEntryEncryptedSchema = z.object({
   password: z
     .string({ required_error: "Password is required for webhook verification." })
     .min(1, { message: "Password is required" }),
+  merchantId: z
+    .string({ required_error: "Merchant ID is required" })
+    .min(1, { message: "Merchant ID is required" }),
 });
 
 export const juspayConfigEntryPublicSchema = z.object({
@@ -27,6 +30,7 @@ export const juspayFullyConfiguredEntrySchema = z
   .object({
     apiKey: juspayConfigEntryEncryptedSchema.shape.apiKey,
     username: juspayConfigEntryPublicSchema.shape.username,
+    merchantId: juspayConfigEntryEncryptedSchema.shape.merchantId,
     password: juspayConfigEntryEncryptedSchema.shape.password,
     clientId: juspayConfigEntryPublicSchema.shape.clientId,
   })
@@ -41,6 +45,7 @@ export const juspayFormConfigEntrySchema = z
   .object({
     apiKey: juspayConfigEntryEncryptedSchema.shape.apiKey,
     password: juspayConfigEntryEncryptedSchema.shape.password,
+    merchantId: juspayConfigEntryEncryptedSchema.shape.merchantId,
     username: juspayConfigEntryPublicSchema.shape.username,
     clientId: juspayConfigEntryPublicSchema.shape.clientId,
   })
@@ -48,6 +53,7 @@ export const juspayFormConfigEntrySchema = z
   .default({
     apiKey: "",
     password: "",
+    merchantId: "",
     username: "",
     clientId: "",
   });

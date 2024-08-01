@@ -14,10 +14,11 @@ export const obfuscateConfigEntry = (
     entry;
 
   if (juspayConfiguration) {
-    const { apiKey, username, password, clientId } = juspayConfiguration;
+    const { apiKey, username, merchantId, password, clientId } = juspayConfiguration;
     const configValuesToObfuscate = {
       apiKey,
       password,
+      merchantId,
     } satisfies PaymentAppEncryptedConfig["juspayConfiguration"];
 
     const UserVisibleConfigEntry = obfuscateConfig(configValuesToObfuscate);

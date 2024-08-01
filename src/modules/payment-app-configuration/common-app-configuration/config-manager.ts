@@ -106,6 +106,7 @@ export const addConfigEntry = async (
       juspayConfiguration: {
         apiKey: newConfigEntry.juspayConfiguration.apiKey,
         clientId: newConfigEntry.juspayConfiguration.clientId,
+        merchantId: newConfigEntry.juspayConfiguration.merchantId,
         username: newConfigEntry.juspayConfiguration.username,
         password: newConfigEntry.juspayConfiguration.password,
       },

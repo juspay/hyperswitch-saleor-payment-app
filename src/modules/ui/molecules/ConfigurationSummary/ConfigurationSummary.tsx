@@ -4,12 +4,14 @@ import { getEnvironmentFromKey } from "@/modules/hyperswitch/hyperswitch-api";
 import { appBridgeInstance } from "@/app-bridge-instance";
 import { HyperswitchUserVisibleConfigEntry } from "@/modules/payment-app-configuration/hyperswitch-app-configuration/config-entry";
 import { JuspayUserVisibleConfigEntry } from "@/modules/payment-app-configuration/juspay-app-configuration/config-entry";
+import { env } from "@/lib/env.mjs";
 
 export const HyperswitchConfigurationSummary = ({
   config,
 }: {
   config: HyperswitchUserVisibleConfigEntry;
 }) => {
+  console.log(env.NEXT_PUBLIC_ENV);
   return (
     <Box
       as="dl"
