@@ -121,6 +121,7 @@ export const TransactionInitializeSessionWebhookHandler = async (
   const createPaymentPayload: paymentsComponents["schemas"]["PaymentsCreateRequest"] = {
     amount,
     confirm: false,
+    payment_link: true,
     currency: currency as paymentsComponents["schemas"]["PaymentsCreateRequest"]["currency"],
     capture_method,
     profile_id: profileId,
@@ -133,6 +134,7 @@ export const TransactionInitializeSessionWebhookHandler = async (
     description: normalizeValue(requestData?.description),
     billing: buildAddressDetails(event.sourceObject.billingAddress, userEmail),
     shipping: buildAddressDetails(event.sourceObject.shippingAddress, requestData?.shippingEmail),
+    manual_retry_allowed: normalizeValue(requestData?.manualRetryAllowed),
     metadata: {
       transaction_id: event.transaction.id,
       saleor_api_url: saleorApiUrl,
@@ -140,7 +142,6 @@ export const TransactionInitializeSessionWebhookHandler = async (
   };
 
   const publishableKey = await fetchHyperswitchPublishableKey(configurator, channelId);
-
   const createPaymentResponse = await createHyperswitchPayment(createPaymentPayload);
   const createPaymentResponseData = intoPaymentResponse(createPaymentResponse.data);
   const result = hyperswitchPaymentIntentToTransactionResult(
@@ -151,8 +152,10 @@ export const TransactionInitializeSessionWebhookHandler = async (
     data: {
       clientSecret: createPaymentResponseData.client_secret,
       publishableKey,
+      paymentLinkId: createPaymentResponseData.payment_link?.payment_link_id,
       errors,
     },
+    externalUrl: createPaymentResponseData.payment_link?.link,
     pspReference: createPaymentResponseData.payment_id,
     result,
     amount: getSaleorAmountFromHyperswitchAmount(

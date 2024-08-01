@@ -6,6 +6,11 @@ export const SaleorMetadataSchema = z.object({
   saleor_api_url: z.string(),
 });
 
+export const PaymentLinkSchema = z.object({
+  link: z.string(),
+  payment_link_id: z.string(),
+});
+
 export const PaymentResponseSchema = z.object({
   payment_id: z.string(),
   status: z.string(),
@@ -14,6 +19,7 @@ export const PaymentResponseSchema = z.object({
   currency: z.string(),
   connector: z.string().nullable(),
   client_secret: z.string(),
+  payment_link: PaymentLinkSchema.nullable().optional(),
   metadata: SaleorMetadataSchema,
   error_code: z.string().nullable().optional(),
   error_message: z.string().nullable().optional(),
