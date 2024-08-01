@@ -13,22 +13,22 @@ export const SessionPaymentlinks = z.object({
   });
 
 export const Payload = z.object({
-    clientId:  z.string().nullable(),
+    clientId:  z.string().nullable().optional(),
     amount:  z.string().nullable(),
-    merchantId:  z.string().nullable(),
-    clientAuthToken:  z.string().nullable(),
+    merchantId:  z.string().nullable().optional(),
+    clientAuthToken:  z.string().nullable().optional(),
     clientAuthTokenExpiry:  z.string().nullable(),
-    environment:  z.string().nullable(),
-    lastName:  z.string().nullable(),
-    action:  z.string().nullable(),
-    customerId:  z.string().nullable(),
-    returnUrl:  z.string().nullable(),
-    currency:  z.string().nullable(),
-    firstName: z.string().nullable(),
-    customerPhone:  z.string().nullable(),
-    customerEmail:  z.string().nullable(),
+    environment:  z.string().nullable().optional(),
+    lastName:  z.string().nullable().optional(),
+    action:  z.string().nullable().optional(),
+    customerId:  z.string().nullable().optional(),
+    returnUrl:  z.string().nullable().optional(),
+    currency:  z.string().nullable().optional(),
+    firstName: z.string().nullable().optional(),
+    customerPhone:  z.string().nullable().optional(),
+    customerEmail:  z.string().nullable().optional(),
     orderId: z.string().nullable(),
-    description: z.string().nullable(),
+    description: z.string().nullable().optional(),
   });
 
 export const SessionSDKPayload = z.object({
@@ -64,7 +64,8 @@ export const PreAuthPaymentResponse = z.object({
   status: z.string().nullable(),
   order_id: z.string().nullable(),
   amount: z.number().nullable(),
-  currency: z.string().nullable()
+  currency: z.string().nullable(),
+  txn_uuid: z.string().nullable().optional()
 });
 
 export type PaymentPreAuthResponse = z.infer<typeof PreAuthPaymentResponse>
@@ -81,10 +82,24 @@ export function intoPreAuthTxnResponse(responseData : any): PaymentPreAuthRespon
  }
 }
 
+export const Refunds = z.object({
+  unique_request_id: z.string(),
+  amount: z.number(),
+  status: z.string(),
+  error_message: z.string().nullable().optional(),
+  error_code: z.string().nullable().optional(),
+  refund_source: z.string().nullable().optional(),
+});
+
 export const OrderStatusResponse = z.object({
   status: z.string(),
-  order_id: z.string().nullable().optional(),
-  amount: z.number().nullable().optional()
+  order_id: z.string().nullable(),
+  amount: z.number().nullable().optional(),
+  txn_uuid: z.string().nullable().optional(),
+  refunded: z.string().nullable().optional(),
+  refunds: z.array(Refunds).nullable().optional(),
+  udf1: z.string().nullable().optional(),
+  udf2: z.string().nullable().optional()
 });
 
 export type GetOrderStatusResponse = z.infer<typeof OrderStatusResponse>
@@ -129,12 +144,15 @@ export function intoErrorResponse(eventData: unknown): ErrorResponse {
 }
 
 export const RefundResponseSchema = z.object({
-  uniqueRequestId: z.string(),
-  txnDetailId: z.string(),
+  order_id: z.string(),
   amount: z.number(),
   status: z.string(),
-  responseCode: z.string().nullable().optional(),
-  errorMessage: z.string().nullable().optional(),
+  txn_uuid: z.string().nullable(),
+  udf1: z.string().nullable().optional(),
+  udf2: z.string().nullable().optional(),
+  error_code: z.string().nullable().optional(),
+  error_message: z.string().nullable().optional(),
+  refunds: z.array(Refunds).nullable().optional()
 });
 
 export type RefundResponse = z.infer<typeof RefundResponseSchema>;
@@ -153,28 +171,45 @@ export function intoRefundResponse(responseData: any): RefundResponse {
 
 const CaptureMethodEnum = z.enum(["automatic", "manual"]);
 
+const txnDetails = z.object({
+  status: z.string(),
+  txn_id: z.string(),
+  txn_amount: z.number(),
+  error_message: z.string(),
+});
+
+const erroInfo = z.object({
+  user_message: z.string(),
+});
+
 const WebhookObjectBodySchema = z.object({
   status: z.string(),
-  payment_id: z.string(),
-  refund_id: z.string().nullable().optional(),
-  metadata: SaleorMetadataSchema,
-  capture_method: CaptureMethodEnum.nullable().optional(),
-  error_message: z.string().nullable().optional(),
+  order_id: z.string(),
+  amount: z.number().nullable().optional(),
+  txn_uuid: z.string().nullable().optional(),
+  refunded: z.boolean().nullable().optional(),
+  refunds: z.array(Refunds).nullable().optional(),
+  udf1: z.string().nullable().optional(),
+  udf2: z.string().nullable().optional(),
+  udf3: CaptureMethodEnum.nullable().optional(),
+  txn_detail: txnDetails.nullable().optional(),
+  error_info: erroInfo.nullable().optional(),
+});
+
+const WebhookOrderSchema = z.object({
+  order: WebhookObjectBodySchema,
 });
 
 const WebhookContentSchema = z.object({
-  type: z.string(),
-  object: WebhookObjectBodySchema,
+  event_name: z.string(),
+  content: WebhookOrderSchema,
 });
 
-const WebhookBodySchema = z.object({
-  content: WebhookContentSchema,
-});
 
-export type WebhookResponse = z.infer<typeof WebhookBodySchema>;
+export type WebhookResponse = z.infer<typeof WebhookContentSchema>;
 
 export type CaptureMethod = z.infer<typeof CaptureMethodEnum>;
 
 export function intoWebhookResponse(responseData: any): WebhookResponse {
-  return WebhookBodySchema.parse(responseData);
+  return WebhookContentSchema.parse(responseData);
 }

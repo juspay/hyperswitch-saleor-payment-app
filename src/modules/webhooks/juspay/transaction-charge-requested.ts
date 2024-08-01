@@ -5,7 +5,7 @@ import { invariant } from "@/lib/invariant";
 import {
   TransactionChargeRequestedEventFragment,
 } from "generated/graphql";
-import { intoPreAuthTxnResponse } from "../../juspay/juspay-api-response";
+import { intoOrderStatusResponse, intoPreAuthTxnResponse } from "../../juspay/juspay-api-response";
 import { createLogger } from "@/lib/logger";
 import { SyncWebhookAppErrors } from "@/schemas/HyperswitchTransactionInitializeSession/HyperswitchTransactionInitializeSessionResponse.mjs";
 import { createJuspayClient } from "../../hyperswitch/hyperswitch-api";
@@ -13,16 +13,11 @@ import { type components as paymentsComponents } from "generated/juspay-payments
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import { normalizeValue } from "../../payment-app-configuration/utils";
 
-[ 
-          "CAPTURE_INITIATED",
-          "AUTHORIZED",
-          
-        ]
-
 export const hyperswitchPaymentCaptureStatusToSaleorTransactionResult = (
   status: string,
 ): JuspayTransactionChargeRequestedResponse["result"] | null => {
   switch (status) {
+    case "CHARGED":
     case "PARTIAL_CHARGED":
       return "CHARGE_SUCCESS";
     case "CAPTURE_FAILED":
@@ -71,19 +66,21 @@ export const TransactionChargeRequestedJuspayWebhookHandler = async (
     .path("/v2/txns/{txn_uuid}/capture")
     .method("post")
     .create();
-  
-  const preAuthCaptureTxnPayload: paymentsComponents["schemas"]["PreAuthTxnRequest"] = {
-      amount: "1.0",
-      metadata: normalizeValue(""),
-      idempotence_key: normalizeValue("")
-    };
 
-  const capturePaymentResponse = await captureJuspayPayment({
-    ...preAuthCaptureTxnPayload,
-    txn_uuid:payment_id,
-  });
+  const juspayOrderStatus = juspayClient
+    .path("/orders/{order_id}")
+    .method("get")
+    .create();
+  const orderStatusResponse = await juspayOrderStatus({
+      order_id: event.transaction.pspReference,
+    });
+  const parsedOrderStatusRespData = intoOrderStatusResponse(orderStatusResponse.data);
+  invariant(parsedOrderStatusRespData.txn_uuid, `Txn_uuid not found in orderstatus response`);
+  
+  const capturePaymentResponse = await captureJuspayPayment({txn_uuid: parsedOrderStatusRespData.txn_uuid});
 
   const capturePaymentResponseData = intoPreAuthTxnResponse(capturePaymentResponse.data);
+
   invariant(capturePaymentResponseData.status && capturePaymentResponseData.order_id && capturePaymentResponseData.amount, `Required fields not found session call response`);
   const result = hyperswitchPaymentCaptureStatusToSaleorTransactionResult(
     capturePaymentResponseData.status,

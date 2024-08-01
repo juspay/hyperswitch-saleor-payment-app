@@ -11,6 +11,7 @@ export const env = createEnv({
   server: {
     ENV: z.enum(["development", "test", "staging", "production"]).default("development"),
     SECRET_KEY: z.string().min(8, { message: "Cannot be too short" }),
+    ENCRYPT_KEY: z.string().min(8, { message: "Cannot be too short" }),
     SENTRY_DSN: z.string().min(1).optional(),
     APL: z.enum(["saleor-cloud", "upstash", "file"]).optional().default("file"),
     CI: z.coerce.boolean().optional().default(false),
@@ -50,6 +51,7 @@ export const env = createEnv({
     
     JUSPAY_BASEURL: process.env.JUSPAY_BASEURL,
     SECRET_KEY: process.env.SECRET_KEY,
+    ENCRYPT_KEY: process.env.ENCRYPT_KEY,
     SENTRY_DSN: process.env.SENTRY_DSN,
     APL: process.env.APL,
     CI: process.env.CI,

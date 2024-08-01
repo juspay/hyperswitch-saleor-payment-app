@@ -17,6 +17,7 @@ export const juspayRefundToTransactionResult = (
 ): JuspayTransactionRefundRequestedResponse["result"] | null => {
   switch (status) {
     case "SUCCESS":
+    case "CHARGED":
       return "REFUND_SUCCESS";
     case "FAILURE":
       return "REFUND_FAILURE";
@@ -58,14 +59,12 @@ export const TransactionRefundRequestedJuspayWebhookHandler = async (
     configData,
   });
 
+  const unique_request_id = uuidv4();
+
   const refundJuspayPayment = juspayClient.path("/orders/{order_id}/refunds").method("post").create();
   const refundPayload: paymentsComponents["schemas"]["RefundReq"] = {
-    unique_request_id: uuidv4(),
+    unique_request_id,
     amount: event.action.amount,
-    metaData: normalizeValue(JSON.stringify({
-      transaction_id: event.transaction.id,
-      saleor_api_url: saleorApiUrl,
-    })),
   };
 
   const refundPaymentResponse = await refundJuspayPayment({
@@ -79,16 +78,16 @@ export const TransactionRefundRequestedJuspayWebhookHandler = async (
   const transactionRefundRequestedResponse: JuspayTransactionRefundRequestedResponse =
     result === undefined
       ? {
-          pspReference: refundPaymentResponseData.txnDetailId,
+          pspReference: unique_request_id,
           message: "pending",
         }
       : result === null
         ? {
-            pspReference: refundPaymentResponseData.uniqueRequestId,
+            pspReference: refundPaymentResponseData.order_id,
             message: `Unexpected status: ${refundPaymentResponseData.status} recieved from hyperswitch. Please check the payment flow.`,
           }
         : {
-            pspReference: refundPaymentResponseData.txnDetailId,
+            pspReference: unique_request_id,
             result,
             amount: refundPaymentResponseData.amount,
           };

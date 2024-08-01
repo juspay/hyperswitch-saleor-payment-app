@@ -53,7 +53,7 @@ export const juspayOrderStatusResult = (
     case "NEW":
     case "CREATED":
     case "PENDING_AUTHENTICATION":
-    case "requires_confirmation":
+    case "PENDING_VBV":
       return `${prefix}_ACTION_REQUIRED`;
     case "AUTHORIZING":
       return `${prefix}_REQUEST`;
@@ -103,6 +103,7 @@ export const TransactionProcessSessionJuspayWebhookHandler = async (
     order_id: event.transaction.pspReference,
   });
   const parsedOrderStatusRespData = intoOrderStatusResponse(orderStatusResponse.data);
+  console.log("***parsedProcessResponse",parsedOrderStatusRespData)
   invariant(parsedOrderStatusRespData.order_id && parsedOrderStatusRespData.amount , `Required fields not found session call response`);
   const result = juspayOrderStatusResult(
     parsedOrderStatusRespData.status,

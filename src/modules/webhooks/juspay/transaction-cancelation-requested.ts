@@ -6,7 +6,7 @@ import {
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
 import { createJuspayClient } from "../../hyperswitch/hyperswitch-api";
-import { intoPreAuthTxnResponse} from "../../juspay/juspay-api-response";
+import { intoOrderStatusResponse, intoPreAuthTxnResponse} from "../../juspay/juspay-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import { normalizeValue } from "../../payment-app-configuration/utils";
 import { type components as paymentsComponents } from "generated/juspay-payments";
@@ -48,10 +48,6 @@ export const TransactionCancelationRequestedHyperswitchWebhookHandler = async (
   // Fetch Transaction Details
   invariant(event.transaction.sourceObject, "Missing sourceObject");
 
-  
-
-  const txn_uuid = event.transaction.pspReference;
-
   const juspayClient = await createJuspayClient({
     configData,
   });
@@ -61,16 +57,18 @@ export const TransactionCancelationRequestedHyperswitchWebhookHandler = async (
     .method("post")
     .create();
 
-  const preAuthVoidTxnPayload: paymentsComponents["schemas"]["PreAuthTxnRequest"] = {
-    amount: "1.0",
-    metadata: normalizeValue(""),
-    idempotence_key: normalizeValue("")
-  };
-
-  const preAuthVoidTxnResponse = await cancelJuspayPayment(
-    {...preAuthVoidTxnPayload,
-      txn_uuid
+    const juspayOrderStatus = juspayClient
+    .path("/orders/{order_id}")
+    .method("get")
+    .create();
+  const orderStatusResponse = await juspayOrderStatus({
+      order_id: event.transaction.pspReference,
     });
+  const parsedOrderStatusRespData = intoOrderStatusResponse(orderStatusResponse.data);
+
+  invariant(parsedOrderStatusRespData.txn_uuid, `Txn_uuid not found in orderstatus response`);
+
+  const preAuthVoidTxnResponse = await cancelJuspayPayment({txn_uuid:parsedOrderStatusRespData.txn_uuid});
 
   const cancelPaymentResponseData = intoPreAuthTxnResponse(preAuthVoidTxnResponse.data);
   invariant(cancelPaymentResponseData.status && cancelPaymentResponseData.order_id && cancelPaymentResponseData.amount, `Required fields not found session call response`);

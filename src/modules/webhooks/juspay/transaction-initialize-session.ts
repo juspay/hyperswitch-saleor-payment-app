@@ -27,6 +27,8 @@ import {
 import { normalizeValue } from "../../payment-app-configuration/utils";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import { v4 as uuidv4 } from 'uuid';
+import { env } from "@/lib/env.mjs";
+import CryptoJS from 'crypto-js';
 
 export const juspayPaymentIntentToTransactionResult = (
   status: string,
@@ -40,7 +42,6 @@ export const juspayPaymentIntentToTransactionResult = (
         : null;
 
   invariant(prefix, `Unsupported transactionFlowStrategy: ${transactionFlow}`);
-
   switch (status) {
     case "NEW":
       return `${prefix}_ACTION_REQUIRED`;
@@ -69,6 +70,7 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     { saleorApiUrl },
     { msgPrefix: "[TransactionInitializeSessionWebhookHandler] " },
   );
+  console.log("****saleorApiUrl", saleorApiUrl)
   logger.debug(
     {
       transaction: event.transaction,
@@ -103,6 +105,16 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
 
   const billingAddress = buildAddressDetails(event.sourceObject.billingAddress, userEmail);
   const shippingAddress = buildAddressDetails(event.sourceObject.shippingAddress, requestData?.shippingEmail);
+  const capture_method =
+    event.action.actionType == TransactionFlowStrategyEnum.Authorization ? "manual" : "automatic";
+  const encryptedSaleorApiUrl = CryptoJS.AES.encrypt(saleorApiUrl, env.ENCRYPT_KEY).toString();
+
+  console.log("****encrypt", encryptedSaleorApiUrl)
+
+  const decryptSaleorApiUrl = CryptoJS.AES.decrypt(encryptedSaleorApiUrl, env.ENCRYPT_KEY);
+  const originalSaleorApiUrl = decryptSaleorApiUrl.toString(CryptoJS.enc.Utf8);
+
+  console.log("****decrypt", originalSaleorApiUrl)
 
   const createOrderPayload: paymentsComponents["schemas"]["SessionRequest"] = {
     order_id: normalizeValue(uuidv4()),
@@ -117,7 +129,8 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     last_name: normalizeValue(event.sourceObject.billingAddress?.lastName),
     currency: event.action.currency,
     udf1: normalizeValue(event.transaction.id),
-    udf2: normalizeValue(saleorApiUrl),
+    udf2: normalizeValue(encryptedSaleorApiUrl),
+    udf3: normalizeValue(capture_method),
     billing_address_first_name: normalizeValue(billingAddress?.address?.first_name),
     billing_address_last_name: normalizeValue(billingAddress?.address?.last_name),
     billing_address_line1: normalizeValue(billingAddress?.address?.line1),
@@ -136,8 +149,11 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     shipping_address_postal_code: normalizeValue(shippingAddress?.address?.zip)
 };
 
+  console.log("***RequestPayload",createOrderPayload)
   const createOrderResponse = await createJuspayPayment(createOrderPayload);
+  console.log("***DirectResponse",createOrderResponse.data)
   const createPaymentResponseData = intoPaymentResponse(createOrderResponse.data);
+  console.log("***ParsedResponse", createPaymentResponseData)
   invariant(createPaymentResponseData.status && createPaymentResponseData.order_id && createPaymentResponseData.payment_links && createPaymentResponseData.sdk_payload, `Required fields not found session call response`);
 
   const result = juspayPaymentIntentToTransactionResult(
@@ -156,5 +172,6 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     amount: event.action.amount,
     time: new Date().toISOString(),
   };
+  console.log("****resp",transactionInitializeSessionResponse)
   return transactionInitializeSessionResponse;
 };
