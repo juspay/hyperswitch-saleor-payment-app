@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { paymentAppFormConfigEntrySchema } from "./config-entry";
+import { paymentAppFormConfigEntrySchema } from "./common-app-configuration/config-entry";
 
 export const mappingUpdate = z.object({
   channelId: z.string().min(1),

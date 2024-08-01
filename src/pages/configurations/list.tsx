@@ -4,7 +4,7 @@ import { AppLayout, AppLayoutRow } from "@/modules/ui/templates/AppLayout";
 import { trpcClient } from "@/modules/trpc/trpc-client";
 import { getErrorHandler } from "@/modules/trpc/utils";
 import { useFetchChannelsQuery } from "generated/graphql";
-import { HyperswitchConfigurationsList } from "@/modules/ui/organisms/HyperswitchConfigurationList/HyperswitchConfigurationList";
+import { ConfigurationsList } from "@/modules/ui/organisms/ConfigurationList/HyperswitchConfigurationList";
 import { ChannelToConfigurationList } from "@/modules/ui/organisms/ChannelToConfigurationList/ChannelToConfigurationList";
 import { Skeleton } from "@/modules/ui/atoms/Skeleton/Skeleton";
 
@@ -44,7 +44,7 @@ function ListConfigurationPage() {
         {allConfigurations.isLoading ? (
           <Skeleton height={40} />
         ) : (
-          <HyperswitchConfigurationsList configurations={allConfigurations.data || []} />
+          <ConfigurationsList configurations={allConfigurations.data || []} />
         )}
       </AppLayoutRow>
       <AppLayoutRow

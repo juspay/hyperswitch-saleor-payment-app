@@ -24,6 +24,8 @@ export const UnsupportedEvent = BaseError.subclass("UnsupportedEventError");
 export const UnExpectedHyperswitchPaymentStatus = BaseError.subclass(
   "UnExpectedHyperswitchPaymentStatusError",
 );
+export const ConfigurationNotFound = BaseError.subclass("ConfigurationNotFoundError");
+
 export const HyperswitchHttpClientError = BaseError.subclass("HyperswitchHttpClientError");
 export const HttpRequestError = BaseError.subclass("HttpRequestError", {
   props: {} as { statusCode: number; body: string; headers: IncomingHttpHeaders },

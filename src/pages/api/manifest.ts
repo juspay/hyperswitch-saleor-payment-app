@@ -12,16 +12,16 @@ import { transactionProcessSessionSyncWebhook } from "./webhooks/saleor/transact
 export default createManifestHandler({
   async manifestFactory(context) {
     const manifest: AppManifest = {
-      id: "app.saleor.hyperswitch",
-      name: "Hyperswitch",
+      id: "app.saleor.hyperswitch16",
+      name: "Hyperswitch16",
       about: packageJson.description,
       tokenTargetUrl: `${context.appBaseUrl}/api/register`,
       appUrl: `${context.appBaseUrl}`,
       permissions: ["HANDLE_PAYMENTS"],
       version: packageJson.version,
       requiredSaleorVersion: ">=3.14.0",
-      homepageUrl: "https://github.com/hyperswitch",
-      supportUrl: "https://github.com/hyperswitch/issues",
+      homepageUrl: "https://github.com/juspay/hyperswitch-saleor-payment-app",
+      supportUrl: "https://github.com/juspay/hyperswitch-saleor-payment-app/issues",
       brand: {
         logo: {
           default: `${context.appBaseUrl}/logo.png`,

@@ -3,10 +3,10 @@ import { Button, Text } from "@saleor/macaw-ui";
 import { useAppBridge, withAuthorization } from "@saleor/app-sdk/app-bridge";
 import { useRouter } from "next/router";
 import { AppLayout } from "@/modules/ui/templates/AppLayout";
-import { HyperswitchConfigurationForm } from "@/modules/ui/organisms/AddHyperswitchConfigurationForm/AddHyperswitchConfigurationForm";
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { ConfigurationForm } from "@/modules/ui/organisms/AddHyperswitchConfigurationForm/AddConfigurationForm";
 
 const EditConfigurationPage = () => {
   const router = useRouter();
@@ -53,7 +53,7 @@ const EditConfigurationPage = () => {
         </>
       }
     >
-      <HyperswitchConfigurationForm configurationId={router.query.configurationId} />
+      <ConfigurationForm configurationId={router.query.configurationId} orchestra="Hyperswitch" />
     </AppLayout>
   );
 };

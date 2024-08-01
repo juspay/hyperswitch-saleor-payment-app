@@ -1,4 +1,4 @@
-import { paymentAppFullyConfiguredEntrySchema } from "../payment-app-configuration/config-entry";
+import { paymentAppFullyConfiguredEntrySchema } from "../payment-app-configuration/common-app-configuration/config-entry";
 import { getConfigurationForChannel } from "../payment-app-configuration/payment-app-configuration";
 import { getWebhookPaymentAppConfigurator } from "../payment-app-configuration/payment-app-configuration-factory";
 import { type TransactionChargeRequestedResponse } from "@/schemas/TransactionChargeRequested/TransactionChargeRequestedResponse.mjs";

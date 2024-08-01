@@ -1,21 +1,21 @@
 import { Text } from "@saleor/macaw-ui";
 import { withAuthorization } from "@saleor/app-sdk/app-bridge";
 import { AppLayout } from "@/modules/ui/templates/AppLayout";
-import { HyperswitchConfigurationForm } from "@/modules/ui/organisms/AddHyperswitchConfigurationForm/AddHyperswitchConfigurationForm";
+import { ConfigurationForm } from "@/modules/ui/organisms/AddHyperswitchConfigurationForm/AddConfigurationForm";
 
 const AddConfigurationPage = () => {
   return (
     <AppLayout
-      title="Hyperswitch > Add configuration"
+      title="Juspay > Add configuration"
       description={
         <>
           <Text as="p" sizes="medium">
-            Create new Hyperswitch configuration.
+            Create new Juspay configuration.
           </Text>
         </>
       }
     >
-      <HyperswitchConfigurationForm configurationId={undefined} />
+      <ConfigurationForm configurationId={undefined} orchestra="Juspay" />
     </AppLayout>
   );
 };

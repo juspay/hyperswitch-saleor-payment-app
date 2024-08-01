@@ -12,7 +12,7 @@ import {
   type TransactionProcessSessionEventFragment,
 } from "generated/graphql";
 
-import { paymentAppFullyConfiguredEntrySchema } from "@/modules/payment-app-configuration/config-entry";
+import { paymentAppFullyConfiguredEntrySchema } from "@/modules/payment-app-configuration/common-app-configuration/config-entry";
 import { getWebhookPaymentAppConfigurator } from "@/modules/payment-app-configuration/payment-app-configuration-factory";
 import {
   ChannelNotConfigured,

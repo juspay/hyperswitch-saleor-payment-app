@@ -1,35 +1,63 @@
+import { invariant } from "@/lib/invariant";
 import { obfuscateConfig } from "../app-configuration/utils";
 import {
-  type PaymentAppConfigEntry,
-  type PaymentAppEncryptedConfig,
-  type PaymentAppUserVisibleConfigEntry,
+  PaymentAppConfigEntry,
+  PaymentAppEncryptedConfig,
+  PaymentAppUserVisibleConfigEntry,
   paymentAppUserVisibleConfigEntrySchema,
-} from "./config-entry";
+} from "./common-app-configuration/config-entry";
 
 export const obfuscateConfigEntry = (
   entry: PaymentAppConfigEntry | PaymentAppUserVisibleConfigEntry,
 ): PaymentAppUserVisibleConfigEntry => {
-  const {
-    apiKey,
-    paymentResponseHashKey,
-    publishableKey,
-    profileId,
-    configurationName,
-    configurationId,
-  } = entry;
+  const { configurationName, configurationId, hyperswitchConfiguration, juspayConfiguration } =
+    entry;
 
-  const configValuesToObfuscate = {
-    apiKey,
-    paymentResponseHashKey,
-  } satisfies PaymentAppEncryptedConfig;
+  if (juspayConfiguration) {
+    const { apiKey, username, merchantId, password, clientId } = juspayConfiguration;
+    const configValuesToObfuscate = {
+      apiKey,
+      password,
+      merchantId,
+    } satisfies PaymentAppEncryptedConfig["juspayConfiguration"];
 
-  return paymentAppUserVisibleConfigEntrySchema.parse({
-    publishableKey,
-    profileId,
-    configurationId,
-    configurationName,
-    ...obfuscateConfig(configValuesToObfuscate),
-  } satisfies PaymentAppUserVisibleConfigEntry);
+    const UserVisibleConfigEntry = obfuscateConfig(configValuesToObfuscate);
+
+    return paymentAppUserVisibleConfigEntrySchema.parse({
+      hyperswitchConfiguration: undefined,
+      juspayConfiguration: {
+        username,
+        clientId,
+        ...obfuscateConfig(configValuesToObfuscate),
+      },
+      configurationName,
+      configurationId,
+    } satisfies PaymentAppUserVisibleConfigEntry);
+  } else {
+    invariant(hyperswitchConfiguration, "Missing Configuration Entry");
+
+    const { apiKey, paymentResponseHashKey, publishableKey, profileId } = hyperswitchConfiguration;
+
+    const configValuesToObfuscate = {
+      apiKey,
+      paymentResponseHashKey,
+    } satisfies PaymentAppEncryptedConfig["hyperswitchConfiguration"];
+
+    const UserVisibleConfigEntry = obfuscateConfig(configValuesToObfuscate);
+
+    const result = paymentAppUserVisibleConfigEntrySchema.parse({
+      juspayConfiguration: undefined,
+      hyperswitchConfiguration: {
+        publishableKey,
+        profileId,
+        ...obfuscateConfig(configValuesToObfuscate),
+      },
+      configurationName,
+      configurationId,
+    } satisfies PaymentAppUserVisibleConfigEntry);
+
+    return result;
+  }
 };
 
 export const normalizeValue = (entry: any | undefined | null) => {
