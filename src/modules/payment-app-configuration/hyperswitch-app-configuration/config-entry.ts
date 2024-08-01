@@ -62,15 +62,3 @@ export type HyperswitchUserVisibleConfigEntry = z.infer<
   typeof hyperswitchUserVisibleConfigEntrySchema
 >;
 export type HyperswitchFullyConfiguredEntry = z.infer<typeof hyperswitchFullyConfiguredEntrySchema>;
-
-// export type PaymentAppConfigEntry = z.infer<typeof paymentAppConfigEntrySchema>;
-// export type PaymentAppConfigEntryFullyConfigured = z.infer<
-//   typeof paymentAppFullyConfiguredEntrySchema
-// >;
-// export type PaymentAppUserVisibleConfigEntry = z.infer<
-//   typeof paymentAppUserVisibleConfigEntrySchema
-// >;
-// export type PaymentAppFormConfigEntry = z.infer<typeof paymentAppFormConfigEntrySchema>;
-// export type PaymentAppConfigEntryUpdate = Partial<PaymentAppConfigEntry> & {
-//   configurationId: PaymentAppConfigEntry["configurationId"];
-// };
