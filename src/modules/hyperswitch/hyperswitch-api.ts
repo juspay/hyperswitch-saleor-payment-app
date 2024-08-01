@@ -22,7 +22,6 @@ import { env } from "@/lib/env.mjs";
 import { invariant } from "@/lib/invariant";
 
 export const getEnvironmentFromKey = (): string => {
-  console.log(env.NEXT_PUBLIC_ENV);
   return env.NEXT_PUBLIC_ENV;
 };
 
@@ -45,7 +44,7 @@ const fetchHyperswitchConfiguration = async (
   if (appChannelConfig == null) {
     throw new ChannelNotConfigured("Please assign a channel for your configuration");
   }
-  console.log(appChannelConfig);
+
   return getHyperswitchConfig(paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig));
 };
 

@@ -11,7 +11,6 @@ export const HyperswitchConfigurationSummary = ({
 }: {
   config: HyperswitchUserVisibleConfigEntry;
 }) => {
-  console.log(env.NEXT_PUBLIC_ENV);
   return (
     <Box
       as="dl"

@@ -22,6 +22,7 @@ import {
 } from "../hyperswitch/hyperswitch-api-request";
 import {
   ChannelNotConfigured,
+  CheckoutPaymentAlreadyProcessed,
   UnExpectedHyperswitchPaymentStatus,
   UnsupportedEvent,
 } from "@/errors";
@@ -97,6 +98,9 @@ export const TransactionInitializeSessionWebhookHandler = async (
   const errors: SyncWebhookAppErrors = [];
   const currency = event.action.currency;
   const amount = getHyperswitchAmountFromSaleorMoney(event.action.amount, currency);
+  if (amount == 0) {
+    throw new CheckoutPaymentAlreadyProcessed("Checkout corresponding to this transaction is already captured! Please create a new checkout and try again.");
+  };
   let requestData = null;
   if (event.data != null) {
     requestData = validatePaymentCreateRequest(event.data);
