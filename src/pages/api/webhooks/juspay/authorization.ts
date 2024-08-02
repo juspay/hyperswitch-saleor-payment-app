@@ -34,6 +34,14 @@ import {
   import { env } from "@/lib/env.mjs";
   import CryptoJS from 'crypto-js';
   import { Buffer } from 'buffer';
+
+  // function decrypt(encryptedText: string): string {
+  //   const decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from("0123456789abcdef0123456789abcdef"), Buffer.from("0123456789abcdef"));
+  //   let decrypted = decipher.update(encryptedText, 'base64url', 'utf8');
+  //   decrypted += decipher.final('utf8');
+  //   return decrypted;
+  // }
+  
   
   export const juspayStatusToSaleorTransactionResult = (
     status: string,
@@ -43,6 +51,8 @@ import {
   ): TransactionEventTypeEnum => {
     switch (status) {
       case "SUCCESS":
+      case "CHARGED":
+      case "COD_INITIATED":
         if (isRefund) {
           return TransactionEventTypeEnum.RefundSuccess;
         } else {
@@ -52,6 +62,9 @@ import {
       case "ERROR":
       case "NOT_FOUND":
       case "CAPTURE_FAILED":
+      case "AUTHORIZATION_FAILED":
+      case "AUTHENTICATION_FAILED":
+      case "JUSPAY_DECLINED":
       case "FAILURE":
         if (isRefund) {
           return TransactionEventTypeEnum.RefundFailure;
@@ -60,6 +73,8 @@ import {
         } else {
           return TransactionEventTypeEnum.ChargeFailure;
         }
+      case "VOID_FAILED":
+        return TransactionEventTypeEnum.CancelFailure;
       case "PARTIAL_CHARGED":
         return TransactionEventTypeEnum.ChargeSuccess;
       case "AUTHORIZED":
@@ -118,26 +133,16 @@ import {
     req: NextApiRequest,
     res: NextApiResponse,
   ): Promise<void> {
-    console.log("***Webhook cameCame")
     const logger = createLogger({ msgPrefix: "[JuspayWebhookHandler]" });
     let webhookBody = intoWebhookResponse(req.body);
-    console.log("***WebhookBody", req.body)
     const transactionId = webhookBody.content.order.udf1;
     const saleorApiUrl = webhookBody.content.order.udf2;
     const isRefund = webhookBody.event_name === "ORDER_REFUNDED" || webhookBody.event_name === "ORDER_REFUND_FAILED";
     
     invariant(saleorApiUrl && transactionId, "user defined fields not found in webhook");
 
-    const decryptSaleorApiUrl = CryptoJS.AES.decrypt(saleorApiUrl, env.ENCRYPT_KEY);
-    const originalSaleorApiUrl = decryptSaleorApiUrl.toString(CryptoJS.enc.Utf8);
-
-    const decryptSaleorTransactionId = CryptoJS.AES.decrypt(transactionId, env.ENCRYPT_KEY); 
-    const originalSaleorTransactionId = decryptSaleorTransactionId.toString(CryptoJS.enc.Utf8);
-    // const abc = JSON.parse(originalSaleorApiUrl)
-    console.log("***Original1", originalSaleorTransactionId)
-    console.log("***Original2", originalSaleorApiUrl)
-    // console.log("***Original2", abc)
-    // console.log("***Original3", abc.str)
+    const originalSaleorApiUrl = atob(saleorApiUrl)
+    const originalSaleorTransactionId = atob(transactionId)
   
     const authData = await saleorApp.apl.get(originalSaleorApiUrl);
     if (authData === undefined) {
@@ -164,18 +169,6 @@ import {
       configurator: getPaymentAppConfigurator(client, originalSaleorApiUrl),
       channelId: sourceObject.channel.id,
     };
-  
-    // let authHeader = null;
-    // try {
-    //   authHeader = await fetchHyperswitchPaymentResponseHashKey(configData);
-    // } catch (errorData) {
-    //   return res.status(406).json("Channel not assigned");
-    // }
-  
-    // if (!verifyWebhookSource(req, authHeader)) {
-    //   return res.status(400).json("Source Verification Failed");
-    // }
-    // logger.info("Webhook Source Verified");
     const order_id = webhookBody.content.order.order_id;
   
     let juspayClient = null;
@@ -213,7 +206,7 @@ import {
        outerLoop: for (const obj1 of eventArray) {
         if (obj1.type === "REFUND_REQUEST") {
           for (const obj2 of refundList) {
-            if (obj1.id === obj2.unique_request_id && obj2.status !== "PENDING") {
+            if (obj1.pspReference === obj2.unique_request_id && obj2.status !== "PENDING") {
               amountVal = obj2.amount;
               pspReference = obj2.unique_request_id;
               webhookStatus=obj2.status

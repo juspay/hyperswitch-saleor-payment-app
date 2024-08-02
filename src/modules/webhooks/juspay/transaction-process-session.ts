@@ -44,7 +44,6 @@ export const juspayOrderStatusResult = (
     case "VOID_FAILED":
     case "CAPTURE_FAILED":
     case "AUTHORIZATION_FAILED":
-    case "AUTHENTICATION_FAILED":
     case "JUSPAY_DECLINED":
     case "AUTHENTICATION_FAILED":
       return `${prefix}_FAILURE`;
@@ -105,7 +104,6 @@ export const TransactionProcessSessionJuspayWebhookHandler = async (
     order_id: event.transaction.pspReference,
   });
   const parsedOrderStatusRespData = intoOrderStatusResponse(orderStatusResponse.data);
-  console.log("***parsedProcessResponse",parsedOrderStatusRespData)
   invariant(parsedOrderStatusRespData.order_id && parsedOrderStatusRespData.amount , `Required fields not found session call response`);
   const result = juspayOrderStatusResult(
     parsedOrderStatusRespData.status,

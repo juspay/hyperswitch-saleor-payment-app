@@ -40,7 +40,6 @@ export const juspayPaymentIntentToTransactionResult = (
       : transactionFlow === TransactionFlowStrategyEnum.Charge
         ? "CHARGE"
         : null;
-
   invariant(prefix, `Unsupported transactionFlowStrategy: ${transactionFlow}`);
   switch (status) {
     case "NEW":
@@ -70,7 +69,6 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     { saleorApiUrl },
     { msgPrefix: "[TransactionInitializeSessionWebhookHandler] " },
   );
-  console.log("****saleorApiUrl", saleorApiUrl)
   logger.debug(
     {
       transaction: event.transaction,
@@ -107,15 +105,9 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
   const shippingAddress = buildAddressDetails(event.sourceObject.shippingAddress, requestData?.shippingEmail);
   const capture_method =
     event.action.actionType == TransactionFlowStrategyEnum.Authorization ? "manual" : "automatic";
-  const encryptedSaleorApiUrl = CryptoJS.AES.encrypt( saleorApiUrl , env.ENCRYPT_KEY).toString();
-  const encryptSaleorTransactionId = CryptoJS.AES.encrypt(event.transaction.id, env.ENCRYPT_KEY).toString();
+  const encryptedSaleorApiUrl = btoa(saleorApiUrl)
+  const encryptSaleorTransactionId = btoa(event.transaction.id)
 
-  console.log("****encrypt", encryptedSaleorApiUrl)
-
-  // const decryptSaleorApiUrl = CryptoJS.AES.decrypt(encryptedSaleorApiUrl, env.ENCRYPT_KEY);
-  // const originalSaleorApiUrl = decryptSaleorApiUrl.toString(CryptoJS.enc.Utf8);
-
-  // console.log("****decrypt", originalSaleorApiUrl)
 
   const createOrderPayload: paymentsComponents["schemas"]["SessionRequest"] = {
     order_id: normalizeValue(uuidv4()),
@@ -149,14 +141,10 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     shipping_address_country: normalizeValue(shippingAddress?.address?.zip),
     shipping_address_postal_code: normalizeValue(shippingAddress?.address?.zip)
 };
-
-  console.log("***RequestPayload",createOrderPayload)
   const createOrderResponse = await createJuspayPayment(createOrderPayload);
-  console.log("***DirectResponse",createOrderResponse.data)
   const createPaymentResponseData = intoPaymentResponse(createOrderResponse.data);
-  console.log("***ParsedResponse", createPaymentResponseData)
   invariant(createPaymentResponseData.status && createPaymentResponseData.order_id && createPaymentResponseData.payment_links && createPaymentResponseData.sdk_payload, `Required fields not found session call response`);
-
+  
   const result = juspayPaymentIntentToTransactionResult(
     createPaymentResponseData.status,
     event.action.actionType,
@@ -173,6 +161,6 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     amount: event.action.amount,
     time: new Date().toISOString(),
   };
-  console.log("****resp",transactionInitializeSessionResponse)
+
   return transactionInitializeSessionResponse;
 };

@@ -31,7 +31,6 @@ export const createJuspayClient = async ({ configData }: { configData: ConfigObj
         (url, init, next) =>
           next(url, init).catch((err) => {
             if (err instanceof ApiError) {
-              console.log("***getError", err.data)
               const errorData = intoErrorResponse(err.data);
               const errorMessage = errorData.error?.message
                 ? errorData.error?.message

@@ -75,7 +75,19 @@ export const TransactionRefundRequestedJuspayWebhookHandler = async (
   });
 
   const refundPaymentResponseData = intoRefundResponse(refundPaymentResponse.data);
-  const result = juspayRefundToTransactionResult(refundPaymentResponseData.status);
+  let refundStatus = null;
+  let refundAmount = null;
+  const refundsList = refundPaymentResponseData.refunds
+  invariant(refundsList, "No refunds list in response")
+    for (const obj1 of refundsList) {
+      if (obj1.unique_request_id === unique_request_id) {
+        refundStatus = obj1.status;
+        refundAmount = obj1.amount;
+      }
+    }
+  invariant(refundStatus && refundAmount, "No refunds data found with matched refund requested")
+
+  const result = juspayRefundToTransactionResult(refundStatus);
 
   const transactionRefundRequestedResponse: JuspayTransactionRefundRequestedResponse =
     result === undefined
@@ -91,7 +103,7 @@ export const TransactionRefundRequestedJuspayWebhookHandler = async (
         : {
             pspReference: unique_request_id,
             result,
-            amount: refundPaymentResponseData.amount,
+            amount: refundAmount,
           };
   return transactionRefundRequestedResponse;
 };
