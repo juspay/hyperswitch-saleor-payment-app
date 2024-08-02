@@ -1,4 +1,3 @@
-import { paymentAppFullyConfiguredEntrySchema } from "../../payment-app-configuration/config-entry";
 import { getConfigurationForChannel } from "../../payment-app-configuration/payment-app-configuration";
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
 import { type HyperswitchTransactionChargeRequestedResponse } from "@/schemas/HyperswitchTransactionChargeRequested/HyperswitchTransactionChargeRequestedResponse.mjs";

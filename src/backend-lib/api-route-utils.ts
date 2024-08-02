@@ -18,6 +18,7 @@ import {
   getConfigurationForChannel,
   PaymentAppConfigurator,
 } from "@/modules/payment-app-configuration/payment-app-configuration";
+import { paymentAppFullyConfiguredEntrySchema } from "@/modules/payment-app-configuration/common-app-configuration/config-entry";
 
 export const validateData = async <S extends ValidateFunction>(data: unknown, validate: S) => {
   type Result = S extends ValidateFunction<infer T> ? T : never;
@@ -157,10 +158,10 @@ export type ConfigObject = {
 async function getOrchestra<TPayload>(configData: ConfigObject): Promise<Error | Orchersta> {
   const appConfig = await configData.configurator.getConfig();
   const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
-  return  Orchersta.Juspay
-  // if (!appChannelConfig?.paymentResponseHashKey) {
-  //   return Orchersta.Juspay;
-  // } else {
-  //   return Orchersta.Hyperswitch;
-  // }
+  const config = paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
+  if (config.juspayConfiguration) {
+    return Orchersta.Juspay
+  } else {
+    return Orchersta.Hyperswitch
+  }
 }

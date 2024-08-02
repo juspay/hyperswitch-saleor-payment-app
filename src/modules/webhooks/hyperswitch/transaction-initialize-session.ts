@@ -107,6 +107,7 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
   const createPaymentPayload: paymentsComponents["schemas"]["PaymentsCreateRequest"] = {
     amount,
     confirm: false,
+    payment_link: true,
     currency: currency as paymentsComponents["schemas"]["PaymentsCreateRequest"]["currency"],
     capture_method,
     profile_id: profileId,
@@ -137,8 +138,10 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
     data: {
       clientSecret: createPaymentResponseData.client_secret,
       publishableKey,
+      paymentLinkId: createPaymentResponseData.payment_link?.payment_link_id,
       errors,
     },
+    externalUrl: createPaymentResponseData.payment_link?.link,
     pspReference: createPaymentResponseData.payment_id,
     result,
     amount: getSaleorAmountFromHyperswitchAmount(

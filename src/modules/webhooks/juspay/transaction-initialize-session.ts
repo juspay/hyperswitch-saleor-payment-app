@@ -18,7 +18,8 @@ import {
   UnExpectedHyperswitchPaymentStatus
 } from "@/errors";
 import {
-  createJuspayClient
+  createJuspayClient,
+  fetchJuspayCleintId
 } from "@/modules/juspay/juspay-api";
 import { type components as paymentsComponents } from "generated/juspay-payments";
 import {
@@ -108,6 +109,8 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
   const encryptedSaleorApiUrl = btoa(saleorApiUrl)
   const encryptSaleorTransactionId = btoa(event.transaction.id)
 
+  // console.log("****decrypt", originalSaleorApiUrl)
+  const payment_page_client_id =  await fetchJuspayCleintId(configData);
 
   const createOrderPayload: paymentsComponents["schemas"]["SessionRequest"] = {
     order_id: normalizeValue(uuidv4()),
@@ -115,7 +118,7 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     customer_id: normalizeValue(requestData?.customerId),
     customer_email: normalizeValue(userEmail),
     customer_phone: normalizeValue(event.sourceObject.billingAddress?.phone),
-    payment_page_client_id: normalizeValue("geddit"),
+    payment_page_client_id,
     return_url: normalizeValue(requestData?.returnUrl),
     description: normalizeValue(requestData?.description),
     first_name: normalizeValue(event.sourceObject.billingAddress?.firstName),

@@ -1,5 +1,5 @@
 import { ChannelNotConfigured, ConfigurationNotFound, HttpRequestError, HyperswitchHttpClientError } from "@/errors";
-import { type paths as PaymentPaths } from "generated/hyperswitch-payments";
+import { type paths as HyperswitchPaymentPaths } from "generated/hyperswitch-payments";
 import { ApiError, Fetcher } from "openapi-typescript-fetch";
 import { intoErrorResponse } from "./hyperswitch-api-response";
 import { SyncWebhookAppError } from "@/schemas/HyperswitchTransactionInitializeSession/HyperswitchTransactionInitializeSessionResponse.mjs";

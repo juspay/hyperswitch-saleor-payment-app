@@ -26,7 +26,6 @@ export const UnExpectedHyperswitchPaymentStatus = BaseError.subclass(
   "UnExpectedHyperswitchPaymentStatusError",
 );
 export const ConfigurationNotFound = BaseError.subclass("ConfigurationNotFoundError");
-
 export const UnExpectedJuspayPaymentStatus = BaseError.subclass(
   "UnExpectedJuspayPaymentStatusError",
 );

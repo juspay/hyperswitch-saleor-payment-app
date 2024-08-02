@@ -3,7 +3,10 @@ import { type paths as JuspayPaymentPaths } from "generated/juspay-payments";
 import { ApiError, Fetcher } from "openapi-typescript-fetch";
 import { env } from "../../lib/env.mjs";
 import { intoErrorResponse } from "../hyperswitch/hyperswitch-api-response";
-import { JuspayHttpClientError } from "@/errors";
+import { ChannelNotConfigured, ConfigurationNotFound, JuspayHttpClientError } from "@/errors";
+import { PaymentAppConfigEntryFullyConfigured, paymentAppFullyConfiguredEntrySchema } from "../payment-app-configuration/common-app-configuration/config-entry";
+import { JuspayFullyConfiguredEntry } from "../payment-app-configuration/juspay-app-configuration/config-entry";
+import { getConfigurationForChannel } from "../payment-app-configuration/payment-app-configuration";
 
 const JUSPAY_SANDBOX_BASE_URL: string = "https://sandbox.juspay.in";
 const JUSPAY_PROD_BASE_URL: string ="https://api.juspay.in";
@@ -16,15 +19,42 @@ const getJuspayBaseUrl = () => {
     }
   };
 
+const fetchJuspayConfiguration = async (
+    configData: ConfigObject,
+  ): Promise<JuspayFullyConfiguredEntry> => {
+    const appConfig = await configData.configurator.getConfig();
+    const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
+    if (appChannelConfig == null) {
+      throw new ChannelNotConfigured("Please assign a channel for your configuration");
+    }
+  
+    return getJuspayConfig(paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig));
+  };
+
+  export const fetchJuspayCleintId = async (
+    configData: ConfigObject,
+  ): Promise<string> => {
+    const appConfig = await configData.configurator.getConfig();
+    const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
+    if (appChannelConfig == null) {
+      throw new ChannelNotConfigured("Please assign a channel for your configuration");
+    }
+    const HyperswitchConfig = getJuspayConfig(
+      paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig),
+    );
+    return HyperswitchConfig.clientId;
+  };
+
 export const createJuspayClient = async ({ configData }: { configData: ConfigObject }) => {
+    const JuspayConfig  = await fetchJuspayConfiguration(configData);
     const fetcher = Fetcher.for<JuspayPaymentPaths>();
     fetcher.configure({
       baseUrl: getJuspayBaseUrl(),
       init: {
         headers: {
-          "authorization": "Basic MjNBQ0I5NTlFQzI0RDUxOTg2N0JBOThCMjM5RTJBOg==",
+          "authorization": `Basic ${JuspayConfig.apiKey}`,
           "content-type": "application/json",
-          "x-merchantid": "resellerkol"
+          "x-merchantid": `${JuspayConfig.merchantId}`
         },
       },
       use: [
@@ -44,3 +74,14 @@ export const createJuspayClient = async ({ configData }: { configData: ConfigObj
     });
     return fetcher;
   };
+
+  export function getJuspayConfig(
+    config: PaymentAppConfigEntryFullyConfigured,
+  ): JuspayFullyConfiguredEntry {
+    if (config.juspayConfiguration) {
+      return config.juspayConfiguration;
+    } else {
+      throw new ConfigurationNotFound("Please add Juspay configuration");
+    }
+  }
+  
