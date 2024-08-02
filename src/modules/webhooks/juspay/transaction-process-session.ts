@@ -12,7 +12,9 @@ import {
 import {
   UnExpectedHyperswitchPaymentStatus,
 } from "@/errors";
-import { createJuspayClient } from "../../hyperswitch/hyperswitch-api";
+import {
+  createJuspayClient
+} from "@/modules/juspay/juspay-api";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import { intoOrderStatusResponse } from "@/modules/juspay/juspay-api-response";
 

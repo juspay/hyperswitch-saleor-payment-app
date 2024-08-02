@@ -24,6 +24,9 @@ export const UnsupportedEvent = BaseError.subclass("UnsupportedEventError");
 export const UnExpectedHyperswitchPaymentStatus = BaseError.subclass(
   "UnExpectedHyperswitchPaymentStatusError",
 );
+export const UnExpectedJuspayPaymentStatus = BaseError.subclass(
+  "UnExpectedJuspayPaymentStatusError",
+);
 export const HyperswitchHttpClientError = BaseError.subclass("HyperswitchHttpClientError");
 export const JuspayHttpClientError = BaseError.subclass("JuspayHttpClientError");
 export const HttpRequestError = BaseError.subclass("HttpRequestError", {

@@ -5,7 +5,9 @@ import {
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
 import { type JuspayTransactionRefundRequestedResponse } from "@/schemas/JuspayTransactionRefundRequested/JuspayTransactionRefundRequestedResponse.mjs";
-import { createJuspayClient } from "../../hyperswitch/hyperswitch-api";
+import {
+  createJuspayClient
+} from "@/modules/juspay/juspay-api";
 import { type components as paymentsComponents } from "generated/juspay-payments";
 import { intoRefundResponse } from "../../juspay/juspay-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";

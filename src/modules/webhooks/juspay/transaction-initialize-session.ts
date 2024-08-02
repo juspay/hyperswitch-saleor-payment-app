@@ -19,7 +19,7 @@ import {
 } from "@/errors";
 import {
   createJuspayClient
-} from "../../hyperswitch/hyperswitch-api";
+} from "@/modules/juspay/juspay-api";
 import { type components as paymentsComponents } from "generated/juspay-payments";
 import {
   intoPaymentResponse
@@ -107,14 +107,15 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
   const shippingAddress = buildAddressDetails(event.sourceObject.shippingAddress, requestData?.shippingEmail);
   const capture_method =
     event.action.actionType == TransactionFlowStrategyEnum.Authorization ? "manual" : "automatic";
-  const encryptedSaleorApiUrl = CryptoJS.AES.encrypt(saleorApiUrl, env.ENCRYPT_KEY).toString();
+  const encryptedSaleorApiUrl = CryptoJS.AES.encrypt( saleorApiUrl , env.ENCRYPT_KEY).toString();
+  const encryptSaleorTransactionId = CryptoJS.AES.encrypt(event.transaction.id, env.ENCRYPT_KEY).toString();
 
   console.log("****encrypt", encryptedSaleorApiUrl)
 
-  const decryptSaleorApiUrl = CryptoJS.AES.decrypt(encryptedSaleorApiUrl, env.ENCRYPT_KEY);
-  const originalSaleorApiUrl = decryptSaleorApiUrl.toString(CryptoJS.enc.Utf8);
+  // const decryptSaleorApiUrl = CryptoJS.AES.decrypt(encryptedSaleorApiUrl, env.ENCRYPT_KEY);
+  // const originalSaleorApiUrl = decryptSaleorApiUrl.toString(CryptoJS.enc.Utf8);
 
-  console.log("****decrypt", originalSaleorApiUrl)
+  // console.log("****decrypt", originalSaleorApiUrl)
 
   const createOrderPayload: paymentsComponents["schemas"]["SessionRequest"] = {
     order_id: normalizeValue(uuidv4()),
@@ -128,7 +129,7 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     first_name: normalizeValue(event.sourceObject.billingAddress?.firstName),
     last_name: normalizeValue(event.sourceObject.billingAddress?.lastName),
     currency: event.action.currency,
-    udf1: normalizeValue(event.transaction.id),
+    udf1: normalizeValue(encryptSaleorTransactionId),
     udf2: normalizeValue(encryptedSaleorApiUrl),
     udf3: normalizeValue(capture_method),
     billing_address_first_name: normalizeValue(billingAddress?.address?.first_name),

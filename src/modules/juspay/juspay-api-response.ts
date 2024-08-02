@@ -96,7 +96,7 @@ export const OrderStatusResponse = z.object({
   order_id: z.string().nullable(),
   amount: z.number().nullable().optional(),
   txn_uuid: z.string().nullable().optional(),
-  refunded: z.string().nullable().optional(),
+  refunded: z.boolean().nullable().optional(),
   refunds: z.array(Refunds).nullable().optional(),
   udf1: z.string().nullable().optional(),
   udf2: z.string().nullable().optional()
