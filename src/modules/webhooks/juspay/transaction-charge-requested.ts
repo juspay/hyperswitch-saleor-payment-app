@@ -7,9 +7,7 @@ import { intoOrderStatusResponse, intoPreAuthTxnResponse } from "../../juspay/ju
 import { createLogger } from "@/lib/logger";
 import { SyncWebhookAppErrors } from "@/schemas/HyperswitchTransactionInitializeSession/HyperswitchTransactionInitializeSessionResponse.mjs";
 import { createJuspayClient } from "@/modules/juspay/juspay-api";
-import { type components as paymentsComponents } from "generated/juspay-payments";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
-import { normalizeValue } from "../../payment-app-configuration/utils";
 
 export const hyperswitchPaymentCaptureStatusToSaleorTransactionResult = (
   status: string,

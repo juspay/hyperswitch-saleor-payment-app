@@ -7,7 +7,6 @@ import { createJuspayClient } from "@/modules/juspay/juspay-api";
 import { type components as paymentsComponents } from "generated/juspay-payments";
 import { intoRefundResponse } from "../../juspay/juspay-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
-import { normalizeValue } from "@/modules/payment-app-configuration/utils";
 import { v4 as uuidv4 } from "uuid";
 
 export const juspayRefundToTransactionResult = (

@@ -1,4 +1,3 @@
-import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
 import { type JuspayTransactionCancelationRequestedResponse } from "@/schemas/JuspayTransactionCancelationRequested/JuspayTransactionCancelationRequestedResponse.mjs";
 import { type TransactionCancelationRequestedEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
@@ -6,8 +5,6 @@ import { createLogger } from "@/lib/logger";
 import { createJuspayClient } from "@/modules/juspay/juspay-api";
 import { intoOrderStatusResponse, intoPreAuthTxnResponse } from "../../juspay/juspay-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
-import { normalizeValue } from "../../payment-app-configuration/utils";
-import { type components as paymentsComponents } from "generated/juspay-payments";
 
 export const juspayPaymentCancelStatusToSaleorTransactionResult = (
   status: string,

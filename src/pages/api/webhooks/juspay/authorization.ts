@@ -14,25 +14,14 @@ import {
 } from "generated/graphql";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getPaymentAppConfigurator } from "@/modules/payment-app-configuration/payment-app-configuration-factory";
-import { fetchHyperswitchPaymentResponseHashKey } from "@/modules/hyperswitch/hyperswitch-api";
 import {
   createJuspayClient,
   fetchJuspayPassword,
   fetchJuspayUsername,
 } from "@/modules/juspay/juspay-api";
-import crypto from "crypto";
 import { createLogger } from "@/lib/logger";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
-import { env } from "@/lib/env.mjs";
-import CryptoJS from "crypto-js";
 import { Buffer } from "buffer";
-
-// function decrypt(encryptedText: string): string {
-//   const decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from("0123456789abcdef0123456789abcdef"), Buffer.from("0123456789abcdef"));
-//   let decrypted = decipher.update(encryptedText, 'base64url', 'utf8');
-//   decrypted += decipher.final('utf8');
-//   return decrypted;
-// }
 
 export const juspayStatusToSaleorTransactionResult = (
   status: string,
@@ -202,13 +191,13 @@ export default async function juspayAuthorizationWebhookHandler(
     let refundList = webhookBody.content.order.refunds;
     invariant(eventArray, "Missing event list from transaction event");
     invariant(refundList, "Missing refunds list in event");
-    outerLoop: for (const obj1 of eventArray) {
-      if (obj1.type === "REFUND_REQUEST") {
-        for (const obj2 of refundList) {
-          if (obj1.pspReference === obj2.unique_request_id && obj2.status !== "PENDING") {
-            amountVal = obj2.amount;
-            pspReference = obj2.unique_request_id;
-            webhookStatus = obj2.status;
+    outerLoop: for (const eventObj of eventArray) {
+      if (eventObj.type === "REFUND_REQUEST") {
+        for (const RefundObj of refundList) {
+          if (eventObj.pspReference === RefundObj.unique_request_id && RefundObj.status !== "PENDING") {
+            amountVal = RefundObj.amount;
+            pspReference = RefundObj.unique_request_id;
+            webhookStatus = RefundObj.status;
             break outerLoop;
           }
         }

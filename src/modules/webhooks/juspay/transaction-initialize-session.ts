@@ -21,8 +21,6 @@ import { intoPaymentResponse } from "../../juspay/juspay-api-response";
 import { normalizeValue } from "../../payment-app-configuration/utils";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import { v4 as uuidv4 } from "uuid";
-import { env } from "@/lib/env.mjs";
-import CryptoJS from "crypto-js";
 
 export const juspayPaymentIntentToTransactionResult = (
   status: string,
@@ -105,7 +103,6 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
   const encryptedSaleorApiUrl = btoa(saleorApiUrl);
   const encryptSaleorTransactionId = btoa(event.transaction.id);
 
-  // console.log("****decrypt", originalSaleorApiUrl)
   const payment_page_client_id = await fetchJuspayCleintId(configData);
 
   const createOrderPayload: paymentsComponents["schemas"]["SessionRequest"] = {
