@@ -20,8 +20,8 @@ export default createManifestHandler({
       permissions: ["HANDLE_PAYMENTS"],
       version: packageJson.version,
       requiredSaleorVersion: ">=3.14.0",
-      homepageUrl: "https://github.com/hyperswitch",
-      supportUrl: "https://github.com/hyperswitch/issues",
+      homepageUrl: "https://github.com/juspay/hyperswitch-saleor-payment-app",
+      supportUrl: "https://github.com/juspay/hyperswitch-saleor-payment-app/issues",
       brand: {
         logo: {
           default: `${context.appBaseUrl}/logo.png`,

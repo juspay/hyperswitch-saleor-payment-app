@@ -10,8 +10,8 @@ import { getErrorHandler } from "@/modules/trpc/utils";
 import {
   type PaymentAppUserVisibleEntries,
   type ChannelMapping,
-} from "@/modules/payment-app-configuration/app-config";
-import { type PaymentAppConfigEntry } from "@/modules/payment-app-configuration/config-entry";
+} from "@/modules/payment-app-configuration/common-app-configuration/app-config";
+import { type PaymentAppConfigEntry } from "@/modules/payment-app-configuration/common-app-configuration/config-entry";
 import { getEnvironmentFromKey } from "@/modules/hyperswitch/hyperswitch-api";
 
 const ChannelToConfigurationTableRow = ({
@@ -94,7 +94,7 @@ const ChannelToConfigurationTableRow = ({
       <Td className={classNames(tableStyles.td, tableStyles.statusColumnTd)}>
         {!selectedConfiguration ? (
           <ChipNeutral>Disabled</ChipNeutral>
-        ) : getEnvironmentFromKey(selectedConfiguration.publishableKey) === "live" ? (
+        ) : getEnvironmentFromKey() === "live" ? (
           <ChipSuccess>LIVE</ChipSuccess>
         ) : (
           <ChipHyperswitchOrange>TESTING</ChipHyperswitchOrange>

@@ -1,23 +1,27 @@
 import { z } from "zod";
 import { protectedClientProcedure } from "../trpc/protected-client-procedure";
 import { router } from "../trpc/trpc-server";
-import { channelMappingSchema, paymentAppUserVisibleConfigEntriesSchema } from "./app-config";
+import {
+  channelMappingSchema,
+  paymentAppUserVisibleConfigEntriesSchema,
+} from "./common-app-configuration/app-config";
 import { mappingUpdate, paymentConfigEntryDelete, paymentConfigEntryUpdate } from "./input-schemas";
 import { getMappingFromAppConfig, setMappingInAppConfig } from "./mapping-manager";
 import { getPaymentAppConfigurator } from "./payment-app-configuration-factory";
-import {
-  paymentAppFormConfigEntrySchema,
-  paymentAppUserVisibleConfigEntrySchema,
-} from "./config-entry";
+
 import {
   addConfigEntry,
   deleteConfigEntry,
   getAllConfigEntriesObfuscated,
   getConfigEntryObfuscated,
   updateConfigEntry,
-} from "./config-manager";
+} from "./common-app-configuration/config-manager";
 import { redactLogValue } from "@/lib/logger";
 import { invariant } from "@/lib/invariant";
+import {
+  paymentAppFormConfigEntrySchema,
+  paymentAppUserVisibleConfigEntrySchema,
+} from "./common-app-configuration/config-entry";
 
 export const paymentAppConfigurationRouter = router({
   mapping: router({
@@ -61,19 +65,37 @@ export const paymentAppConfigurationRouter = router({
     add: protectedClientProcedure
       .input(paymentAppFormConfigEntrySchema)
       .mutation(async ({ input, ctx }) => {
-        const { configurationName, apiKey, paymentResponseHashKey, publishableKey, profileId } =
-          input;
-        ctx.logger.info("appConfigurationRouter.paymentConfig.add called");
-        ctx.logger.debug(
-          {
-            configurationName,
-            apiKey: redactLogValue(apiKey),
-            paymentResponseHashKey: redactLogValue(paymentResponseHashKey),
-            publishableKey: redactLogValue(publishableKey),
-            profileId: profileId,
-          },
-          "appConfigurationRouter.paymentConfig.add input",
-        );
+        const { hyperswitchConfiguration, juspayConfiguration, configurationName } = input;
+        if (juspayConfiguration) {
+          const { apiKey, username, clientId, password, merchantId } = juspayConfiguration;
+          ctx.logger.info("appConfigurationRouter.paymentConfig.add called");
+          ctx.logger.debug(
+            {
+              apiKey: redactLogValue(apiKey),
+              username: redactLogValue(username),
+              merchantId: redactLogValue(merchantId),
+              password: redactLogValue(password),
+              clientId: redactLogValue(clientId),
+            },
+            "appConfigurationRouter.paymentConfig.add input",
+          );
+        } else {
+          invariant(hyperswitchConfiguration, "Missing Configuration Entry");
+          const { apiKey, publishableKey, profileId, paymentResponseHashKey } =
+            hyperswitchConfiguration;
+          ctx.logger.info("appConfigurationRouter.paymentConfig.add called");
+          ctx.logger.debug(
+            {
+              configurationName,
+              apiKey: redactLogValue(apiKey),
+              paymentResponseHashKey: redactLogValue(paymentResponseHashKey),
+              publishableKey: redactLogValue(publishableKey),
+              profileId: profileId,
+            },
+            "appConfigurationRouter.paymentConfig.add input",
+          );
+        }
+
         invariant(ctx.appUrl, "Missing app url");
 
         const configurator = getPaymentAppConfigurator(ctx.apiClient, ctx.saleorApiUrl);
@@ -83,25 +105,8 @@ export const paymentAppConfigurationRouter = router({
       .input(paymentConfigEntryUpdate)
       .output(paymentAppUserVisibleConfigEntrySchema)
       .mutation(async ({ input, ctx }) => {
-        const { configurationId, entry } = input;
-        const { apiKey, paymentResponseHashKey, publishableKey, profileId, configurationName } =
-          entry;
         ctx.logger.info("appConfigurationRouter.paymentConfig.update called");
-        ctx.logger.debug(
-          {
-            configurationId,
-            entry: {
-              apiKey,
-              paymentResponseHashKey,
-              publishableKey,
-              profileId,
-              configurationName,
-            },
-          },
-          "appConfigurationRouter.paymentConfig.update input",
-        );
         invariant(ctx.appUrl, "Missing app URL");
-
         const configurator = getPaymentAppConfigurator(ctx.apiClient, ctx.saleorApiUrl);
         return updateConfigEntry(input, configurator);
       }),

@@ -32,13 +32,17 @@ jobs:
             ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.json') }}-
       - name: Install dependencies
         shell: bash
+        shell: bash
         run: pnpm install
       - name: Check formatting
+        shell: bash
         shell: bash
         run: pnpm check-format
       - name: Build project
         env:
           SECRET_KEY: test-key
           ENCRYPT_KEY: test-key
+          HYPERSWITCH_SANDBOX_BASE_URL: https://sandbox.hyperswitch.io
+          HYPERSWITCH_PROD_BASE_URL: hyperswitch_prod_url
         shell: bash
         run: pnpm build

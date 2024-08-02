@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "saleor-app-payment-hyperswitch",
+  "name": "hyperswitch-saleor-payment-app",
   "description": "An enterprise grade payment orchestrator to enable access to the best payment infrastructure for every digital business",
   "version": "0.4.0",
   "private": true,

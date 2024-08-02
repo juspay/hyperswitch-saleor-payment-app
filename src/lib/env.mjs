@@ -27,6 +27,8 @@ export const env = createEnv({
     REST_APL_TOKEN: z.string().optional(),
     APP_API_BASE_URL: z.string().optional(),
     APP_IFRAME_BASE_URL: z.string().optional(),
+    HYPERSWITCH_SANDBOX_BASE_URL: z.string(),
+    HYPERSWITCH_PROD_BASE_URL: z.string(),
     JUSPAY_BASEURL: z.string()
   },
 
@@ -37,6 +39,9 @@ export const env = createEnv({
    */
   client: {
     NEXT_PUBLIC_SENTRY_DSN: z.optional(z.string().min(1)),
+    NEXT_PUBLIC_ENV: z
+      .enum(["development", "test", "staging", "production"])
+      .default("development"),
   },
 
   /*
@@ -48,7 +53,7 @@ export const env = createEnv({
   runtimeEnv: {
     ENV: process.env.ENV,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
-    
+    NEXT_PUBLIC_ENV: process.env.ENV,    
     JUSPAY_BASEURL: process.env.JUSPAY_BASEURL,
     SECRET_KEY: process.env.SECRET_KEY,
     ENCRYPT_KEY: process.env.ENCRYPT_KEY,
@@ -64,5 +69,7 @@ export const env = createEnv({
     REST_APL_TOKEN: process.env.REST_APL_TOKEN,
     APP_API_BASE_URL: process.env.APP_API_BASE_URL,
     APP_IFRAME_BASE_URL: process.env.APP_IFRAME_BASE_URL,
+    HYPERSWITCH_SANDBOX_BASE_URL: process.env.HYPERSWITCH_SANDBOX_BASE_URL,
+    HYPERSWITCH_PROD_BASE_URL: process.env.HYPERSWITCH_PROD_BASE_URL,
   },
 });

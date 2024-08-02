@@ -4,16 +4,21 @@ import {
   PrivateMetadataAppConfigurator,
 } from "../app-configuration/app-configuration";
 import { type BrandedEncryptedMetadataManager } from "../app-configuration/metadata-manager";
-import { type PaymentAppConfig, paymentAppConfigSchema, type ChannelMapping } from "./app-config";
-import {
-  type PaymentAppConfigEntryUpdate,
-  type PaymentAppConfigEntry,
-  paymentAppConfigEntrySchema,
-} from "./config-entry";
+
 import { obfuscateConfigEntry } from "./utils";
 import { env } from "@/lib/env.mjs";
 import { BaseError } from "@/errors";
 import { createLogger } from "@/lib/logger";
+import {
+  ChannelMapping,
+  PaymentAppConfig,
+  paymentAppConfigSchema,
+} from "./common-app-configuration/app-config";
+import {
+  PaymentAppConfigEntry,
+  paymentAppConfigEntrySchema,
+  PaymentAppConfigEntryUpdate,
+} from "./common-app-configuration/config-entry";
 
 export const privateMetadataKey = "payment-app-config-private";
 export const hiddenMetadataKey = "payment-app-config-hidden";
@@ -82,7 +87,6 @@ export class PaymentAppConfigurator implements GenericAppConfigurator<PaymentApp
 
     // New entry = check if valid
     const parsedConfig = paymentAppConfigEntrySchema.parse(newConfiguration);
-
     return this.setConfig({
       configurations: [...configurations, parsedConfig],
     });
