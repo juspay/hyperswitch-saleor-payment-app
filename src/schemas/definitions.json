@@ -80,7 +80,7 @@
         "$ref": "definitions.json#/definitions/SyncWebhookAppError"
       }
     },
-    "payload":{
+    "payload": {
       "type": "object",
       "properties": {
         "clientId": { "type": "string" },
@@ -109,13 +109,13 @@
         "deep_link": { "type": "string" }
       }
     },
-    "sdkPayload":{
+    "sdkPayload": {
       "type": "object",
       "properties": {
         "requestId": { "type": "string" },
         "service": { "type": "string" },
-        "payload": { "$ref": "definitions.json#/definitions/payload"},
-        "expiry": { "type": "string"}
+        "payload": { "$ref": "definitions.json#/definitions/payload" },
+        "expiry": { "type": "string" }
       },
       "required": ["requestId", "service"]
     }

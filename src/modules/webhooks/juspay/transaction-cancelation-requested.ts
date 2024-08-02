@@ -1,14 +1,10 @@
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
 import { type JuspayTransactionCancelationRequestedResponse } from "@/schemas/JuspayTransactionCancelationRequested/JuspayTransactionCancelationRequestedResponse.mjs";
-import {
-  type TransactionCancelationRequestedEventFragment,
-} from "generated/graphql";
+import { type TransactionCancelationRequestedEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
-import {
-  createJuspayClient
-} from "@/modules/juspay/juspay-api";
-import { intoOrderStatusResponse, intoPreAuthTxnResponse} from "../../juspay/juspay-api-response";
+import { createJuspayClient } from "@/modules/juspay/juspay-api";
+import { intoOrderStatusResponse, intoPreAuthTxnResponse } from "../../juspay/juspay-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import { normalizeValue } from "../../payment-app-configuration/utils";
 import { type components as paymentsComponents } from "generated/juspay-payments";
@@ -54,26 +50,27 @@ export const TransactionCancelationRequestedHyperswitchWebhookHandler = async (
     configData,
   });
 
-  const cancelJuspayPayment = juspayClient
-    .path("/v2/txns/{txn_uuid}/void")
-    .method("post")
-    .create();
+  const cancelJuspayPayment = juspayClient.path("/v2/txns/{txn_uuid}/void").method("post").create();
 
-    const juspayOrderStatus = juspayClient
-    .path("/orders/{order_id}")
-    .method("get")
-    .create();
+  const juspayOrderStatus = juspayClient.path("/orders/{order_id}").method("get").create();
   const orderStatusResponse = await juspayOrderStatus({
-      order_id: event.transaction.pspReference,
-    });
+    order_id: event.transaction.pspReference,
+  });
   const parsedOrderStatusRespData = intoOrderStatusResponse(orderStatusResponse.data);
 
   invariant(parsedOrderStatusRespData.txn_uuid, `Txn_uuid not found in orderstatus response`);
 
-  const preAuthVoidTxnResponse = await cancelJuspayPayment({txn_uuid:parsedOrderStatusRespData.txn_uuid});
+  const preAuthVoidTxnResponse = await cancelJuspayPayment({
+    txn_uuid: parsedOrderStatusRespData.txn_uuid,
+  });
 
   const cancelPaymentResponseData = intoPreAuthTxnResponse(preAuthVoidTxnResponse.data);
-  invariant(cancelPaymentResponseData.status && cancelPaymentResponseData.order_id && cancelPaymentResponseData.amount, `Required fields not found session call response`);
+  invariant(
+    cancelPaymentResponseData.status &&
+      cancelPaymentResponseData.order_id &&
+      cancelPaymentResponseData.amount,
+    `Required fields not found session call response`,
+  );
   const result = juspayPaymentCancelStatusToSaleorTransactionResult(
     cancelPaymentResponseData.status,
   );
@@ -92,7 +89,7 @@ export const TransactionCancelationRequestedHyperswitchWebhookHandler = async (
         : {
             pspReference: cancelPaymentResponseData.order_id,
             result,
-            amount:cancelPaymentResponseData.amount,
+            amount: cancelPaymentResponseData.amount,
           };
 
   return transactionCancelationRequestedResponse;

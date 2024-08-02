@@ -1,7 +1,5 @@
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
-import {
-  TransactionRefundRequestedEventFragment,
-} from "generated/graphql";
+import { TransactionRefundRequestedEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
 import { type HyperswitchTransactionRefundRequestedResponse } from "@/schemas/HyperswitchTransactionRefundRequested/HyperswitchTransactionRefundRequestedResponse.mjs";

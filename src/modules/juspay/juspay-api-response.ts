@@ -7,43 +7,43 @@ export const SaleorMetadataSchema = z.object({
 });
 
 export const SessionPaymentlinks = z.object({
-    web: z.string().nullable(),
-    expiry: z.string().nullable(),
-    deep_link: z.string().nullable().optional(),
-  });
+  web: z.string().nullable(),
+  expiry: z.string().nullable(),
+  deep_link: z.string().nullable().optional(),
+});
 
 export const Payload = z.object({
-    clientId:  z.string().nullable().optional(),
-    amount:  z.string().nullable(),
-    merchantId:  z.string().nullable().optional(),
-    clientAuthToken:  z.string().nullable().optional(),
-    clientAuthTokenExpiry:  z.string().nullable(),
-    environment:  z.string().nullable().optional(),
-    lastName:  z.string().nullable().optional(),
-    action:  z.string().nullable().optional(),
-    customerId:  z.string().nullable().optional(),
-    returnUrl:  z.string().nullable().optional(),
-    currency:  z.string().nullable().optional(),
-    firstName: z.string().nullable().optional(),
-    customerPhone:  z.string().nullable().optional(),
-    customerEmail:  z.string().nullable().optional(),
-    orderId: z.string().nullable(),
-    description: z.string().nullable().optional(),
-  });
+  clientId: z.string().nullable().optional(),
+  amount: z.string().nullable(),
+  merchantId: z.string().nullable().optional(),
+  clientAuthToken: z.string().nullable().optional(),
+  clientAuthTokenExpiry: z.string().nullable(),
+  environment: z.string().nullable().optional(),
+  lastName: z.string().nullable().optional(),
+  action: z.string().nullable().optional(),
+  customerId: z.string().nullable().optional(),
+  returnUrl: z.string().nullable().optional(),
+  currency: z.string().nullable().optional(),
+  firstName: z.string().nullable().optional(),
+  customerPhone: z.string().nullable().optional(),
+  customerEmail: z.string().nullable().optional(),
+  orderId: z.string().nullable(),
+  description: z.string().nullable().optional(),
+});
 
 export const SessionSDKPayload = z.object({
-    requestId: z.string(),
-    service: z.string(),
-    payload: Payload,
-    expiry: z.string().nullable(),
-  });
+  requestId: z.string(),
+  service: z.string(),
+  payload: Payload,
+  expiry: z.string().nullable(),
+});
 
 export const PaymentResponseSchema = z.object({
   status: z.string().nullable(),
   id: z.string().nullable(),
   order_id: z.string().nullable(),
   payment_links: SessionPaymentlinks,
-  sdk_payload: SessionSDKPayload
+  sdk_payload: SessionSDKPayload,
 });
 
 export type PaymentCreateResponse = z.infer<typeof PaymentResponseSchema>;
@@ -65,12 +65,12 @@ export const PreAuthPaymentResponse = z.object({
   order_id: z.string().nullable(),
   amount: z.number().nullable(),
   currency: z.string().nullable(),
-  txn_uuid: z.string().nullable().optional()
+  txn_uuid: z.string().nullable().optional(),
 });
 
-export type PaymentPreAuthResponse = z.infer<typeof PreAuthPaymentResponse>
+export type PaymentPreAuthResponse = z.infer<typeof PreAuthPaymentResponse>;
 
-export function intoPreAuthTxnResponse(responseData : any): PaymentPreAuthResponse {
+export function intoPreAuthTxnResponse(responseData: any): PaymentPreAuthResponse {
   try {
     return PreAuthPaymentResponse.parse(responseData);
   } catch (error) {
@@ -79,7 +79,7 @@ export function intoPreAuthTxnResponse(responseData : any): PaymentPreAuthRespon
     } else {
       throw error;
     }
- }
+  }
 }
 
 export const Refunds = z.object({
@@ -99,12 +99,12 @@ export const OrderStatusResponse = z.object({
   refunded: z.boolean().nullable().optional(),
   refunds: z.array(Refunds).nullable().optional(),
   udf1: z.string().nullable().optional(),
-  udf2: z.string().nullable().optional()
+  udf2: z.string().nullable().optional(),
 });
 
-export type GetOrderStatusResponse = z.infer<typeof OrderStatusResponse>
+export type GetOrderStatusResponse = z.infer<typeof OrderStatusResponse>;
 
-export function intoOrderStatusResponse(responseData : any): GetOrderStatusResponse {
+export function intoOrderStatusResponse(responseData: any): GetOrderStatusResponse {
   try {
     return OrderStatusResponse.parse(responseData);
   } catch (error) {
@@ -113,19 +113,12 @@ export function intoOrderStatusResponse(responseData : any): GetOrderStatusRespo
     } else {
       throw error;
     }
- }
+  }
 }
 
-
-// Define the schema for the ErrorResponse
-const ErrorDataSchema = z.object({
-  type: z.string().nullable().optional(),
-  message: z.string().nullable().optional(),
-  code: z.string().nullable().optional(),
-});
-
 export const ErrorSchema = z.object({
-  error: ErrorDataSchema.nullable().optional(),
+  error_message: z.string().nullable().optional(),
+  user_message: z.string().nullable().optional(),
 });
 
 export type ErrorResponse = z.infer<typeof ErrorSchema>;
@@ -152,7 +145,7 @@ export const RefundResponseSchema = z.object({
   udf2: z.string().nullable().optional(),
   error_code: z.string().nullable().optional(),
   error_message: z.string().nullable().optional(),
-  refunds: z.array(Refunds).nullable().optional()
+  refunds: z.array(Refunds).nullable().optional(),
 });
 
 export type RefundResponse = z.infer<typeof RefundResponseSchema>;
@@ -204,7 +197,6 @@ const WebhookContentSchema = z.object({
   event_name: z.string(),
   content: WebhookOrderSchema,
 });
-
 
 export type WebhookResponse = z.infer<typeof WebhookContentSchema>;
 

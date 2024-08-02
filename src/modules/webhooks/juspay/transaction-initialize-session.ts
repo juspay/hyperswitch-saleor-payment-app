@@ -14,22 +14,15 @@ import {
   buildAddressDetails,
   validatePaymentCreateRequest,
 } from "../../hyperswitch/hyperswitch-api-request";
-import {
-  UnExpectedHyperswitchPaymentStatus
-} from "@/errors";
-import {
-  createJuspayClient,
-  fetchJuspayCleintId
-} from "@/modules/juspay/juspay-api";
+import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
+import { createJuspayClient, fetchJuspayCleintId } from "@/modules/juspay/juspay-api";
 import { type components as paymentsComponents } from "generated/juspay-payments";
-import {
-  intoPaymentResponse
-} from "../../juspay/juspay-api-response";
+import { intoPaymentResponse } from "../../juspay/juspay-api-response";
 import { normalizeValue } from "../../payment-app-configuration/utils";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import { env } from "@/lib/env.mjs";
-import CryptoJS from 'crypto-js';
+import CryptoJS from "crypto-js";
 
 export const juspayPaymentIntentToTransactionResult = (
   status: string,
@@ -52,7 +45,7 @@ export const juspayPaymentIntentToTransactionResult = (
     case "JUSPAY_DECLINED":
       return `${prefix}_FAILURE`;
     case "PENDING_AUTHENTICATION":
-    case "AUTHORIZING": 
+    case "AUTHORIZING":
       return `${prefix}_REQUEST`;
     default:
       throw new UnExpectedHyperswitchPaymentStatus(
@@ -103,14 +96,17 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
   const createJuspayPayment = juspayClient.path("/session").method("post").create();
 
   const billingAddress = buildAddressDetails(event.sourceObject.billingAddress, userEmail);
-  const shippingAddress = buildAddressDetails(event.sourceObject.shippingAddress, requestData?.shippingEmail);
+  const shippingAddress = buildAddressDetails(
+    event.sourceObject.shippingAddress,
+    requestData?.shippingEmail,
+  );
   const capture_method =
     event.action.actionType == TransactionFlowStrategyEnum.Authorization ? "manual" : "automatic";
-  const encryptedSaleorApiUrl = btoa(saleorApiUrl)
-  const encryptSaleorTransactionId = btoa(event.transaction.id)
+  const encryptedSaleorApiUrl = btoa(saleorApiUrl);
+  const encryptSaleorTransactionId = btoa(event.transaction.id);
 
   // console.log("****decrypt", originalSaleorApiUrl)
-  const payment_page_client_id =  await fetchJuspayCleintId(configData);
+  const payment_page_client_id = await fetchJuspayCleintId(configData);
 
   const createOrderPayload: paymentsComponents["schemas"]["SessionRequest"] = {
     order_id: normalizeValue(uuidv4()),
@@ -142,18 +138,25 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     shipping_address_city: normalizeValue(shippingAddress?.address?.city),
     shipping_address_state: normalizeValue(shippingAddress?.address?.state),
     shipping_address_country: normalizeValue(shippingAddress?.address?.zip),
-    shipping_address_postal_code: normalizeValue(shippingAddress?.address?.zip)
-};
+    shipping_address_postal_code: normalizeValue(shippingAddress?.address?.zip),
+  };
   const createOrderResponse = await createJuspayPayment(createOrderPayload);
+
   const createPaymentResponseData = intoPaymentResponse(createOrderResponse.data);
-  invariant(createPaymentResponseData.status && createPaymentResponseData.order_id && createPaymentResponseData.payment_links && createPaymentResponseData.sdk_payload, `Required fields not found session call response`);
-  
+  invariant(
+    createPaymentResponseData.status &&
+      createPaymentResponseData.order_id &&
+      createPaymentResponseData.payment_links &&
+      createPaymentResponseData.sdk_payload,
+    `Required fields not found session call response`,
+  );
+
   const result = juspayPaymentIntentToTransactionResult(
     createPaymentResponseData.status,
     event.action.actionType,
   );
   const transactionInitializeSessionResponse: JuspayTransactionInitializeSessionResponse = {
-    pspReference:createPaymentResponseData.order_id,
+    pspReference: createPaymentResponseData.order_id,
     data: {
       order_id: createPaymentResponseData.order_id,
       payment_links: createPaymentResponseData.payment_links as PaymentLinks,

@@ -160,8 +160,8 @@ async function getOrchestra<TPayload>(configData: ConfigObject): Promise<Error |
   const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
   const config = paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
   if (config.juspayConfiguration) {
-    return Orchersta.Juspay
+    return Orchersta.Juspay;
   } else {
-    return Orchersta.Hyperswitch
+    return Orchersta.Hyperswitch;
   }
 }

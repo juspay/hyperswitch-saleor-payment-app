@@ -10,12 +10,8 @@ import {
 } from "generated/graphql";
 
 import { getWebhookPaymentAppConfigurator } from "@/modules/payment-app-configuration/payment-app-configuration-factory";
-import {
-  UnExpectedHyperswitchPaymentStatus,
-} from "@/errors";
-import {
-  getSaleorAmountFromHyperswitchAmount,
-} from "../../hyperswitch/currencies";
+import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
+import { getSaleorAmountFromHyperswitchAmount } from "../../hyperswitch/currencies";
 import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
 import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";

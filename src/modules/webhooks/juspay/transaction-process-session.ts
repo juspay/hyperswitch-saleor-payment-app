@@ -9,12 +9,8 @@ import {
   type TransactionProcessSessionEventFragment,
 } from "generated/graphql";
 
-import {
-  UnExpectedHyperswitchPaymentStatus,
-} from "@/errors";
-import {
-  createJuspayClient
-} from "@/modules/juspay/juspay-api";
+import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
+import { createJuspayClient } from "@/modules/juspay/juspay-api";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import { intoOrderStatusResponse } from "@/modules/juspay/juspay-api-response";
 
@@ -95,20 +91,17 @@ export const TransactionProcessSessionJuspayWebhookHandler = async (
     configData,
   });
 
-  const juspayOrderStatus = juspayClient
-    .path("/orders/{order_id}")
-    .method("get")
-    .create();
+  const juspayOrderStatus = juspayClient.path("/orders/{order_id}").method("get").create();
 
   const orderStatusResponse = await juspayOrderStatus({
     order_id: event.transaction.pspReference,
   });
   const parsedOrderStatusRespData = intoOrderStatusResponse(orderStatusResponse.data);
-  invariant(parsedOrderStatusRespData.order_id && parsedOrderStatusRespData.amount , `Required fields not found session call response`);
-  const result = juspayOrderStatusResult(
-    parsedOrderStatusRespData.status,
-    event.action.actionType,
+  invariant(
+    parsedOrderStatusRespData.order_id && parsedOrderStatusRespData.amount,
+    `Required fields not found session call response`,
   );
+  const result = juspayOrderStatusResult(parsedOrderStatusRespData.status, event.action.actionType);
   const transactionProcessSessionResponse: JuspayTransactionProcessSessionResponse = {
     data: {
       errors,

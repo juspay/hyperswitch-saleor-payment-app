@@ -29,7 +29,7 @@ export const env = createEnv({
     APP_IFRAME_BASE_URL: z.string().optional(),
     HYPERSWITCH_SANDBOX_BASE_URL: z.string(),
     HYPERSWITCH_PROD_BASE_URL: z.string(),
-    JUSPAY_BASEURL: z.string()
+    JUSPAY_BASEURL: z.string(),
   },
 
   /*
@@ -53,7 +53,7 @@ export const env = createEnv({
   runtimeEnv: {
     ENV: process.env.ENV,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
-    NEXT_PUBLIC_ENV: process.env.ENV,    
+    NEXT_PUBLIC_ENV: process.env.ENV,
     JUSPAY_BASEURL: process.env.JUSPAY_BASEURL,
     SECRET_KEY: process.env.SECRET_KEY,
     ENCRYPT_KEY: process.env.ENCRYPT_KEY,

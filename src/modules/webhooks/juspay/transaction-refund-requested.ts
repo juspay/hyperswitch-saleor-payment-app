@@ -1,18 +1,14 @@
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
-import {
-  TransactionRefundRequestedEventFragment,
-} from "generated/graphql";
+import { TransactionRefundRequestedEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
 import { type JuspayTransactionRefundRequestedResponse } from "@/schemas/JuspayTransactionRefundRequested/JuspayTransactionRefundRequestedResponse.mjs";
-import {
-  createJuspayClient
-} from "@/modules/juspay/juspay-api";
+import { createJuspayClient } from "@/modules/juspay/juspay-api";
 import { type components as paymentsComponents } from "generated/juspay-payments";
 import { intoRefundResponse } from "../../juspay/juspay-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import { normalizeValue } from "@/modules/payment-app-configuration/utils";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 export const juspayRefundToTransactionResult = (
   status: string,
@@ -63,7 +59,10 @@ export const TransactionRefundRequestedJuspayWebhookHandler = async (
 
   const unique_request_id = uuidv4();
 
-  const refundJuspayPayment = juspayClient.path("/orders/{order_id}/refunds").method("post").create();
+  const refundJuspayPayment = juspayClient
+    .path("/orders/{order_id}/refunds")
+    .method("post")
+    .create();
   const refundPayload: paymentsComponents["schemas"]["RefundReq"] = {
     unique_request_id,
     amount: event.action.amount,
@@ -77,15 +76,15 @@ export const TransactionRefundRequestedJuspayWebhookHandler = async (
   const refundPaymentResponseData = intoRefundResponse(refundPaymentResponse.data);
   let refundStatus = null;
   let refundAmount = null;
-  const refundsList = refundPaymentResponseData.refunds
-  invariant(refundsList, "No refunds list in response")
-    for (const obj1 of refundsList) {
-      if (obj1.unique_request_id === unique_request_id) {
-        refundStatus = obj1.status;
-        refundAmount = obj1.amount;
-      }
+  const refundsList = refundPaymentResponseData.refunds;
+  invariant(refundsList, "No refunds list in response");
+  for (const obj1 of refundsList) {
+    if (obj1.unique_request_id === unique_request_id) {
+      refundStatus = obj1.status;
+      refundAmount = obj1.amount;
     }
-  invariant(refundStatus && refundAmount, "No refunds data found with matched refund requested")
+  }
+  invariant(refundStatus && refundAmount, "No refunds data found with matched refund requested");
 
   const result = juspayRefundToTransactionResult(refundStatus);
 

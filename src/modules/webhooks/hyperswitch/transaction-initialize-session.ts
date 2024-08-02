@@ -16,18 +16,14 @@ import {
   buildAddressDetails,
   validatePaymentCreateRequest,
 } from "../../hyperswitch/hyperswitch-api-request";
-import {
-UnExpectedHyperswitchPaymentStatus
-} from "@/errors";
+import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
 import {
   createHyperswitchClient,
   fetchHyperswitchProfileID,
   fetchHyperswitchPublishableKey,
 } from "../../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
-import {
-  intoPaymentResponse
-} from "../../hyperswitch/hyperswitch-api-response";
+import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
 import { normalizeValue } from "../../payment-app-configuration/utils";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 

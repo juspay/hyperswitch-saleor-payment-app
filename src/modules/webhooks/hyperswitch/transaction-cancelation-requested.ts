@@ -1,14 +1,10 @@
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
 import { type HyperswitchTransactionCancelationRequestedResponse } from "@/schemas/HyperswitchTransactionCancelationRequested/HyperswitchTransactionCancelationRequestedResponse.mjs";
-import {
-  type TransactionCancelationRequestedEventFragment,
-} from "generated/graphql";
+import { type TransactionCancelationRequestedEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
 import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
-import {
-  getSaleorAmountFromHyperswitchAmount,
-} from "../../hyperswitch/currencies";
+import { getSaleorAmountFromHyperswitchAmount } from "../../hyperswitch/currencies";
 import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 

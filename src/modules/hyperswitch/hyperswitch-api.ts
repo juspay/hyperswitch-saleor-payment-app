@@ -1,4 +1,9 @@
-import { ChannelNotConfigured, ConfigurationNotFound, HttpRequestError, HyperswitchHttpClientError } from "@/errors";
+import {
+  ChannelNotConfigured,
+  ConfigurationNotFound,
+  HttpRequestError,
+  HyperswitchHttpClientError,
+} from "@/errors";
 import { type paths as HyperswitchPaymentPaths } from "generated/hyperswitch-payments";
 import { ApiError, Fetcher } from "openapi-typescript-fetch";
 import { intoErrorResponse } from "./hyperswitch-api-response";
@@ -119,4 +124,3 @@ export function getHyperswitchConfig(
     throw new ConfigurationNotFound("Please add Hyperswitch configuration");
   }
 }
-
