@@ -21,17 +21,14 @@ import { HyperswitchFullyConfiguredEntry } from "../payment-app-configuration/hy
 import { env } from "@/lib/env.mjs";
 import { invariant } from "@/lib/invariant";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
-
-export const getEnvironmentFromKey = (): string => {
-  return env.NEXT_PUBLIC_ENV;
-};
+import { getEnvironmentFromKey } from "@/modules/api-utils";
 
 const getHyperswitchBaseUrl = () => {
   if (getEnvironmentFromKey() == "production") {
     invariant(env.HYPERSWITCH_PROD_BASE_URL, "ENV variable HYPERSWITCH_PROD_BASE_URL not set");
     return env.HYPERSWITCH_PROD_BASE_URL;
   } else {
-    invariant(env.HYPERSWITCH_PROD_BASE_URL, "ENV variable HYPERSWITCH_SANDBOX_BASE_URL not set");
+    invariant(env.HYPERSWITCH_SANDBOX_BASE_URL, "ENV variable HYPERSWITCH_SANDBOX_BASE_URL not set");
     return env.HYPERSWITCH_SANDBOX_BASE_URL;
   }
 };

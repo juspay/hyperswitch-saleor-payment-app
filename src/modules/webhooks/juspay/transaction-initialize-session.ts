@@ -13,7 +13,7 @@ import { createLogger } from "@/lib/logger";
 import {
   buildAddressDetails,
   validatePaymentCreateRequest,
-} from "../../hyperswitch/hyperswitch-api-request";
+} from "../../api-utils";
 import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
 import { createJuspayClient, fetchJuspayCleintId } from "@/modules/juspay/juspay-api";
 import { type components as paymentsComponents } from "generated/juspay-payments";
@@ -105,8 +105,11 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
 
   const payment_page_client_id = await fetchJuspayCleintId(configData);
 
+  const captureMethod = event.action.actionType == TransactionFlowStrategyEnum.Authorization ? false : true;
+  const orderId = new Date().getTime();
+
   const createOrderPayload: paymentsComponents["schemas"]["SessionRequest"] = {
-    order_id: normalizeValue(uuidv4()),
+    order_id: normalizeValue(`${orderId}`),
     amount: event.action.amount,
     customer_id: normalizeValue(requestData?.customerId),
     customer_email: normalizeValue(userEmail),
@@ -136,6 +139,8 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     shipping_address_state: normalizeValue(shippingAddress?.address?.state),
     shipping_address_country: normalizeValue(shippingAddress?.address?.zip),
     shipping_address_postal_code: normalizeValue(shippingAddress?.address?.zip),
+    "metadata.JUSPAY:gateway_reference_id": requestData?.gatewayReferenceId,
+    "metadata.txns.auto_capture": normalizeValue(captureMethod)
   };
   const createOrderResponse = await createJuspayPayment(createOrderPayload);
 

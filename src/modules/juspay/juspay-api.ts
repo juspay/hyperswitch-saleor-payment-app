@@ -10,15 +10,16 @@ import {
 import { JuspayFullyConfiguredEntry } from "../payment-app-configuration/juspay-app-configuration/config-entry";
 import { getConfigurationForChannel } from "../payment-app-configuration/payment-app-configuration";
 import { intoErrorResponse } from "./juspay-api-response";
-
-const JUSPAY_SANDBOX_BASE_URL: string = "https://sandbox.juspay.in";
-const JUSPAY_PROD_BASE_URL: string = "https://api.juspay.in";
+import { invariant } from "@/lib/invariant";
+import { getEnvironmentFromKey } from "@/modules/api-utils";
 
 const getJuspayBaseUrl = () => {
-  if (env.ENV == "production") {
-    return JUSPAY_PROD_BASE_URL;
+  if (getEnvironmentFromKey() == "production") {
+    invariant(env.JUSPAY_PROD_BASE_URL, "ENV variable HYPERSWITCH_PROD_BASE_URL not set");
+    return env.JUSPAY_PROD_BASE_URL;
   } else {
-    return JUSPAY_SANDBOX_BASE_URL;
+    invariant(env.JUSPAY_SANDBOX_BASE_URL, "ENV variable HYPERSWITCH_SANDBOX_BASE_URL not set");
+    return env.JUSPAY_SANDBOX_BASE_URL;
   }
 };
 
@@ -87,7 +88,6 @@ export const createJuspayClient = async ({ configData }: { configData: ConfigObj
       (url, init, next) =>
         next(url, init).catch((err) => {
           if (err instanceof ApiError) {
-            console.log("aaaaaaa", err);
             const errorData = intoErrorResponse(err.data);
             const errorMessage = errorData.error_message
               ? errorData.error_message

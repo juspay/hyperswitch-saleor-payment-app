@@ -15,7 +15,7 @@ import {
 import {
   buildAddressDetails,
   validatePaymentCreateRequest,
-} from "../../hyperswitch/hyperswitch-api-request";
+} from "../../api-utils";
 import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
 import {
   createHyperswitchClient,

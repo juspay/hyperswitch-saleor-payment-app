@@ -306,7 +306,8 @@
           "udf8": { "type": "string", "nullable": true },
           "udf9": { "type": "string", "nullable": true },
           "udf10": { "type": "string", "nullable": true },
-          "metaData": { "type": "string", "nullable": true },
+          "metadata.JUSPAY:gateway_reference_id": { "type": "string", "nullable": true },
+          "metadata.txns.auto_capture": { "type": "boolean", "nullable": true },
           "gateway_id": { "type": "string", "nullable": true },
           "options_create_mandate": { "type": "string", "nullable": true },
           "mandate_max_amount": { "type": "string", "nullable": true },
@@ -360,6 +361,14 @@
           "virtual_account_parent_ref_id": { "type": "string", "nullable": true }
         },
         "required": []
+      },
+      "Metadata": {
+        "type": "object",
+        "properties": {
+          "JUSPAY:gateway_reference_id": { "type": "string", "nullable": true },
+          "metadata.txns.auto_capture": { "type": "boolean", "nullable": true }
+        },
+        "nullable":true
       },
       "SessionResponse": {
         "type": "object",
