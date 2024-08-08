@@ -100,6 +100,8 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
     ? requestData?.billingEmail
     : event.sourceObject.userEmail;
 
+  const return_url = normalizeValue(requestData?.returnUrl);
+
   const createPaymentPayload: paymentsComponents["schemas"]["PaymentsCreateRequest"] = {
     amount,
     confirm: false,
@@ -112,7 +114,7 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
     statement_descriptor_suffix: normalizeValue(requestData?.statementDescriptorSuffix),
     customer_id: normalizeValue(requestData?.customerId),
     authentication_type: normalizeValue(requestData?.authenticationType),
-    return_url: normalizeValue(requestData?.returnUrl),
+    return_url,
     description: normalizeValue(requestData?.description),
     billing: buildAddressDetails(event.sourceObject.billingAddress, userEmail),
     shipping: buildAddressDetails(event.sourceObject.shippingAddress, requestData?.shippingEmail),
@@ -134,10 +136,10 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
     data: {
       clientSecret: createPaymentResponseData.client_secret,
       publishableKey,
-      paymentLinkId: createPaymentResponseData.payment_link?.payment_link_id,
+      paymentLinkId: return_url ? createPaymentResponseData.payment_link?.payment_link_id: undefined,
+      paymentLink: return_url ? createPaymentResponseData.payment_link?.link: undefined,
       errors,
-    },
-    externalUrl: createPaymentResponseData.payment_link?.link,
+    }, 
     pspReference: createPaymentResponseData.payment_id,
     result,
     amount: getSaleorAmountFromHyperswitchAmount(
