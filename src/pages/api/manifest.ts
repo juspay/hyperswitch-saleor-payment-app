@@ -12,7 +12,7 @@ import { transactionProcessSessionSyncWebhook } from "./webhooks/saleor/transact
 export default createManifestHandler({
   async manifestFactory(context) {
     const manifest: AppManifest = {
-      id: "app.saleor.hyperswitch6.0",
+      id: "app.saleor.hyperswitch",
       name: "Hyperswitch6.0",
       about: packageJson.description,
       tokenTargetUrl: `${context.appBaseUrl}/api/register`,
