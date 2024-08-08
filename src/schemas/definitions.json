@@ -65,6 +65,13 @@
       "type": "string",
       "enum": ["REFUND_SUCCESS", "REFUND_FAILURE"]
     },
+    "Orchestra": {
+      "type": "string",
+      "enum": [
+        "HYPERSWITCH",
+        "JUSPAY"
+      ]
+    },
     "SyncWebhookAppError": {
       "type": "object",
       "additionalProperties": false,

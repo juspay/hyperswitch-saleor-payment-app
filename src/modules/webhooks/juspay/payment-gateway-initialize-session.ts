@@ -19,7 +19,9 @@ export const PaymentGatewayInitializeSessionJuspayWebhookHandler = async (
 
   logger.info({}, "Processing Payment Gateway Initialize request");
   const paymentGatewayInitializeSessionResponse: PaymentGatewayInitializeSessionResponse = {
-    data: {},
+    data: {
+      orchestra: "JUSPAY"
+    },
   };
   return paymentGatewayInitializeSessionResponse;
 };

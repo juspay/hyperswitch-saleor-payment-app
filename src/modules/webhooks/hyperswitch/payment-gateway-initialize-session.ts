@@ -19,7 +19,9 @@ export const PaymentGatewayInitializeSessionHyperswitchWebhookHandler = async (
 
   logger.info({}, "Processing Payment Gateway Initialize request");
   const paymentGatewayInitializeSessionResponse: PaymentGatewayInitializeSessionResponse = {
-    data: {},
+    data: {
+      orchestra: "HYPERSWITCH"
+    },
   };
   return paymentGatewayInitializeSessionResponse;
 };
