@@ -21,7 +21,7 @@ export const juspayPaymentCancelStatusToSaleorTransactionResult = (
   }
 };
 
-export const TransactionCancelationRequestedHyperswitchWebhookHandler = async (
+export const TransactionCancelationRequestedJuspayWebhookHandler = async (
   event: TransactionCancelationRequestedEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,

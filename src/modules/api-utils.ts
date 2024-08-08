@@ -6,10 +6,15 @@ import { z, ZodError } from "zod";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
 import { normalizeValue } from "./payment-app-configuration/utils";
 import { env } from "@/lib/env.mjs";
+import { randomBytes } from 'crypto';
 
 export const getEnvironmentFromKey = (): string => {
     return env.NEXT_PUBLIC_ENV;
   };
+
+export function generate16DigitId(): string {
+    return randomBytes(8).toString('hex');
+}
 
 const AuthenticationTypeEnum = z.enum(["three_ds", "no_three_ds"]);
 

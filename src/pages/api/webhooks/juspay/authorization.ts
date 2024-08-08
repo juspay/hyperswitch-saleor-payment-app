@@ -33,6 +33,7 @@ export const juspayStatusToSaleorTransactionResult = (
     case "SUCCESS":
     case "CHARGED":
     case "COD_INITIATED":
+    case "AUTO_REFUNDED":
       if (isRefund) {
         return TransactionEventTypeEnum.RefundSuccess;
       } else {
@@ -116,10 +117,13 @@ export default async function juspayAuthorizationWebhookHandler(
 ): Promise<void> {
   const logger = createLogger({ msgPrefix: "[JuspayWebhookHandler]" });
   let webhookBody = intoWebhookResponse(req.body);
+  let eventName = webhookBody.event_name
+  if(! eventName.startsWith("ORDER")){
+    res.status(400).json("unidentified event received");
+  }
   const transactionId = webhookBody.content.order.udf1;
   const saleorApiUrl = webhookBody.content.order.udf2;
-  const isRefund =
-    webhookBody.event_name === "ORDER_REFUNDED" || webhookBody.event_name === "ORDER_REFUND_FAILED";
+  const isRefund = eventName === "ORDER_REFUNDED" || eventName === "ORDER_REFUND_FAILED";
 
   invariant(saleorApiUrl && transactionId, "user defined fields not found in webhook");
 
@@ -185,20 +189,28 @@ export default async function juspayAuthorizationWebhookHandler(
     order_id,
   });
   juspaySyncResponse = intoOrderStatusResponse(paymentSyncResponse.data);
-
+  let orderStatus = webhookBody.content.order.status
   if (isRefund) {
     let eventArray = transaction.data?.transaction?.events;
     let refundList = webhookBody.content.order.refunds;
-    invariant(eventArray, "Missing event list from transaction event");
-    invariant(refundList, "Missing refunds list in event");
-    outerLoop: for (const eventObj of eventArray) {
-      if (eventObj.type === "REFUND_REQUEST") {
-        for (const RefundObj of refundList) {
-          if (eventObj.pspReference === RefundObj.unique_request_id && RefundObj.status !== "PENDING") {
-            amountVal = RefundObj.amount;
-            pspReference = RefundObj.unique_request_id;
-            webhookStatus = RefundObj.status;
-            break outerLoop;
+    if(orderStatus =="AUTO_REFUNDED")
+    {
+      amountVal = webhookBody.content.order.amount;
+      pspReference = webhookBody.content.order.order_id;
+      webhookStatus = orderStatus;
+    }
+    else{
+      invariant(eventArray, "Missing event list from transaction event");
+      invariant(refundList, "Missing refunds list in event");
+      outerLoop: for (const eventObj of eventArray) {
+        if (eventObj.type === "REFUND_REQUEST") {
+          for (const RefundObj of refundList) {
+            if (eventObj.pspReference === RefundObj.unique_request_id && RefundObj.status !== "PENDING") {
+              amountVal = RefundObj.amount;
+              pspReference = RefundObj.unique_request_id;
+              webhookStatus = RefundObj.status;
+              break outerLoop;
+            }
           }
         }
       }
@@ -206,7 +218,7 @@ export default async function juspayAuthorizationWebhookHandler(
   } else {
     pspReference = juspaySyncResponse.order_id;
     amountVal = juspaySyncResponse.amount;
-    webhookStatus = webhookBody.content.order.status;
+    webhookStatus = orderStatus;
   }
 
   invariant(amountVal, "no amount value found");
