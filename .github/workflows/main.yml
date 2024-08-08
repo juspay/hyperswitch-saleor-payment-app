@@ -32,10 +32,8 @@ jobs:
             ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.json') }}-
       - name: Install dependencies
         shell: bash
-        shell: bash
         run: pnpm install
       - name: Check formatting
-        shell: bash
         shell: bash
         run: pnpm check-format
       - name: Build project
