@@ -21,7 +21,7 @@ import { type components as paymentsComponents } from "generated/juspay-payments
 import { intoPaymentResponse } from "../../juspay/juspay-api-response";
 import { normalizeValue } from "../../payment-app-configuration/utils";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 export const juspayPaymentIntentToTransactionResult = (
   status: string,
