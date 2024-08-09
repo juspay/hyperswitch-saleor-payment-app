@@ -368,7 +368,7 @@
           "JUSPAY:gateway_reference_id": { "type": "string", "nullable": true },
           "metadata.txns.auto_capture": { "type": "boolean", "nullable": true }
         },
-        "nullable":true
+        "nullable": true
       },
       "SessionResponse": {
         "type": "object",

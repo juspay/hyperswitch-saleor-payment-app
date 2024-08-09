@@ -60,7 +60,6 @@ export const juspayStatusToSaleorTransactionResult = (
       return TransactionEventTypeEnum.ChargeSuccess;
     case "AUTHORIZED":
     case "CAPTURE_INITIATED":
-    case "VOID_INITIATED":
       return TransactionEventTypeEnum.AuthorizationSuccess;
     case "VOIDED":
       return TransactionEventTypeEnum.CancelSuccess;
@@ -117,9 +116,11 @@ export default async function juspayAuthorizationWebhookHandler(
 ): Promise<void> {
   const logger = createLogger({ msgPrefix: "[JuspayWebhookHandler]" });
   let webhookBody = intoWebhookResponse(req.body);
-  let eventName = webhookBody.event_name
-  if(! eventName.startsWith("ORDER")){
-    res.status(400).json("unidentified event received");
+  let eventName = webhookBody.event_name;
+  if (!eventName.startsWith("ORDER")) {
+    throw new UnExpectedJuspayPaymentStatus(
+      `Event received from juspay: ${eventName}, is not expected . Please check the payment flow.`,
+    );
   }
   const transactionId = webhookBody.content.order.udf1;
   const saleorApiUrl = webhookBody.content.order.udf2;
@@ -189,23 +190,24 @@ export default async function juspayAuthorizationWebhookHandler(
     order_id,
   });
   juspaySyncResponse = intoOrderStatusResponse(paymentSyncResponse.data);
-  let orderStatus = webhookBody.content.order.status
+  let orderStatus = webhookBody.content.order.status;
   if (isRefund) {
     let eventArray = transaction.data?.transaction?.events;
     let refundList = webhookBody.content.order.refunds;
-    if(orderStatus =="AUTO_REFUNDED")
-    {
+    if (orderStatus == "AUTO_REFUNDED") {
       amountVal = webhookBody.content.order.amount;
       pspReference = webhookBody.content.order.order_id;
       webhookStatus = orderStatus;
-    }
-    else{
+    } else {
       invariant(eventArray, "Missing event list from transaction event");
       invariant(refundList, "Missing refunds list in event");
       outerLoop: for (const eventObj of eventArray) {
         if (eventObj.type === "REFUND_REQUEST") {
           for (const RefundObj of refundList) {
-            if (eventObj.pspReference === RefundObj.unique_request_id && RefundObj.status !== "PENDING") {
+            if (
+              eventObj.pspReference === RefundObj.unique_request_id &&
+              RefundObj.status !== "PENDING"
+            ) {
               amountVal = RefundObj.amount;
               pspReference = RefundObj.unique_request_id;
               webhookStatus = RefundObj.status;

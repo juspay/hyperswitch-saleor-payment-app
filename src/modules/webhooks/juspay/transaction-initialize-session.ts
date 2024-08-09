@@ -13,7 +13,7 @@ import { createLogger } from "@/lib/logger";
 import {
   buildAddressDetails,
   validatePaymentCreateRequest,
-  generate16DigitId
+  generate16DigitId,
 } from "../../api-utils";
 import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
 import { createJuspayClient, fetchJuspayCleintId } from "@/modules/juspay/juspay-api";
@@ -21,6 +21,7 @@ import { type components as paymentsComponents } from "generated/juspay-payments
 import { intoPaymentResponse } from "../../juspay/juspay-api-response";
 import { normalizeValue } from "../../payment-app-configuration/utils";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
+import { v4 as uuidv4 } from 'uuid';
 
 export const juspayPaymentIntentToTransactionResult = (
   status: string,
@@ -105,8 +106,9 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
 
   const payment_page_client_id = await fetchJuspayCleintId(configData);
 
-  const captureMethod = event.action.actionType == TransactionFlowStrategyEnum.Authorization ? false : true;
-  const orderId = generate16DigitId();
+  const captureMethod =
+    event.action.actionType == TransactionFlowStrategyEnum.Authorization ? false : true;
+  const orderId = uuidv4();
 
   const createOrderPayload: paymentsComponents["schemas"]["SessionRequest"] = {
     order_id: normalizeValue(orderId),
@@ -140,7 +142,7 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     shipping_address_country: normalizeValue(shippingAddress?.address?.zip),
     shipping_address_postal_code: normalizeValue(shippingAddress?.address?.zip),
     "metadata.JUSPAY:gateway_reference_id": requestData?.gatewayReferenceId,
-    "metadata.txns.auto_capture": normalizeValue(captureMethod)
+    "metadata.txns.auto_capture": normalizeValue(captureMethod),
   };
   const createOrderResponse = await createJuspayPayment(createOrderPayload);
 

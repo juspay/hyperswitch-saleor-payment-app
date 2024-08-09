@@ -39,8 +39,9 @@ jobs:
       - name: Build project
         env:
           SECRET_KEY: test-key
-          ENCRYPT_KEY: test-key
           HYPERSWITCH_SANDBOX_BASE_URL: https://sandbox.hyperswitch.io
           HYPERSWITCH_PROD_BASE_URL: hyperswitch_prod_url
+          JUSPAY_SANDBOX_BASE_URL: https://sandbox.juspay.in
+          JUSPAY_PROD_BASE_URL: https://api.juspay.in
         shell: bash
         run: pnpm build

@@ -12,10 +12,7 @@ import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
 } from "../../hyperswitch/currencies";
-import {
-  buildAddressDetails,
-  validatePaymentCreateRequest,
-} from "../../api-utils";
+import { buildAddressDetails, validatePaymentCreateRequest } from "../../api-utils";
 import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
 import {
   createHyperswitchClient,
@@ -136,10 +133,12 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
     data: {
       clientSecret: createPaymentResponseData.client_secret,
       publishableKey,
-      paymentLinkId: return_url ? createPaymentResponseData.payment_link?.payment_link_id: undefined,
-      paymentLink: return_url ? createPaymentResponseData.payment_link?.link: undefined,
+      paymentLinkId: return_url
+        ? createPaymentResponseData.payment_link?.payment_link_id
+        : undefined,
+      paymentLink: return_url ? createPaymentResponseData.payment_link?.link : undefined,
       errors,
-    }, 
+    },
     pspReference: createPaymentResponseData.payment_id,
     result,
     amount: getSaleorAmountFromHyperswitchAmount(

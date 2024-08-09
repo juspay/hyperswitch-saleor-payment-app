@@ -28,7 +28,10 @@ const getHyperswitchBaseUrl = () => {
     invariant(env.HYPERSWITCH_PROD_BASE_URL, "ENV variable HYPERSWITCH_PROD_BASE_URL not set");
     return env.HYPERSWITCH_PROD_BASE_URL;
   } else {
-    invariant(env.HYPERSWITCH_SANDBOX_BASE_URL, "ENV variable HYPERSWITCH_SANDBOX_BASE_URL not set");
+    invariant(
+      env.HYPERSWITCH_SANDBOX_BASE_URL,
+      "ENV variable HYPERSWITCH_SANDBOX_BASE_URL not set",
+    );
     return env.HYPERSWITCH_SANDBOX_BASE_URL;
   }
 };
