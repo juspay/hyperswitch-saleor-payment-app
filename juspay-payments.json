@@ -119,7 +119,7 @@
         ],
         "requestBody": {
           "content": {
-            "x-www-form-urlencoded": {
+            "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RefundReq"
               },
