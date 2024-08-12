@@ -7,9 +7,8 @@
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "order_id": { "type": "string" },
-        "payment_links": { "$ref": "definitions.json#/definitions/paymentLinks" },
-        "sdk_payload": { "$ref": "definitions.json#/definitions/sdkPayload" },
+        "paymentLinks": { "$ref": "definitions.json#/definitions/paymentLinks" },
+        "sdkPayload": { "$ref": "definitions.json#/definitions/sdkPayload" },
         "errors": { "$ref": "definitions.json#/definitions/SyncWebhookAppErrors" }
       }
     },

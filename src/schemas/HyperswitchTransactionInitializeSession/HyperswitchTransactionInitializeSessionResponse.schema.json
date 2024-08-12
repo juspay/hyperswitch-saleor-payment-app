@@ -7,10 +7,8 @@
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "clientSecret": { "type": "string" },
-        "publishableKey": { "type": "string" },
-        "paymentLinkId": { "type": "string" },
-        "paymentLink": { "type": "string" },
+        "sdkPayload": { "$ref": "definitions.json#/definitions/invokeSdkPayload" },
+        "paymentLinks": { "$ref": "definitions.json#/definitions/paymentLinks" },
         "errors": { "$ref": "definitions.json#/definitions/SyncWebhookAppErrors" }
       }
     },

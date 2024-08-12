@@ -110,7 +110,8 @@
       "properties": {
         "web": { "type": "string" },
         "expiry": { "type": "string" },
-        "deep_link": { "type": "string" }
+        "deepLink": { "type": "string" },
+        "paymentLinkId": { "type": "string" }
       }
     },
     "sdkPayload": {
@@ -122,6 +123,14 @@
         "expiry": { "type": "string" }
       },
       "required": ["requestId", "service"]
+    },
+    "invokeSdkPayload" : {
+      "type": "object",
+      "properties": {
+      "clientSecret": { "type": "string" },
+      "publishableKey": { "type": "string" }
+      },
+      "required": ["clientSecret", "publishableKey"]
     }
   }
 }

@@ -162,9 +162,12 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
   const transactionInitializeSessionResponse: JuspayTransactionInitializeSessionResponse = {
     pspReference: createPaymentResponseData.order_id,
     data: {
-      order_id: createPaymentResponseData.order_id,
-      payment_links: createPaymentResponseData.payment_links as PaymentLinks,
-      sdk_payload: createPaymentResponseData.sdk_payload as SdkPayload,
+      paymentLinks: {
+        web: createPaymentResponseData.payment_links.web,
+        expiry: createPaymentResponseData.payment_links.expiry,
+        deepLink: createPaymentResponseData.payment_links.deep_link,
+      } as PaymentLinks,
+      sdkPayload: createPaymentResponseData.sdk_payload as SdkPayload,
       errors,
     },
     result,

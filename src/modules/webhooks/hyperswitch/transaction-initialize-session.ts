@@ -1,4 +1,6 @@
 import {
+  InvokeSdkPayload,
+  PaymentLinks,
   SyncWebhookAppErrors,
   type HyperswitchTransactionInitializeSessionResponse,
 } from "@/schemas/HyperswitchTransactionInitializeSession/HyperswitchTransactionInitializeSessionResponse.mjs";
@@ -131,12 +133,15 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
   );
   const transactionInitializeSessionResponse: HyperswitchTransactionInitializeSessionResponse = {
     data: {
-      clientSecret: createPaymentResponseData.client_secret,
-      publishableKey,
-      paymentLinkId: return_url
+      paymentLinks: {
+        paymentLinkId: return_url
         ? createPaymentResponseData.payment_link?.payment_link_id
         : undefined,
-      paymentLink: return_url ? createPaymentResponseData.payment_link?.link : undefined,
+        web: return_url ? createPaymentResponseData.payment_link?.link : undefined,
+      } as PaymentLinks,
+      sdkPayload: {
+        clientSecret: createPaymentResponseData.client_secret,
+        publishableKey} as InvokeSdkPayload,
       errors,
     },
     pspReference: createPaymentResponseData.payment_id,
