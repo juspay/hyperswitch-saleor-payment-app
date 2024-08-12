@@ -5,9 +5,9 @@ import { invariant } from "@/lib/invariant";
 import { TransactionChargeRequestedEventFragment } from "generated/graphql";
 import { intoOrderStatusResponse, intoPreAuthTxnResponse } from "../../juspay/juspay-api-response";
 import { createLogger } from "@/lib/logger";
-import { SyncWebhookAppErrors } from "@/schemas/HyperswitchTransactionInitializeSession/HyperswitchTransactionInitializeSessionResponse.mjs";
 import { createJuspayClient } from "@/modules/juspay/juspay-api";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
+import { SyncWebhookAppErrors } from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
 
 export const hyperswitchPaymentCaptureStatusToSaleorTransactionResult = (
   status: string,

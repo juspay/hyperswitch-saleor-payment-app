@@ -1,8 +1,4 @@
 import {
-  SyncWebhookAppErrors,
-  type HyperswitchTransactionInitializeSessionResponse,
-} from "@/schemas/HyperswitchTransactionInitializeSession/HyperswitchTransactionInitializeSessionResponse.mjs";
-import {
   TransactionFlowStrategyEnum,
   type TransactionInitializeSessionEventFragment,
 } from "generated/graphql";
@@ -23,11 +19,17 @@ import { type components as paymentsComponents } from "generated/hyperswitch-pay
 import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
 import { normalizeValue } from "../../payment-app-configuration/utils";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
+import {
+  PaymentLinks,
+  SdkPayload,
+  SyncWebhookAppErrors,
+  TransactionInitializeSessionResponse,
+} from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
 
 export const hyperswitchPaymentIntentToTransactionResult = (
   status: string,
   transactionFlow: TransactionFlowStrategyEnum,
-): HyperswitchTransactionInitializeSessionResponse["result"] => {
+): TransactionInitializeSessionResponse["result"] => {
   const prefix =
     transactionFlow === TransactionFlowStrategyEnum.Authorization
       ? "AUTHORIZATION"
@@ -58,7 +60,7 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
   event: TransactionInitializeSessionEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<HyperswitchTransactionInitializeSessionResponse> => {
+): Promise<TransactionInitializeSessionResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionInitializeSessionWebhookHandler] " },
@@ -129,14 +131,20 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
     createPaymentResponseData.status,
     event.action.actionType,
   );
-  const transactionInitializeSessionResponse: HyperswitchTransactionInitializeSessionResponse = {
+  const transactionInitializeSessionResponse: TransactionInitializeSessionResponse = {
     data: {
-      clientSecret: createPaymentResponseData.client_secret,
-      publishableKey,
-      paymentLinkId: return_url
-        ? createPaymentResponseData.payment_link?.payment_link_id
-        : undefined,
-      paymentLink: return_url ? createPaymentResponseData.payment_link?.link : undefined,
+      paymentLinks: {
+        paymentLinkId: return_url
+          ? createPaymentResponseData.payment_link?.payment_link_id
+          : undefined,
+        web: return_url ? createPaymentResponseData.payment_link?.link : undefined,
+      } as PaymentLinks,
+      sdkPayload: {
+        payload: {
+          clientSecret: createPaymentResponseData.client_secret,
+          publishableKey,
+        },
+      } as SdkPayload,
       errors,
     },
     pspReference: createPaymentResponseData.payment_id,

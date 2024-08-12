@@ -1,10 +1,4 @@
 import {
-  SyncWebhookAppErrors,
-  type JuspayTransactionInitializeSessionResponse,
-  PaymentLinks,
-  SdkPayload,
-} from "@/schemas/JuspayTransactionInitializeSession/JuspayTransactionInitializeSessionResponse.mjs";
-import {
   TransactionFlowStrategyEnum,
   type TransactionInitializeSessionEventFragment,
 } from "generated/graphql";
@@ -22,11 +16,17 @@ import { intoPaymentResponse } from "../../juspay/juspay-api-response";
 import { normalizeValue } from "../../payment-app-configuration/utils";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import { v4 as uuidv4 } from "uuid";
+import {
+  PaymentLinks,
+  SdkPayload,
+  SyncWebhookAppErrors,
+  TransactionInitializeSessionResponse,
+} from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
 
 export const juspayPaymentIntentToTransactionResult = (
   status: string,
   transactionFlow: TransactionFlowStrategyEnum,
-): JuspayTransactionInitializeSessionResponse["result"] => {
+): TransactionInitializeSessionResponse["result"] => {
   const prefix =
     transactionFlow === TransactionFlowStrategyEnum.Authorization
       ? "AUTHORIZATION"
@@ -57,7 +57,7 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
   event: TransactionInitializeSessionEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<JuspayTransactionInitializeSessionResponse> => {
+): Promise<TransactionInitializeSessionResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionInitializeSessionWebhookHandler] " },
@@ -159,12 +159,15 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     createPaymentResponseData.status,
     event.action.actionType,
   );
-  const transactionInitializeSessionResponse: JuspayTransactionInitializeSessionResponse = {
+  const transactionInitializeSessionResponse: TransactionInitializeSessionResponse = {
     pspReference: createPaymentResponseData.order_id,
     data: {
-      order_id: createPaymentResponseData.order_id,
-      payment_links: createPaymentResponseData.payment_links as PaymentLinks,
-      sdk_payload: createPaymentResponseData.sdk_payload as SdkPayload,
+      paymentLinks: {
+        web: createPaymentResponseData.payment_links.web,
+        expiry: createPaymentResponseData.payment_links.expiry,
+        deepLink: createPaymentResponseData.payment_links.deep_link,
+      } as PaymentLinks,
+      sdkPayload: createPaymentResponseData.sdk_payload as SdkPayload,
       errors,
     },
     result,
