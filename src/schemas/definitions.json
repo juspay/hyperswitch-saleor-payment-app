@@ -102,7 +102,9 @@
         "customerPhone": { "type": "string" },
         "customerEmail": { "type": "string" },
         "orderId": { "type": "string" },
-        "description": { "type": "string" }
+        "description": { "type": "string" },
+        "clientSecret": { "type": "string" },
+        "publishableKey": { "type": "string" }
       }
     },
     "paymentLinks": {
@@ -122,15 +124,7 @@
         "payload": { "$ref": "definitions.json#/definitions/payload" },
         "expiry": { "type": "string" }
       },
-      "required": ["requestId", "service"]
-    },
-    "invokeSdkPayload" : {
-      "type": "object",
-      "properties": {
-      "clientSecret": { "type": "string" },
-      "publishableKey": { "type": "string" }
-      },
-      "required": ["clientSecret", "publishableKey"]
+      "required": ["payload"]
     }
   }
 }
