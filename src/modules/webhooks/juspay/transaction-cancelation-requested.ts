@@ -1,14 +1,14 @@
-import { type JuspayTransactionCancelationRequestedResponse } from "@/schemas/JuspayTransactionCancelationRequested/JuspayTransactionCancelationRequestedResponse.mjs";
 import { type TransactionCancelationRequestedEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
 import { createJuspayClient } from "@/modules/juspay/juspay-api";
 import { intoOrderStatusResponse, intoPreAuthTxnResponse } from "../../juspay/juspay-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
+import { TransactionCancelationRequestedResponse } from "@/schemas/TransactionCancelationRequested/TransactionCancelationRequestedResponse.mjs";
 
 export const juspayPaymentCancelStatusToSaleorTransactionResult = (
   status: string,
-): JuspayTransactionCancelationRequestedResponse["result"] | null => {
+): TransactionCancelationRequestedResponse["result"] | null => {
   switch (status) {
     case "VOIDED":
       return "CANCEL_SUCCESS";
@@ -25,7 +25,7 @@ export const TransactionCancelationRequestedJuspayWebhookHandler = async (
   event: TransactionCancelationRequestedEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<JuspayTransactionCancelationRequestedResponse> => {
+): Promise<TransactionCancelationRequestedResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionCancelationRequestedWebhookHandler] " },
@@ -72,7 +72,7 @@ export const TransactionCancelationRequestedJuspayWebhookHandler = async (
     cancelPaymentResponseData.status,
   );
 
-  const transactionCancelationRequestedResponse: JuspayTransactionCancelationRequestedResponse =
+  const transactionCancelationRequestedResponse: TransactionCancelationRequestedResponse =
     result === undefined
       ? {
           pspReference: cancelPaymentResponseData.order_id,

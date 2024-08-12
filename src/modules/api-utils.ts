@@ -1,4 +1,4 @@
-import { JsonSchemaError } from "@/errors";
+import { CheckoutPaymentAlreadyProcessed, JsonSchemaError } from "@/errors";
 import { TransactionInitializeSessionAddressFragment } from "generated/graphql";
 import { z, ZodError } from "zod";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
@@ -82,3 +82,10 @@ export const buildAddressDetails = (
     email: normalizeValue(billingEmail),
   };
 };
+
+
+export function validateTransactionAmount(amount: number) {
+  if (amount == 0) {
+    throw new CheckoutPaymentAlreadyProcessed("Checkout corresponding to this transaction is already captured! Please create a new checkout and try again.")
+  }
+}

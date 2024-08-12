@@ -1,20 +1,11 @@
 import { getConfigurationForChannel } from "../../payment-app-configuration/payment-app-configuration";
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
-import { type HyperswitchTransactionChargeRequestedResponse } from "@/schemas/HyperswitchTransactionChargeRequested/HyperswitchTransactionChargeRequestedResponse.mjs";
 
 import { invariant } from "@/lib/invariant";
 import {
-  GetTransactionByIdDocument,
-  type GetTransactionByIdQuery,
-  type GetTransactionByIdQueryVariables,
-  TransactionEventReportDocument,
-  TransactionEventTypeEnum,
-  TransactionActionEnum,
   TransactionChargeRequestedEventFragment,
 } from "generated/graphql";
-import { saleorApp } from "@/saleor-app";
-import { createClient } from "@/lib/create-graphq-client";
-import { intoErrorResponse, intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
+import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
 import { createLogger } from "@/lib/logger";
 import {
   getHyperswitchAmountFromSaleorMoney,
@@ -24,10 +15,11 @@ import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import { SyncWebhookAppErrors } from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
+import { TransactionChargeRequestedResponse } from "@/schemas/TransactionChargeRequested/TransactionChargeRequestedResponse.mjs";
 
 export const hyperswitchPaymentCaptureStatusToSaleorTransactionResult = (
   status: string,
-): HyperswitchTransactionChargeRequestedResponse["result"] | null => {
+): TransactionChargeRequestedResponse["result"] | null => {
   switch (status) {
     case "succeeded":
     case "partially_captured":
@@ -46,7 +38,7 @@ export const TransactionChargeRequestedHyperswitchWebhookHandler = async (
   event: TransactionChargeRequestedEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<HyperswitchTransactionChargeRequestedResponse> => {
+): Promise<TransactionChargeRequestedResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionChargeRequestedWebhookHandler] " },
@@ -95,7 +87,7 @@ export const TransactionChargeRequestedHyperswitchWebhookHandler = async (
   const result = hyperswitchPaymentCaptureStatusToSaleorTransactionResult(
     capturePaymentResponseData.status,
   );
-  const transactionChargeRequestedResponse: HyperswitchTransactionChargeRequestedResponse =
+  const transactionChargeRequestedResponse: TransactionChargeRequestedResponse =
     result === undefined
       ? {
           pspReference: capturePaymentResponseData.payment_id,

@@ -1,7 +1,4 @@
-import {
-  SyncWebhookAppErrors,
-  type HyperswitchTransactionProcessSessionResponse,
-} from "@/schemas/HyperswitchTransactionProcessSession/HyperswitchTransactionProcessSessionResponse.mjs";
+
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
 import {
@@ -16,11 +13,12 @@ import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
 import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
+import { SyncWebhookAppErrors, TransactionProcessSessionResponse } from "@/schemas/TransactionProcessSession/TransactionProcessSessionResponse.mjs";
 
 export const hyperswitchPaymentIntentToTransactionProcessResult = (
   status: string,
   transactionFlow: TransactionFlowStrategyEnum,
-): HyperswitchTransactionProcessSessionResponse["result"] => {
+): TransactionProcessSessionResponse["result"] => {
   const prefix =
     transactionFlow === TransactionFlowStrategyEnum.Authorization
       ? "AUTHORIZATION"
@@ -57,7 +55,7 @@ export const TransactionProcessSessionHyperswitchWebhookHandler = async (
   event: TransactionProcessSessionEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<HyperswitchTransactionProcessSessionResponse> => {
+): Promise<TransactionProcessSessionResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionProcessSessionWebhookHandler] " },
@@ -115,7 +113,7 @@ export const TransactionProcessSessionHyperswitchWebhookHandler = async (
     retrievePaymentResponseData.status,
     event.action.actionType,
   );
-  const transactionProcessSessionResponse: HyperswitchTransactionProcessSessionResponse = {
+  const transactionProcessSessionResponse: TransactionProcessSessionResponse = {
     data: {
       errors,
     },

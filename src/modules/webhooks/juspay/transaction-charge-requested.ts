@@ -1,5 +1,4 @@
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
-import { type JuspayTransactionChargeRequestedResponse } from "@/schemas/JuspayTransactionChargeRequested/JuspayTransactionChargeRequestedResponse.mjs";
 
 import { invariant } from "@/lib/invariant";
 import { TransactionChargeRequestedEventFragment } from "generated/graphql";
@@ -8,10 +7,11 @@ import { createLogger } from "@/lib/logger";
 import { createJuspayClient } from "@/modules/juspay/juspay-api";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import { SyncWebhookAppErrors } from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
+import { TransactionChargeRequestedResponse } from "@/schemas/TransactionChargeRequested/TransactionChargeRequestedResponse.mjs";
 
 export const hyperswitchPaymentCaptureStatusToSaleorTransactionResult = (
   status: string,
-): JuspayTransactionChargeRequestedResponse["result"] | null => {
+): TransactionChargeRequestedResponse["result"] | null => {
   switch (status) {
     case "CHARGED":
     case "PARTIAL_CHARGED":
@@ -29,7 +29,7 @@ export const TransactionChargeRequestedJuspayWebhookHandler = async (
   event: TransactionChargeRequestedEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<JuspayTransactionChargeRequestedResponse> => {
+): Promise<TransactionChargeRequestedResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionChargeRequestedWebhookHandler] " },
@@ -85,7 +85,7 @@ export const TransactionChargeRequestedJuspayWebhookHandler = async (
   const result = hyperswitchPaymentCaptureStatusToSaleorTransactionResult(
     capturePaymentResponseData.status,
   );
-  const transactionChargeRequestedResponse: JuspayTransactionChargeRequestedResponse =
+  const transactionChargeRequestedResponse: TransactionChargeRequestedResponse =
     result === undefined
       ? {
           pspReference: capturePaymentResponseData.order_id,

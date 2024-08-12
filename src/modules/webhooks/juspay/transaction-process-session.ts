@@ -1,7 +1,4 @@
-import {
-  SyncWebhookAppErrors,
-  type JuspayTransactionProcessSessionResponse,
-} from "@/schemas/JuspayTransactionProcessSession/JuspayTransactionProcessSessionResponse.mjs";
+
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
 import {
@@ -13,11 +10,12 @@ import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
 import { createJuspayClient } from "@/modules/juspay/juspay-api";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import { intoOrderStatusResponse } from "@/modules/juspay/juspay-api-response";
+import { SyncWebhookAppErrors, TransactionProcessSessionResponse } from "@/schemas/TransactionProcessSession/TransactionProcessSessionResponse.mjs";
 
 export const juspayOrderStatusResult = (
   status: string,
   transactionFlow: TransactionFlowStrategyEnum,
-): JuspayTransactionProcessSessionResponse["result"] => {
+): TransactionProcessSessionResponse["result"] => {
   const prefix =
     transactionFlow === TransactionFlowStrategyEnum.Authorization
       ? "AUTHORIZATION"
@@ -65,7 +63,7 @@ export const TransactionProcessSessionJuspayWebhookHandler = async (
   event: TransactionProcessSessionEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<JuspayTransactionProcessSessionResponse> => {
+): Promise<TransactionProcessSessionResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionProcessSessionWebhookHandler] " },
@@ -102,7 +100,7 @@ export const TransactionProcessSessionJuspayWebhookHandler = async (
     `Required fields not found session call response`,
   );
   const result = juspayOrderStatusResult(parsedOrderStatusRespData.status, event.action.actionType);
-  const transactionProcessSessionResponse: JuspayTransactionProcessSessionResponse = {
+  const transactionProcessSessionResponse: TransactionProcessSessionResponse = {
     data: {
       errors,
     },
