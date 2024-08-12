@@ -7,7 +7,7 @@ import { type BrandedEncryptedMetadataManager } from "../app-configuration/metad
 
 import { obfuscateConfigEntry } from "./utils";
 import { env } from "@/lib/env.mjs";
-import { BaseError } from "@/errors";
+import { BaseError, ChannelNotConfigured } from "@/errors";
 import { createLogger } from "@/lib/logger";
 import {
   ChannelMapping,
@@ -147,7 +147,7 @@ export const getConfigurationForChannel = (
   const configurationId = appConfig.channelToConfigurationId[channelId];
   if (!configurationId) {
     logger.warn(`Missing mapping for channelId ${channelId}`);
-    return null;
+    throw new ChannelNotConfigured("Please assign a channel for your configuration");
   }
   const perChannelConfig = appConfig.configurations.find(
     (config) => config.configurationId === configurationId,

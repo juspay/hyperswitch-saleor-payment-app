@@ -39,10 +39,11 @@ const fetchHyperswitchConfiguration = async (
   configData: ConfigObject,
 ): Promise<HyperswitchFullyConfiguredEntry> => {
   const appConfig = await configData.configurator.getConfig();
+
   const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
   if (appChannelConfig == null) {
     throw new ChannelNotConfigured("Please assign a channel for your configuration");
-  }
+  };
 
   return getHyperswitchConfig(paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig));
 };

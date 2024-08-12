@@ -90,7 +90,7 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
   let requestData = null;
   if (event.data != null) {
     requestData = validatePaymentCreateRequest(event.data);
-  }
+  };
   const hyperswitchClient = await createHyperswitchClient({
     configData,
   });
