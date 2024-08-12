@@ -20,15 +20,10 @@ import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
 } from "../../hyperswitch/currencies";
-import {
-  ChannelNotConfigured,
-  HyperswitchHttpClientError,
-  UnExpectedHyperswitchPaymentStatus,
-} from "@/errors";
-import { SyncWebhookAppErrors } from "@/schemas/HyperswitchTransactionInitializeSession/HyperswitchTransactionInitializeSessionResponse.mjs";
 import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
+import { SyncWebhookAppErrors } from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
 
 export const hyperswitchPaymentCaptureStatusToSaleorTransactionResult = (
   status: string,

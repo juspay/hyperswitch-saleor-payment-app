@@ -7,7 +7,6 @@ import {
 import { type paths as HyperswitchPaymentPaths } from "generated/hyperswitch-payments";
 import { ApiError, Fetcher } from "openapi-typescript-fetch";
 import { intoErrorResponse } from "./hyperswitch-api-response";
-import { SyncWebhookAppError } from "@/schemas/HyperswitchTransactionInitializeSession/HyperswitchTransactionInitializeSessionResponse.mjs";
 import {
   getConfigurationForChannel,
   PaymentAppConfigurator,
