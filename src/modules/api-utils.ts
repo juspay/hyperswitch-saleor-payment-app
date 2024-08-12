@@ -83,9 +83,10 @@ export const buildAddressDetails = (
   };
 };
 
-
 export function validateTransactionAmount(amount: number) {
   if (amount == 0) {
-    throw new CheckoutPaymentAlreadyProcessed("Checkout corresponding to this transaction is already captured! Please create a new checkout and try again.")
+    throw new CheckoutPaymentAlreadyProcessed(
+      "Checkout corresponding to this transaction is already captured! Please create a new checkout and try again.",
+    );
   }
 }

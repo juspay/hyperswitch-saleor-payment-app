@@ -8,7 +8,11 @@ import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
 } from "../../hyperswitch/currencies";
-import { buildAddressDetails, validatePaymentCreateRequest, validateTransactionAmount } from "../../api-utils";
+import {
+  buildAddressDetails,
+  validatePaymentCreateRequest,
+  validateTransactionAmount,
+} from "../../api-utils";
 import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
 import {
   createHyperswitchClient,
@@ -159,4 +163,3 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
   };
   return transactionInitializeSessionResponse;
 };
-

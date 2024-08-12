@@ -2,9 +2,7 @@ import { getConfigurationForChannel } from "../../payment-app-configuration/paym
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
 
 import { invariant } from "@/lib/invariant";
-import {
-  TransactionChargeRequestedEventFragment,
-} from "generated/graphql";
+import { TransactionChargeRequestedEventFragment } from "generated/graphql";
 import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
 import { createLogger } from "@/lib/logger";
 import {
