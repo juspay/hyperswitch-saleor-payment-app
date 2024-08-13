@@ -1,5 +1,4 @@
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
-import { type HyperswitchTransactionCancelationRequestedResponse } from "@/schemas/HyperswitchTransactionCancelationRequested/HyperswitchTransactionCancelationRequestedResponse.mjs";
 import { type TransactionCancelationRequestedEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
@@ -7,10 +6,11 @@ import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
 import { getSaleorAmountFromHyperswitchAmount } from "../../hyperswitch/currencies";
 import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
+import { TransactionCancelationRequestedResponse } from "@/schemas/TransactionCancelationRequested/TransactionCancelationRequestedResponse.mjs";
 
 export const hyperswitchPaymentCancelStatusToSaleorTransactionResult = (
   status: string,
-): HyperswitchTransactionCancelationRequestedResponse["result"] | null => {
+): TransactionCancelationRequestedResponse["result"] | null => {
   switch (status) {
     case "cancelled":
       return "CANCEL_SUCCESS";
@@ -27,7 +27,7 @@ export const TransactionCancelationRequestedHyperswitchWebhookHandler = async (
   event: TransactionCancelationRequestedEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<HyperswitchTransactionCancelationRequestedResponse> => {
+): Promise<TransactionCancelationRequestedResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionCancelationRequestedWebhookHandler] " },
@@ -74,7 +74,7 @@ export const TransactionCancelationRequestedHyperswitchWebhookHandler = async (
     cancelPaymentResponseData.status,
   );
 
-  const transactionCancelationRequestedResponse: HyperswitchTransactionCancelationRequestedResponse =
+  const transactionCancelationRequestedResponse: TransactionCancelationRequestedResponse =
     result === undefined
       ? {
           pspReference: cancelPaymentResponseData.payment_id,

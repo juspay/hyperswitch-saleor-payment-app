@@ -10,9 +10,9 @@ import {
 } from "generated/graphql";
 import { getSyncWebhookHandler } from "@/backend-lib/api-route-utils";
 import { TransactionCancelationRequestedHyperswitchWebhookHandler } from "@/modules/webhooks/hyperswitch/transaction-cancelation-requested";
-import ValidateTransactionCancelationRequestedResponse from "@/schemas/HyperswitchTransactionCancelationRequested/HyperswitchTransactionCancelationRequestedResponse.mjs";
 import { TransactionCancelationRequestedJuspayWebhookHandler } from "@/modules/webhooks/juspay/transaction-cancelation-requested";
 import { TransactionCancelationRequestedConfigHandler } from "@/modules/webhooks/utils/config-handlers";
+import ValidateTransactionCancelationRequestedResponse from "@/schemas/TransactionCancelationRequested/TransactionCancelationRequestedResponse.mjs";
 
 export const config: PageConfig = {
   api: {

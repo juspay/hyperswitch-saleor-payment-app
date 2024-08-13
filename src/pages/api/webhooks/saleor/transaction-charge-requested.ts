@@ -9,9 +9,9 @@ import {
 } from "generated/graphql";
 import { getSyncWebhookHandler } from "@/backend-lib/api-route-utils";
 import { TransactionChargeRequestedHyperswitchWebhookHandler } from "@/modules/webhooks/hyperswitch/transaction-charge-requested";
-import ValidateTransactionChargeRequestedResponse from "@/schemas/HyperswitchTransactionChargeRequested/HyperswitchTransactionChargeRequestedResponse.mjs";
 import { TransactionChargeRequestedJuspayWebhookHandler } from "@/modules/webhooks/juspay/transaction-charge-requested";
 import { TransactionChargeRequestedConfigHandler } from "@/modules/webhooks/utils/config-handlers";
+import ValidateTransactionChargeRequestedResponse from "@/schemas/TransactionChargeRequested/TransactionChargeRequestedResponse.mjs";
 
 export const config: PageConfig = {
   api: {

@@ -9,9 +9,9 @@ import {
 import { saleorApp } from "@/saleor-app";
 import { getSyncWebhookHandler } from "@/backend-lib/api-route-utils";
 import { TransactionRefundRequestedHyperswitchWebhookHandler } from "@/modules/webhooks/hyperswitch/transaction-refund-requested";
-import ValidateTransactionRefundRequestedResponse from "@/schemas/HyperswitchTransactionRefundRequested/HyperswitchTransactionRefundRequestedResponse.mjs";
 import { TransactionRefundRequestedConfigHandler } from "@/modules/webhooks/utils/config-handlers";
 import { TransactionRefundRequestedJuspayWebhookHandler } from "@/modules/webhooks/juspay/transaction-refund-requested";
+import ValidateTransactionRefundRequestedResponse from "@/schemas/TransactionRefundRequested/TransactionRefundRequestedResponse.mjs";
 
 export const config: PageConfig = {
   api: {

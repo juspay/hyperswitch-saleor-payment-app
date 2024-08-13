@@ -2,7 +2,6 @@ import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuratio
 import { TransactionRefundRequestedEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
-import { type HyperswitchTransactionRefundRequestedResponse } from "@/schemas/HyperswitchTransactionRefundRequested/HyperswitchTransactionRefundRequestedResponse.mjs";
 import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
@@ -11,6 +10,7 @@ import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
 import { intoRefundResponse } from "../../hyperswitch/hyperswitch-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
+import { TransactionRefundRequestedResponse } from "@/schemas/TransactionRefundRequested/TransactionRefundRequestedResponse.mjs";
 
 export type PaymentRefundResponse = {
   status: string;
@@ -18,7 +18,7 @@ export type PaymentRefundResponse = {
 
 export const hyperswitchRefundToTransactionResult = (
   status: string,
-): HyperswitchTransactionRefundRequestedResponse["result"] | null => {
+): TransactionRefundRequestedResponse["result"] | null => {
   switch (status) {
     case "succeeded":
       return "REFUND_SUCCESS";
@@ -35,7 +35,7 @@ export const TransactionRefundRequestedHyperswitchWebhookHandler = async (
   event: TransactionRefundRequestedEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<HyperswitchTransactionRefundRequestedResponse> => {
+): Promise<TransactionRefundRequestedResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionRefundRequestedWebhookHandler] " },
@@ -80,7 +80,7 @@ export const TransactionRefundRequestedHyperswitchWebhookHandler = async (
   const refundPaymentResponseData = intoRefundResponse(refundPaymentResponse.data);
   const result = hyperswitchRefundToTransactionResult(refundPaymentResponseData.status);
 
-  const transactionRefundRequestedResponse: HyperswitchTransactionRefundRequestedResponse =
+  const transactionRefundRequestedResponse: TransactionRefundRequestedResponse =
     result === undefined
       ? {
           pspReference: refundPaymentResponseData.refund_id,

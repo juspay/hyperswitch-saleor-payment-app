@@ -8,6 +8,7 @@ import {
   buildAddressDetails,
   validatePaymentCreateRequest,
   generate16DigitId,
+  validateTransactionAmount,
 } from "../../api-utils";
 import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
 import { createJuspayClient, fetchJuspayCleintId } from "@/modules/juspay/juspay-api";
@@ -78,6 +79,7 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
 
   const app = event.recipient;
   invariant(app, "Missing event.recipient!");
+  validateTransactionAmount(event.action.amount);
   const errors: SyncWebhookAppErrors = [];
   let requestData = null;
   if (event.data != null) {

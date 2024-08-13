@@ -8,7 +8,11 @@ import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
 } from "../../hyperswitch/currencies";
-import { buildAddressDetails, validatePaymentCreateRequest } from "../../api-utils";
+import {
+  buildAddressDetails,
+  validatePaymentCreateRequest,
+  validateTransactionAmount,
+} from "../../api-utils";
 import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
 import {
   createHyperswitchClient,
@@ -25,6 +29,7 @@ import {
   SyncWebhookAppErrors,
   TransactionInitializeSessionResponse,
 } from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
+import { number } from "zod";
 
 export const hyperswitchPaymentIntentToTransactionResult = (
   status: string,
@@ -81,6 +86,7 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
   const errors: SyncWebhookAppErrors = [];
   const currency = event.action.currency;
   const amount = getHyperswitchAmountFromSaleorMoney(event.action.amount, currency);
+  validateTransactionAmount(amount);
   let requestData = null;
   if (event.data != null) {
     requestData = validatePaymentCreateRequest(event.data);

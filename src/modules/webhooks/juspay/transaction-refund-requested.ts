@@ -2,16 +2,16 @@ import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuratio
 import { TransactionRefundRequestedEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
-import { type JuspayTransactionRefundRequestedResponse } from "@/schemas/JuspayTransactionRefundRequested/JuspayTransactionRefundRequestedResponse.mjs";
 import { createJuspayClient } from "@/modules/juspay/juspay-api";
 import { type components as paymentsComponents } from "generated/juspay-payments";
 import { intoRefundResponse } from "../../juspay/juspay-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import { v4 as uuidv4 } from "uuid";
+import { TransactionRefundRequestedResponse } from "@/schemas/TransactionRefundRequested/TransactionRefundRequestedResponse.mjs";
 
 export const juspayRefundToTransactionResult = (
   status: string,
-): JuspayTransactionRefundRequestedResponse["result"] | null => {
+): TransactionRefundRequestedResponse["result"] | null => {
   switch (status) {
     case "SUCCESS":
     case "CHARGED":
@@ -30,7 +30,7 @@ export const TransactionRefundRequestedJuspayWebhookHandler = async (
   event: TransactionRefundRequestedEventFragment,
   saleorApiUrl: string,
   configData: ConfigObject,
-): Promise<JuspayTransactionRefundRequestedResponse> => {
+): Promise<TransactionRefundRequestedResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionRefundRequestedWebhookHandler] " },
@@ -87,7 +87,7 @@ export const TransactionRefundRequestedJuspayWebhookHandler = async (
 
   const result = juspayRefundToTransactionResult(refundStatus);
 
-  const transactionRefundRequestedResponse: JuspayTransactionRefundRequestedResponse =
+  const transactionRefundRequestedResponse: TransactionRefundRequestedResponse =
     result === undefined
       ? {
           pspReference: unique_request_id,
