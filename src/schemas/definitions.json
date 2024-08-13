@@ -67,7 +67,7 @@
     },
     "Orchestra": {
       "type": "string",
-      "enum": ["HYPERSWITCH", "JUSPAY"]
+      "enum": ["HYPERSWITCH", "HYPERCHECKOUT"]
     },
     "SyncWebhookAppError": {
       "type": "object",
