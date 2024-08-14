@@ -63,8 +63,6 @@ export const juspayStatusToSaleorTransactionResult = (
       return TransactionEventTypeEnum.AuthorizationSuccess;
     case "VOIDED":
       return TransactionEventTypeEnum.CancelSuccess;
-    case "NEW":
-    case "CREATED":
     case "PENDING_AUTHENTICATION":
     case "PENDING_VBV":
     case "AUTHORIZING":

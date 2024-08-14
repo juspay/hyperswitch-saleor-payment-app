@@ -33,6 +33,7 @@ export const juspayOrderStatusResult = (
     case "AUTO_REFUNDED":
     case "VOIDED":
     case "COD_INITIATED":
+    case "CHARGED":
       return `${prefix}_SUCCESS`;
     case "DECLINED":
     case "ERROR":

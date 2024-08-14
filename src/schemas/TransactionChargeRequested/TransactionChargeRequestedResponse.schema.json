@@ -5,9 +5,9 @@
     "pspReference": { "type": "string" },
     "result": { "$ref": "definitions.json#/definitions/TransactionChargeRequestedAllowedResult" },
     "amount": { "$ref": "definitions.json#/definitions/PositiveDecimal" },
-    "time": { "$ref": "definitions.json#/definitions/DateTime" },
     "externalUrl": { "type": "string" },
     "message": { "type": "string" }
   },
+  "required": [],
   "additionalProperties": false
 }

@@ -3,7 +3,7 @@
   "$id": "definitions.json",
   "definitions": {
     "PositiveDecimal": { "type": "number", "minimum": 0 },
-    "DateTime": { "type": "string", "format": "date-time" },
+    "DateTime": { "type": "string"},
     "JSON": {
       "type": "object",
       "additionalProperties": true,
@@ -67,7 +67,7 @@
     },
     "Orchestra": {
       "type": "string",
-      "enum": ["HYPERSWITCH", "JUSPAY"]
+      "enum": ["HYPERSWITCH", "HYPERCHECKOUT"]
     },
     "SyncWebhookAppError": {
       "type": "object",
