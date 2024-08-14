@@ -3,7 +3,7 @@
   "$id": "definitions.json",
   "definitions": {
     "PositiveDecimal": { "type": "number", "minimum": 0 },
-    "DateTime": { "type": "string"},
+    "DateTime": { "type": "string" },
     "JSON": {
       "type": "object",
       "additionalProperties": true,
