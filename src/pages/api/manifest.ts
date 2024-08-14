@@ -12,7 +12,7 @@ import { transactionProcessSessionSyncWebhook } from "./webhooks/saleor/transact
 export default createManifestHandler({
   async manifestFactory(context) {
     const manifest: AppManifest = {
-      id: "app.saleor.juspay-development",
+      id: "app.saleor.juspay-test",
       name: "Juspay",
       about: packageJson.description,
       tokenTargetUrl: `${context.appBaseUrl}/api/register`,
