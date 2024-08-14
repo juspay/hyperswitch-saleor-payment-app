@@ -171,6 +171,10 @@ const txnDetails = z.object({
   error_message: z.string(),
 });
 
+const PaymentGatewayResponse = z.object({
+  resp_message: z.string(),
+});
+
 const erroInfo = z.object({
   user_message: z.string(),
 });
@@ -186,6 +190,7 @@ const WebhookObjectBodySchema = z.object({
   udf2: z.string().nullable().optional(),
   udf3: CaptureMethodEnum.nullable().optional(),
   txn_detail: txnDetails.nullable().optional(),
+  payment_gateway_response: PaymentGatewayResponse.nullable().optional(),
   error_info: erroInfo.nullable().optional(),
 });
 

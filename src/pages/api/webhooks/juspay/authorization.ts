@@ -123,6 +123,7 @@ export default async function juspayAuthorizationWebhookHandler(
   const transactionId = webhookBody.content.order.udf1;
   const saleorApiUrl = webhookBody.content.order.udf2;
   const isRefund = eventName === "ORDER_REFUNDED" || eventName === "ORDER_REFUND_FAILED";
+  const responseMsg = webhookBody.content.order.payment_gateway_response?.resp_message ?? "";
 
   invariant(saleorApiUrl && transactionId, "user defined fields not found in webhook");
 
@@ -240,9 +241,7 @@ export default async function juspayAuthorizationWebhookHandler(
       time: new Date().toISOString(),
       type,
       pspReference,
-      message: webhookBody.content.order.txn_detail?.error_message
-        ? webhookBody.content.order.txn_detail?.error_message
-        : "",
+      message: responseMsg,
     })
     .toPromise();
 
