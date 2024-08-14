@@ -54,7 +54,7 @@ export const ConfigurationForm = ({
       <FormProvider {...formMethods}>
         {orchestra === "Juspay" ? (
           <FormProvider {...formMethods}>
-            <AppLayoutRow title="Juspay Credentials">
+            <AppLayoutRow title="Hypercheckout Credentials">
               <AddJuspayCredentialsForm configurationId={configurationId} />
             </AppLayoutRow>
           </FormProvider>

@@ -28,8 +28,8 @@ const Empty = () => {
   return (
     <RoundedActionBox>
       <Box>
-        <Text as="p">No Hyperswitch configurations added.</Text>
-        <Text as="p">This means payments are not processed by Hyperswitch.</Text>
+        <Text as="p">No Juspay configurations added.</Text>
+        <Text as="p">This means payments are not processed by Juspay.</Text>
       </Box>
       <AddConfigButton>Add new configuration</AddConfigButton>
     </RoundedActionBox>

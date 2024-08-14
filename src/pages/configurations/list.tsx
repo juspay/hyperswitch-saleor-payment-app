@@ -35,10 +35,10 @@ function ListConfigurationPage() {
   const hasAnyMappings = Object.values(channelMappings.data || {}).filter(Boolean).length > 0;
 
   return (
-    <AppLayout title="Hyperswitch">
+    <AppLayout title="Juspay">
       <AppLayoutRow
-        title="Hyperswitch Configurations"
-        description="Create Hyperswitch configurations that can be later assigned to Saleor channels."
+        title="Juspay Configurations"
+        description="Create Juspay configurations that can be later assigned to Saleor channels."
         disabled={channelMappings.isLoading}
       >
         {allConfigurations.isLoading ? (
@@ -53,7 +53,7 @@ function ListConfigurationPage() {
         description={
           <Box>
             <Text as="p" size={5}>
-              Assign Hypeswitch configurations to Saleor channels.
+              Assign Juspay configurations to Saleor channels.
             </Text>
             {!channelMappings.isLoading && !hasAnyMappings && (
               <Box marginTop={6}>
@@ -61,7 +61,7 @@ function ListConfigurationPage() {
                   No channels have configurations assigned.
                 </Text>
                 <Text as="p" size={5} color="critical2">
-                  This means payments are not processed by Hypeswitch.
+                  This means payments are not processed by Juspay.
                 </Text>
               </Box>
             )}

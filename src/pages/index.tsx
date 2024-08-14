@@ -136,11 +136,13 @@ const IndexPage: NextPage = () => {
       paddingY={20}
     >
       <Text as="h1" size={11}>
-        Welcome to Payment App Hyperswitch 💰
+        Welcome to Juspay Saleor Payment App  💰
       </Text>
       <Text as="p">
-        A community led, open payments orchestrator to enable access to the best payments
-        infrastructure for every digital business
+      Enable merchants to utilize Juspay's secure and efficient payment processing directly within their Saleor storefront,
+      </Text>
+      <Text>
+      delivering a smooth and dependable checkout experience for customers both within India and globally.
       </Text>
 
       {!appBridgeState?.ready && (

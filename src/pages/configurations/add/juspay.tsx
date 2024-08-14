@@ -6,11 +6,11 @@ import { ConfigurationForm } from "@/modules/ui/organisms/AddHyperswitchConfigur
 const AddConfigurationPage = () => {
   return (
     <AppLayout
-      title="Juspay > Add configuration"
+      title="Hypercheckout > Add configuration"
       description={
         <>
           <Text as="p" sizes="medium">
-            Create new Juspay configuration.
+            Create new Hypercheckout configuration.
           </Text>
         </>
       }

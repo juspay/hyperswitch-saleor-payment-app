@@ -17,11 +17,11 @@ const EditConfigurationPage = () => {
 
   return (
     <AppLayout
-      title="Juspay > View configuration"
+      title="Hypercheckout > View configuration"
       description={
         <>
           <Text as="p" sizes="medium">
-            View Juspay configuration.
+            View Hypercheckout configuration.
           </Text>
           <Text
             as="p"
