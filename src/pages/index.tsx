@@ -136,13 +136,15 @@ const IndexPage: NextPage = () => {
       paddingY={20}
     >
       <Text as="h1" size={11}>
-        Welcome to Juspay Saleor Payment App  💰
+        Welcome to Juspay Saleor Payment App 💰
       </Text>
       <Text as="p">
-      Enable merchants to utilize Juspay's secure and efficient payment processing directly within their Saleor storefront,
+        Enable merchants to utilize secure and efficient payment processing from Juspay directly
+        within their Saleor storefront,
       </Text>
       <Text>
-      delivering a smooth and dependable checkout experience for customers both within India and globally.
+        delivering a smooth and dependable checkout experience for customers both within India and
+        globally.
       </Text>
 
       {!appBridgeState?.ready && (
