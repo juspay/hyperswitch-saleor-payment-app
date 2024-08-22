@@ -333,7 +333,7 @@
           "source_object_id": { "type": "string", "nullable": true },
           "amount_info": { "type": "string", "nullable": true },
           "offer_details": { "type": "string", "nullable": true },
-          "payment_filter": { "type": "string", "nullable": true },
+          "payment_filter": { "type": "object", "nullable": true },
           "options_get_payment_collection_link": { "type": "string", "nullable": true },
           "payment_collection_link_details": { "type": "string", "nullable": true },
           "virtual_account_references": { "type": "string", "nullable": true },
