@@ -28,6 +28,10 @@ const PaymentCreateRequestSchema = z.object({
   returnUrl: z.string().nullable().optional(),
   manualRetryAllowed: z.boolean().nullable().optional(),
   gatewayReferenceId: z.string().nullable().optional(),
+  allowedPaymentMethods: z.union([
+      z.record(z.any()).nullable(),
+      z.array(z.string()).nullable()  
+    ]).nullable().optional()
 });
 
 // Type definition for PaymentCreateRequest

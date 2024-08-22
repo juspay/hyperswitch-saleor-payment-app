@@ -123,6 +123,7 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
     description: normalizeValue(requestData?.description),
     billing: buildAddressDetails(event.sourceObject.billingAddress, userEmail),
     shipping: buildAddressDetails(event.sourceObject.shippingAddress, requestData?.shippingEmail),
+    allowed_payment_method_types : normalizeValue(requestData?.allowedPaymentMethods),
     metadata: {
       transaction_id: event.transaction.id,
       saleor_api_url: saleorApiUrl,
