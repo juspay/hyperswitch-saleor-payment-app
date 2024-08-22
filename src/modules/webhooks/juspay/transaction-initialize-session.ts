@@ -144,7 +144,7 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     shipping_address_country: normalizeValue(shippingAddress?.address?.zip),
     shipping_address_postal_code: normalizeValue(shippingAddress?.address?.zip),
     "metadata.JUSPAY:gateway_reference_id": requestData?.gatewayReferenceId,
-    "metadata.txns.auto_capture": normalizeValue(captureMethod),
+    "metadata.txns.auto_capture": captureMethod,
   };
   const createOrderResponse = await createJuspayPayment(createOrderPayload);
 
