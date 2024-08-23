@@ -17,4 +17,4 @@ extensions:
           - typed-document-node
       generated/schema.graphql:
         plugins:
-          - schema-ast
+          - '@graphql-codegen/schema-ast'
