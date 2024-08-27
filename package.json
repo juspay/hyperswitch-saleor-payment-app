@@ -43,6 +43,7 @@
     "pnpm": ">=9"
   },
   "dependencies": {
+    "@graphql-codegen/schema-ast": "4.1.0",
     "@hookform/resolvers": "3.3.2",
     "@next/env": "14.0.4",
     "@radix-ui/react-alert-dialog": "1.0.5",
