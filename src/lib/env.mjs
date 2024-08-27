@@ -29,7 +29,7 @@ export const env = createEnv({
     HYPERSWITCH_SANDBOX_BASE_URL: z.string().default("https://sandbox.hyperswitch.io"),
     HYPERSWITCH_PROD_BASE_URL: z.string().default("https://api.hyperswitch.io"),
     JUSPAY_SANDBOX_BASE_URL: z.string().default("https://sandbox.juspay.in"),
-    JUSPAY_PROD_BASE_URL: z.string().default( "https://api.juspay.in"),
+    JUSPAY_PROD_BASE_URL: z.string().default("https://api.juspay.in"),
   },
   /*
    * Environment variables available on the client (and server).

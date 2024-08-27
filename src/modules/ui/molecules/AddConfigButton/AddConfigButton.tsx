@@ -17,15 +17,21 @@ export const AddConfigButton = ({ ...props }: AddConfigButtonProps) => {
     setState("prompt");
   }, []);
 
-  const handleOutsideIndiaClick = useCallback<MouseEventHandler<HTMLButtonElement>>((e) => {
-    e.preventDefault();
-    void router.replace("/configurations/add/hyperswitch");
-  }, [router]);
+  const handleOutsideIndiaClick = useCallback<MouseEventHandler<HTMLButtonElement>>(
+    (e) => {
+      e.preventDefault();
+      void router.replace("/configurations/add/hyperswitch");
+    },
+    [router],
+  );
 
-  const handleIndiaClick = useCallback<MouseEventHandler<HTMLButtonElement>>((e) => {
-    e.preventDefault();
-    void router.replace("/configurations/add/juspay");
-  }, [router]);
+  const handleIndiaClick = useCallback<MouseEventHandler<HTMLButtonElement>>(
+    (e) => {
+      e.preventDefault();
+      void router.replace("/configurations/add/juspay");
+    },
+    [router],
+  );
 
   const handleOpenChange = useCallback((open: boolean) => {
     setState(open ? "prompt" : "idle");
