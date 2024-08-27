@@ -28,6 +28,9 @@ FROM node:20-alpine AS production
 # Set the working directory in the container
 WORKDIR /app
 
+# Install pnpm globally in the production stage
+RUN npm install -g pnpm
+
 # Copy the dependencies from the build stage
 COPY --from=builder /app/node_modules ./node_modules
 
