@@ -16,11 +16,11 @@ RUN pnpm install
 # Copy the rest of the application code to the container
 COPY . .
 
-# Build the Next.js application
-RUN pnpm build
-
 # Run the pnpm generate command to prepare necessary files
 RUN pnpm generate
+
+# Build the Next.js application
+RUN pnpm build
 
 # Prepare the production environment
 FROM node:20-alpine AS production
@@ -35,10 +35,6 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./package.json
-
-# Set environment variables (you can also set these in a .env file)
-# ENV PAYMENT_SERVICE_API_KEY=your-api-key
-# ENV OTHER_SERVICE_API_KEY=your-other-api-key
 
 # Expose the port on which the app will run
 EXPOSE 3000
