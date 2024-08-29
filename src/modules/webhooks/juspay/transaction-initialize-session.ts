@@ -110,7 +110,18 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
 
   const captureMethod =
     event.action.actionType == TransactionFlowStrategyEnum.Authorization ? false : true;
-  const orderId = uuidv4();
+
+  function generateUniqueUUID(): string {
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let uuid = "";
+    for (let i = 0; i < 10; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      uuid += characters[randomIndex];
+    }
+    uuid += Date.now().toString(36);
+    return uuid;
+  }
+  const orderId = generateUniqueUUID();
 
   const createOrderPayload: paymentsComponents["schemas"]["SessionRequest"] = {
     order_id: normalizeValue(orderId),
@@ -144,7 +155,7 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     shipping_address_country: normalizeValue(shippingAddress?.address?.zip),
     shipping_address_postal_code: normalizeValue(shippingAddress?.address?.zip),
     "metadata.JUSPAY:gateway_reference_id": requestData?.gatewayReferenceId,
-    "metadata.txns.auto_capture": normalizeValue(captureMethod),
+    "metadata.txns.auto_capture": captureMethod,
     payment_filter: normalizeValue(requestData?.allowedPaymentMethods),
   };
   const createOrderResponse = await createJuspayPayment(createOrderPayload);
