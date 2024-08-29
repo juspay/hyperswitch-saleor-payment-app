@@ -35,7 +35,7 @@ export const SessionSDKPayload = z.object({
   requestId: z.string(),
   service: z.string(),
   payload: Payload,
-  expiry: z.string().nullable(),
+  expiry: z.string().nullable().optional(),
 });
 
 export const PaymentResponseSchema = z.object({
