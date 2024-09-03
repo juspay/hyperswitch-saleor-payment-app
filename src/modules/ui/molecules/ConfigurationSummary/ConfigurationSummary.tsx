@@ -10,7 +10,7 @@ export const HyperswitchConfigurationSummary = ({
   environment,
 }: {
   config: HyperswitchUserVisibleConfigEntry;
-  environment: string,
+  environment: string;
 }) => {
   return (
     <Box
@@ -53,7 +53,7 @@ export const JuspayConfigurationSummary = ({
   environment,
 }: {
   config: JuspayUserVisibleConfigEntry;
-  environment: String,
+  environment: String;
 }) => {
   return (
     <Box

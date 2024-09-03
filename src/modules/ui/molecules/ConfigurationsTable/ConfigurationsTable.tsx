@@ -30,7 +30,7 @@ const HyperswitchConfigurationsTableRow = ({
         </Text>
       </Td>
       <Td className={tableStyles.summaryColumnTd}>
-        <HyperswitchConfigurationSummary config={item} environment={environment}/>
+        <HyperswitchConfigurationSummary config={item} environment={environment} />
       </Td>
       <Td className={tableStyles.actionsColumnTd}>
         <Link href={`/configurations/edit/hyperswitch/${configurationId}`} passHref legacyBehavior>
@@ -55,7 +55,7 @@ const JuspayConfigurationsTableRow = ({
   item,
   configurationName,
   configurationId,
-  environment
+  environment,
 }: {
   item: JuspayUserVisibleConfigEntry;
   configurationName: string;
@@ -70,7 +70,7 @@ const JuspayConfigurationsTableRow = ({
         </Text>
       </Td>
       <Td className={tableStyles.summaryColumnTd}>
-        <JuspayConfigurationSummary config={item} environment={environment}/>
+        <JuspayConfigurationSummary config={item} environment={environment} />
       </Td>
       <Td className={tableStyles.actionsColumnTd}>
         <Link href={`/configurations/edit/juspay/${configurationId}`} passHref legacyBehavior>

@@ -16,7 +16,6 @@ import {
   hyperswitchUserVisibleConfigEntrySchema,
 } from "../hyperswitch-app-configuration/config-entry";
 
-
 const Environment = z.enum(["test", "live"]);
 
 export const paymentAppConfigEntryInternalSchema = z.object({

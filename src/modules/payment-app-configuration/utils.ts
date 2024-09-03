@@ -10,8 +10,13 @@ import {
 export const obfuscateConfigEntry = (
   entry: PaymentAppConfigEntry | PaymentAppUserVisibleConfigEntry,
 ): PaymentAppUserVisibleConfigEntry => {
-  const { configurationName, configurationId, hyperswitchConfiguration, juspayConfiguration, environment} =
-    entry;
+  const {
+    configurationName,
+    configurationId,
+    hyperswitchConfiguration,
+    juspayConfiguration,
+    environment,
+  } = entry;
 
   if (juspayConfiguration) {
     const { apiKey, username, merchantId, password, clientId } = juspayConfiguration;

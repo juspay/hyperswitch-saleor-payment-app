@@ -73,7 +73,6 @@ export const fetchHyperswitchPaymentResponseHashKey = async (
 };
 
 export const createHyperswitchClient = async ({ configData }: { configData: ConfigObject }) => {
-
   const SavedConfiguration = await fetchSavedConfiguration(configData);
   const HyperswitchConfig = getHyperswitchConfig(
     paymentAppFullyConfiguredEntrySchema.parse(SavedConfiguration),
