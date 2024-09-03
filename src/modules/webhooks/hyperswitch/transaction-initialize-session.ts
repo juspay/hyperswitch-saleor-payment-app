@@ -95,6 +95,7 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
     configData,
   });
 
+
   const profileId = await fetchHyperswitchProfileID(configData);
 
   const createHyperswitchPayment = hyperswitchClient.path("/payments").method("post").create();
@@ -132,12 +133,14 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
 
   const publishableKey = await fetchHyperswitchPublishableKey(configData);
 
+
   const createPaymentResponse = await createHyperswitchPayment(createPaymentPayload);
   const createPaymentResponseData = intoPaymentResponse(createPaymentResponse.data);
   const result = hyperswitchPaymentIntentToTransactionResult(
     createPaymentResponseData.status,
     event.action.actionType,
   );
+
   const transactionInitializeSessionResponse: TransactionInitializeSessionResponse = {
     data: {
       paymentLinks: {

@@ -16,9 +16,13 @@ import {
   hyperswitchUserVisibleConfigEntrySchema,
 } from "../hyperswitch-app-configuration/config-entry";
 
+
+const Environment = z.enum(["test", "live"]);
+
 export const paymentAppConfigEntryInternalSchema = z.object({
   configurationId: z.string().min(1),
   configurationName: z.string().min(1),
+  environment: Environment,
 });
 
 export const paymentAppConfigEntryEncryptedSchema = z.object({
@@ -58,6 +62,7 @@ export const paymentAppFormConfigEntrySchema = z
     hyperswitchConfiguration: hyperswitchFormConfigEntrySchema.nullable().optional(),
     juspayConfiguration: juspayFormConfigEntrySchema.nullable().optional(),
     configurationName: paymentAppConfigEntryInternalSchema.shape.configurationName,
+    environment: paymentAppConfigEntryInternalSchema.shape.environment,
   })
   .strict();
 

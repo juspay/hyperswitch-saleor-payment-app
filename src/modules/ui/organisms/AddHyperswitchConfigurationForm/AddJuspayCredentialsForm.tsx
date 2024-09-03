@@ -134,8 +134,16 @@ export const AddJuspayCredentialsForm = ({
         <FormInput
           control={control}
           label="Configuration name"
-          helperText="Enter configuration name that uniquely identifies this configuration. This name will be used later to assign configuration to Saleor Channels."
+          helperText="Enter configuration name that uniquely identifies this configuration. This name will be used later to assign configuration to Saleor Channels"
           name="configurationName"
+          autoComplete="off"
+          size="medium"
+        />
+        <FormInput
+          control={control}
+          label="Environment"
+          helperText="Enter configuration environment either test or live"
+          name="environment"
           autoComplete="off"
           size="medium"
         />

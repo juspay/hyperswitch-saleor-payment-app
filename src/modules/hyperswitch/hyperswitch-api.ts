@@ -20,10 +20,9 @@ import { HyperswitchFullyConfiguredEntry } from "../payment-app-configuration/hy
 import { env } from "@/lib/env.mjs";
 import { invariant } from "@/lib/invariant";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
-import { getEnvironmentFromKey } from "@/modules/api-utils";
 
-const getHyperswitchBaseUrl = () => {
-  if (getEnvironmentFromKey() == "production") {
+const getHyperswitchBaseUrl = (config_env: string) => {
+  if (config_env == "live") {
     invariant(env.HYPERSWITCH_PROD_BASE_URL, "ENV variable HYPERSWITCH_PROD_BASE_URL not set");
     return env.HYPERSWITCH_PROD_BASE_URL;
   } else {
@@ -35,25 +34,20 @@ const getHyperswitchBaseUrl = () => {
   }
 };
 
-const fetchHyperswitchConfiguration = async (
+const fetchSavedConfiguration = async (
   configData: ConfigObject,
-): Promise<HyperswitchFullyConfiguredEntry> => {
+): Promise<PaymentAppConfigEntryFullyConfigured> => {
   const appConfig = await configData.configurator.getConfig();
 
   const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
   if (appChannelConfig == null) {
     throw new ChannelNotConfigured("Please assign a channel for your configuration");
   }
-
-  return getHyperswitchConfig(paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig));
+  return paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
 };
 
 export const fetchHyperswitchProfileID = async (configData: ConfigObject): Promise<string> => {
-  const appConfig = await configData.configurator.getConfig();
-  const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
-  if (appChannelConfig == null) {
-    throw new ChannelNotConfigured("Please assign a channel for your configuration");
-  }
+  let appChannelConfig = await fetchSavedConfiguration(configData);
   const HyperswitchConfig = getHyperswitchConfig(
     paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig),
   );
@@ -61,11 +55,7 @@ export const fetchHyperswitchProfileID = async (configData: ConfigObject): Promi
 };
 
 export const fetchHyperswitchPublishableKey = async (configData: ConfigObject): Promise<string> => {
-  const appConfig = await configData.configurator.getConfig();
-  const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
-  if (appChannelConfig == null) {
-    throw new ChannelNotConfigured("Please assign a channel for your configuration");
-  }
+  let appChannelConfig = await fetchSavedConfiguration(configData);
   const HyperswitchConfig = getHyperswitchConfig(
     paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig),
   );
@@ -75,11 +65,7 @@ export const fetchHyperswitchPublishableKey = async (configData: ConfigObject): 
 export const fetchHyperswitchPaymentResponseHashKey = async (
   configData: ConfigObject,
 ): Promise<string> => {
-  const appConfig = await configData.configurator.getConfig();
-  const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
-  if (appChannelConfig == null) {
-    throw new ChannelNotConfigured("Please assign a channel for your configuration");
-  }
+  let appChannelConfig = await fetchSavedConfiguration(configData);
   const HyperswitchConfig = getHyperswitchConfig(
     paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig),
   );
@@ -87,10 +73,15 @@ export const fetchHyperswitchPaymentResponseHashKey = async (
 };
 
 export const createHyperswitchClient = async ({ configData }: { configData: ConfigObject }) => {
-  const HyperswitchConfig = await fetchHyperswitchConfiguration(configData);
+
+  const SavedConfiguration = await fetchSavedConfiguration(configData);
+  const HyperswitchConfig = getHyperswitchConfig(
+    paymentAppFullyConfiguredEntrySchema.parse(SavedConfiguration),
+  );
+
   const fetcher = Fetcher.for<HyperswitchPaymentPaths>();
   fetcher.configure({
-    baseUrl: getHyperswitchBaseUrl(),
+    baseUrl: getHyperswitchBaseUrl(SavedConfiguration.environment),
     init: {
       headers: {
         "api-key": HyperswitchConfig.apiKey,
@@ -121,6 +112,6 @@ export function getHyperswitchConfig(
   if (config.hyperswitchConfiguration) {
     return config.hyperswitchConfiguration;
   } else {
-    throw new ConfigurationNotFound("Please add Hyperswitch configuration");
+    throw new ConfigurationNotFound("Please add a Hyperswitch configuration");
   }
 }

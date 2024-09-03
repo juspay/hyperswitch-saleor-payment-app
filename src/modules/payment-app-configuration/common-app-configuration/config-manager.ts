@@ -95,6 +95,7 @@ export const addConfigEntry = async (
       juspayConfiguration: undefined,
       configurationName: newConfigEntry.configurationName,
       configurationId: uuid,
+      environment: newConfigEntry.environment,
     } satisfies PaymentAppConfigEntryFullyConfigured;
     await configurator.setConfigEntry(config);
     const result = obfuscateConfigEntry(config);
@@ -112,6 +113,7 @@ export const addConfigEntry = async (
       },
       configurationName: newConfigEntry.configurationName,
       configurationId: uuid,
+      environment: newConfigEntry.environment,
     } satisfies PaymentAppConfigEntryFullyConfigured;
     await configurator.setConfigEntry(config);
     return obfuscateConfigEntry(config);

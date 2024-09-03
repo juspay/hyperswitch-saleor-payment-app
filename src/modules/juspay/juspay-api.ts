@@ -11,10 +11,9 @@ import { JuspayFullyConfiguredEntry } from "../payment-app-configuration/juspay-
 import { getConfigurationForChannel } from "../payment-app-configuration/payment-app-configuration";
 import { intoErrorResponse } from "./juspay-api-response";
 import { invariant } from "@/lib/invariant";
-import { getEnvironmentFromKey } from "@/modules/api-utils";
 
-const getJuspayBaseUrl = () => {
-  if (getEnvironmentFromKey() == "production") {
+const getJuspayBaseUrl = (config_env: string) => {
+  if (config_env == "live") {
     invariant(env.JUSPAY_PROD_BASE_URL, "ENV variable HYPERSWITCH_PROD_BASE_URL not set");
     return env.JUSPAY_PROD_BASE_URL;
   } else {
@@ -23,24 +22,20 @@ const getJuspayBaseUrl = () => {
   }
 };
 
-const fetchJuspayConfiguration = async (
+const fetchSavedConfiguration = async (
   configData: ConfigObject,
-): Promise<JuspayFullyConfiguredEntry> => {
+): Promise<PaymentAppConfigEntryFullyConfigured> => {
   const appConfig = await configData.configurator.getConfig();
   const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
   if (appChannelConfig == null) {
     throw new ChannelNotConfigured("Please assign a channel for your configuration");
   }
 
-  return getJuspayConfig(paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig));
+  return paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
 };
 
 export const fetchJuspayCleintId = async (configData: ConfigObject): Promise<string> => {
-  const appConfig = await configData.configurator.getConfig();
-  const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
-  if (appChannelConfig == null) {
-    throw new ChannelNotConfigured("Please assign a channel for your configuration");
-  }
+  const appChannelConfig = await fetchSavedConfiguration(configData);
   const JuspayConfig = getJuspayConfig(
     paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig),
   );
@@ -48,11 +43,7 @@ export const fetchJuspayCleintId = async (configData: ConfigObject): Promise<str
 };
 
 export const fetchJuspayUsername = async (configData: ConfigObject): Promise<string> => {
-  const appConfig = await configData.configurator.getConfig();
-  const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
-  if (appChannelConfig == null) {
-    throw new ChannelNotConfigured("Please assign a channel for your configuration");
-  }
+  const appChannelConfig = await fetchSavedConfiguration(configData);
   const JuspayConfig = getJuspayConfig(
     paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig),
   );
@@ -60,11 +51,7 @@ export const fetchJuspayUsername = async (configData: ConfigObject): Promise<str
 };
 
 export const fetchJuspayPassword = async (configData: ConfigObject): Promise<string> => {
-  const appConfig = await configData.configurator.getConfig();
-  const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
-  if (appChannelConfig == null) {
-    throw new ChannelNotConfigured("Please assign a channel for your configuration");
-  }
+  const appChannelConfig = await fetchSavedConfiguration(configData);
   const JuspayConfig = getJuspayConfig(
     paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig),
   );
@@ -72,11 +59,12 @@ export const fetchJuspayPassword = async (configData: ConfigObject): Promise<str
 };
 
 export const createJuspayClient = async ({ configData }: { configData: ConfigObject }) => {
-  const JuspayConfig = await fetchJuspayConfiguration(configData);
+  const SavedConfiguration = await fetchSavedConfiguration(configData);
+  const JuspayConfig = getJuspayConfig(SavedConfiguration);
   const fetcher = Fetcher.for<JuspayPaymentPaths>();
   const apiKey = Buffer.from(JuspayConfig.apiKey).toString("base64");
   fetcher.configure({
-    baseUrl: getJuspayBaseUrl(),
+    baseUrl: getJuspayBaseUrl(SavedConfiguration.environment),
     init: {
       headers: {
         authorization: `Basic ${apiKey}`,

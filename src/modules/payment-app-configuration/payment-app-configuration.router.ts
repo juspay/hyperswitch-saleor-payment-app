@@ -65,7 +65,7 @@ export const paymentAppConfigurationRouter = router({
     add: protectedClientProcedure
       .input(paymentAppFormConfigEntrySchema)
       .mutation(async ({ input, ctx }) => {
-        const { hyperswitchConfiguration, juspayConfiguration, configurationName } = input;
+        const { hyperswitchConfiguration, juspayConfiguration, configurationName, environment } = input;
         if (juspayConfiguration) {
           const { apiKey, username, clientId, password, merchantId } = juspayConfiguration;
           ctx.logger.info("appConfigurationRouter.paymentConfig.add called");
@@ -76,6 +76,7 @@ export const paymentAppConfigurationRouter = router({
               merchantId: redactLogValue(merchantId),
               password: redactLogValue(password),
               clientId: redactLogValue(clientId),
+              environment:  redactLogValue(environment)
             },
             "appConfigurationRouter.paymentConfig.add input",
           );
@@ -91,6 +92,7 @@ export const paymentAppConfigurationRouter = router({
               paymentResponseHashKey: redactLogValue(paymentResponseHashKey),
               publishableKey: redactLogValue(publishableKey),
               profileId: profileId,
+
             },
             "appConfigurationRouter.paymentConfig.add input",
           );
