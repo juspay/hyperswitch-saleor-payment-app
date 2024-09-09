@@ -1,4 +1,9 @@
-import { Input as $Input, Select as $Select, type InputProps as $InputProps, type SelectProps as $SelectProps } from "@saleor/macaw-ui";
+import {
+  Input as $Input,
+  Select as $Select,
+  type InputProps as $InputProps,
+  type SelectProps as $SelectProps,
+} from "@saleor/macaw-ui";
 import {
   type UseControllerProps,
   type FieldPath,
@@ -38,12 +43,11 @@ export function FormInput<
   );
 }
 
-
 export type SelectProps<
   TFieldValues extends FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
   TOption = any,
-  TValue = any
+  TValue = any,
 > = UseControllerProps<TFieldValues, TName> & $SelectProps<TOption, TValue>;
 
 export function SelectInput<

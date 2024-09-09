@@ -132,24 +132,24 @@ export const AddJuspayCredentialsForm = ({
     >
       <Box paddingBottom={6} rowGap={4} display="flex" flexDirection="column" width="100%">
         <Box flexDirection="row" display="flex" columnGap={4}>
-        <FormInput
-          control={control}
-          label="Configuration name"
-          helperText="Enter configuration name that uniquely identifies this configuration. This name will be used later to assign configuration to Saleor Channels"
-          name="configurationName"
-          autoComplete="off"
-          size="medium"
-        />
-        <SelectInput 
-        name={"environment"} 
-        helperText="Select the configuration environment"
-        options={[
-          { label: 'Test', value: 'test' },
-          { label: 'Live', value: 'live' }
-        ]} 
-        label="Select environment"
-        value='test'>
-        </SelectInput>
+          <FormInput
+            control={control}
+            label="Configuration name"
+            helperText="Enter configuration name that uniquely identifies this configuration. This name will be used later to assign configuration to Saleor Channels"
+            name="configurationName"
+            autoComplete="off"
+            size="medium"
+          />
+          <SelectInput
+            name={"environment"}
+            helperText="Select the configuration environment"
+            options={[
+              { label: "Test", value: "test" },
+              { label: "Live", value: "live" },
+            ]}
+            label="Select environment"
+            value="test"
+          ></SelectInput>
         </Box>
         <FormInput
           control={control}
