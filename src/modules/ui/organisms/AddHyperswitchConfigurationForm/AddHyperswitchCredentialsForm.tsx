@@ -4,7 +4,7 @@ import { useCallback, useEffect } from "react";
 import { useAppBridge } from "@saleor/app-sdk/app-bridge";
 import { useRouter } from "next/router";
 import { RoundedBoxWithFooter } from "../../atoms/RoundedActionBox/RoundedActionBox";
-import { FormInput } from "@/modules/ui/atoms/macaw-ui/FormInput";
+import { FormInput, SelectInput } from "@/modules/ui/atoms/macaw-ui/FormInput";
 import { trpcClient } from "@/modules/trpc/trpc-client";
 import { getErrorHandler, getFieldErrorHandler, getFormFields } from "@/modules/trpc/utils";
 import { invariant } from "@/lib/invariant";
@@ -131,6 +131,7 @@ export const AddHyperswitchCredentialsForm = ({
       }
     >
       <Box paddingBottom={6} rowGap={4} display="flex" flexDirection="column" width="100%">
+      <Box flexDirection="row" display="flex" columnGap={4}>
         <FormInput
           control={control}
           label="Configuration name"
@@ -139,14 +140,17 @@ export const AddHyperswitchCredentialsForm = ({
           autoComplete="off"
           size="medium"
         />
-        <FormInput
-          control={control}
-          label="Environment"
-          helperText="Enter configuration environment either test or live"
-          name="environment"
-          autoComplete="off"
-          size="medium"
-        />
+        <SelectInput 
+        name={"environment"} 
+        helperText="Select the configuration environment"
+        options={[
+          { label: 'Test', value: 'test' },
+          { label: 'Live', value: 'live' }
+        ]} 
+        label="Select environment"
+        value='test'>
+        </SelectInput>
+        </Box>
         <FormInput
           control={control}
           type={secretInputType}
