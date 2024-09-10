@@ -15,10 +15,12 @@ const HyperswitchConfigurationsTableRow = ({
   item,
   configurationName,
   configurationId,
+  environment,
 }: {
   item: HyperswitchUserVisibleConfigEntry;
   configurationName: string;
   configurationId: string;
+  environment: string;
 }) => {
   return (
     <Tr>
@@ -28,7 +30,7 @@ const HyperswitchConfigurationsTableRow = ({
         </Text>
       </Td>
       <Td className={tableStyles.summaryColumnTd}>
-        <HyperswitchConfigurationSummary config={item} />
+        <HyperswitchConfigurationSummary config={item} environment={environment} />
       </Td>
       <Td className={tableStyles.actionsColumnTd}>
         <Link href={`/configurations/edit/hyperswitch/${configurationId}`} passHref legacyBehavior>
@@ -53,10 +55,12 @@ const JuspayConfigurationsTableRow = ({
   item,
   configurationName,
   configurationId,
+  environment,
 }: {
   item: JuspayUserVisibleConfigEntry;
   configurationName: string;
   configurationId: string;
+  environment: string;
 }) => {
   return (
     <Tr>
@@ -66,7 +70,7 @@ const JuspayConfigurationsTableRow = ({
         </Text>
       </Td>
       <Td className={tableStyles.summaryColumnTd}>
-        <JuspayConfigurationSummary config={item} />
+        <JuspayConfigurationSummary config={item} environment={environment} />
       </Td>
       <Td className={tableStyles.actionsColumnTd}>
         <Link href={`/configurations/edit/juspay/${configurationId}`} passHref legacyBehavior>
@@ -112,6 +116,7 @@ export const ConfigurationsTable = ({
                 item={item.hyperswitchConfiguration}
                 configurationName={item.configurationName}
                 configurationId={item.configurationId}
+                environment={item.environment}
               />
             );
           } else {
@@ -122,6 +127,7 @@ export const ConfigurationsTable = ({
                 item={item.juspayConfiguration}
                 configurationName={item.configurationName}
                 configurationId={item.configurationId}
+                environment={item.environment}
               />
             );
           }

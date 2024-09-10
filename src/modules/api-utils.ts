@@ -6,10 +6,6 @@ import { normalizeValue } from "./payment-app-configuration/utils";
 import { env } from "@/lib/env.mjs";
 import { randomBytes } from "crypto";
 
-export const getEnvironmentFromKey = (): string => {
-  return env.NEXT_PUBLIC_ENV;
-};
-
 export function generate16DigitId(): string {
   return randomBytes(8).toString("hex");
 }

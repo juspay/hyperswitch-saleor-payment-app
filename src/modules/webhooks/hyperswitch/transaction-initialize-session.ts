@@ -138,6 +138,7 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
     createPaymentResponseData.status,
     event.action.actionType,
   );
+
   const transactionInitializeSessionResponse: TransactionInitializeSessionResponse = {
     data: {
       paymentLinks: {

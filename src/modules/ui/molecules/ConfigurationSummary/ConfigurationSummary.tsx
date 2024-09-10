@@ -1,15 +1,16 @@
 import { Box } from "@saleor/macaw-ui";
 import { ChipSuccess, ChipHyperswitchOrange, ChipInfo } from "@/modules/ui/atoms/Chip/Chip";
-import { getEnvironmentFromKey } from "@/modules/api-utils";
+
 import { appBridgeInstance } from "@/app-bridge-instance";
 import { HyperswitchUserVisibleConfigEntry } from "@/modules/payment-app-configuration/hyperswitch-app-configuration/config-entry";
 import { JuspayUserVisibleConfigEntry } from "@/modules/payment-app-configuration/juspay-app-configuration/config-entry";
-import { env } from "@/lib/env.mjs";
 
 export const HyperswitchConfigurationSummary = ({
   config,
+  environment,
 }: {
   config: HyperswitchUserVisibleConfigEntry;
+  environment: string;
 }) => {
   return (
     <Box
@@ -25,7 +26,7 @@ export const HyperswitchConfigurationSummary = ({
         Environment
       </Box>
       <Box as="dd" marginX={4} textAlign="right">
-        {getEnvironmentFromKey() === "production" ? (
+        {environment === "live" ? (
           <ChipSuccess>LIVE</ChipSuccess>
         ) : (
           <ChipHyperswitchOrange>TESTING</ChipHyperswitchOrange>
@@ -49,8 +50,10 @@ export const HyperswitchConfigurationSummary = ({
 
 export const JuspayConfigurationSummary = ({
   config,
+  environment,
 }: {
   config: JuspayUserVisibleConfigEntry;
+  environment: String;
 }) => {
   return (
     <Box
@@ -66,7 +69,7 @@ export const JuspayConfigurationSummary = ({
         Environment
       </Box>
       <Box as="dd" marginX={4} textAlign="right">
-        {getEnvironmentFromKey() === "production" ? (
+        {environment === "live" ? (
           <ChipSuccess>LIVE</ChipSuccess>
         ) : (
           <ChipHyperswitchOrange>TESTING</ChipHyperswitchOrange>
