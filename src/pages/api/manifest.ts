@@ -8,6 +8,7 @@ import { transactionChargeRequestedSyncWebhook } from "./webhooks/saleor/transac
 import { transactionRefundRequestedSyncWebhook } from "./webhooks/saleor/transaction-refund-requested";
 import { transactionCancelationRequestedSyncWebhook } from "./webhooks/saleor/transaction-cancelation-requested";
 import { transactionProcessSessionSyncWebhook } from "./webhooks/saleor/transaction-process-session";
+import { env } from "@/lib/env.mjs";
 
 export default createManifestHandler({
   async manifestFactory(context) {
@@ -15,8 +16,8 @@ export default createManifestHandler({
       id: "app.saleor.juspay",
       name: "Juspay",
       about: packageJson.description,
-      tokenTargetUrl: `${context.appBaseUrl}/api/register`,
-      appUrl: `${context.appBaseUrl}`,
+      tokenTargetUrl: `${env.NEXT_PUBLIC_BASE_URL}/api/register`,
+      appUrl: `${env.NEXT_PUBLIC_BASE_URL}`,
       permissions: ["HANDLE_PAYMENTS"],
       version: packageJson.version,
       requiredSaleorVersion: ">=3.14.0",
@@ -24,16 +25,16 @@ export default createManifestHandler({
       supportUrl: "https://github.com/juspay/hyperswitch-saleor-payment-app/issues",
       brand: {
         logo: {
-          default: `${context.appBaseUrl}/logo.png`,
+          default: `${env.NEXT_PUBLIC_BASE_URL}/logo.png`,
         },
       },
       webhooks: [
-        paymentGatewayInitializeSessionSyncWebhook.getWebhookManifest(context.appBaseUrl),
-        transactionInitializeSessionSyncWebhook.getWebhookManifest(context.appBaseUrl),
-        transactionChargeRequestedSyncWebhook.getWebhookManifest(context.appBaseUrl),
-        transactionCancelationRequestedSyncWebhook.getWebhookManifest(context.appBaseUrl),
-        transactionRefundRequestedSyncWebhook.getWebhookManifest(context.appBaseUrl),
-        transactionProcessSessionSyncWebhook.getWebhookManifest(context.appBaseUrl),
+        paymentGatewayInitializeSessionSyncWebhook.getWebhookManifest(env.NEXT_PUBLIC_BASE_URL),
+        transactionInitializeSessionSyncWebhook.getWebhookManifest(env.NEXT_PUBLIC_BASE_URL),
+        transactionChargeRequestedSyncWebhook.getWebhookManifest(env.NEXT_PUBLIC_BASE_URL),
+        transactionCancelationRequestedSyncWebhook.getWebhookManifest(env.NEXT_PUBLIC_BASE_URL),
+        transactionRefundRequestedSyncWebhook.getWebhookManifest(env.NEXT_PUBLIC_BASE_URL),
+        transactionProcessSessionSyncWebhook.getWebhookManifest(env.NEXT_PUBLIC_BASE_URL),
       ],
       extensions: [],
     };
