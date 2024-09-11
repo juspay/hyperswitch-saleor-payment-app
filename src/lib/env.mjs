@@ -41,8 +41,8 @@ export const env = createEnv({
     NEXT_PUBLIC_ENV: z
       .enum(["development", "test", "staging", "production"])
       .default("development"),
-    NEXT_PUBLIC_BASE_URL: z.string().default("https://saleor.app.hyperswitch.io")
-  },
+      NEXT_PUBLIC_BASE_URL: z.string().default("https://live.hyperswitch.io/saleor")
+    },
 
   /*
    * Due to how Next.js bundles environment variables on Edge and Client,
