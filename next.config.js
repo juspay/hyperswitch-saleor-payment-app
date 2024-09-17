@@ -15,6 +15,7 @@ import { withSentryConfig } from "@sentry/nextjs";
 /** @type {import('next').NextConfig} */
 const config = {
   reactStrictMode: true,
+  basePath: "/saleor",
   /** @param { import("webpack").Configuration } config */
   webpack(config) {
     config.experiments = { ...config.experiments, topLevelAwait: true };
