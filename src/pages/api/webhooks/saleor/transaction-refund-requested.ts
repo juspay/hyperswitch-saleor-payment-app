@@ -25,7 +25,7 @@ export const transactionRefundRequestedSyncWebhook =
     apl: saleorApp.apl,
     event: "TRANSACTION_REFUND_REQUESTED",
     query: UntypedTransactionRefundRequestedDocument,
-    webhookPath: "/api/webhooks/saleor/transaction-refund-requested",
+    webhookPath: "/saleor/api/webhooks/saleor/transaction-refund-requested",
   });
 
 export default transactionRefundRequestedSyncWebhook.createHandler(

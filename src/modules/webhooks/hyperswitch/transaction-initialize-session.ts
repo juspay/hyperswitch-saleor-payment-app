@@ -15,7 +15,7 @@ import {
 } from "../../api-utils";
 import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
 import {
-  createHyperswitchClient,
+  callHyperswitchClient,
   fetchHyperswitchProfileID,
   fetchHyperswitchPublishableKey,
 } from "../../hyperswitch/hyperswitch-api";
@@ -91,13 +91,9 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
   if (event.data != null) {
     requestData = validatePaymentCreateRequest(event.data);
   }
-  const hyperswitchClient = await createHyperswitchClient({
-    configData,
-  });
 
   const profileId = await fetchHyperswitchProfileID(configData);
 
-  const createHyperswitchPayment = hyperswitchClient.path("/payments").method("post").create();
   const capture_method =
     event.action.actionType == TransactionFlowStrategyEnum.Authorization ? "manual" : "automatic";
 
@@ -130,10 +126,16 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
     },
   };
 
+  const hyperswitchResponse = await callHyperswitchClient({
+    configData,
+    targetPath: "/payments",
+    method: "POST",
+    body: JSON.stringify(createPaymentPayload),
+  });
+
   const publishableKey = await fetchHyperswitchPublishableKey(configData);
 
-  const createPaymentResponse = await createHyperswitchPayment(createPaymentPayload);
-  const createPaymentResponseData = intoPaymentResponse(createPaymentResponse.data);
+  const createPaymentResponseData = intoPaymentResponse(hyperswitchResponse);
   const result = hyperswitchPaymentIntentToTransactionResult(
     createPaymentResponseData.status,
     event.action.actionType,

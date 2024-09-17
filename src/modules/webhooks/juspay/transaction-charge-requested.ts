@@ -4,9 +4,8 @@ import { invariant } from "@/lib/invariant";
 import { TransactionChargeRequestedEventFragment } from "generated/graphql";
 import { intoOrderStatusResponse, intoPreAuthTxnResponse } from "../../juspay/juspay-api-response";
 import { createLogger } from "@/lib/logger";
-import { createJuspayClient } from "@/modules/juspay/juspay-api";
+import { callJuspayClient } from "@/modules/juspay/juspay-api";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
-import { SyncWebhookAppErrors } from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
 import { TransactionChargeRequestedResponse } from "@/schemas/TransactionChargeRequested/TransactionChargeRequestedResponse.mjs";
 
 export const hyperswitchPaymentCaptureStatusToSaleorTransactionResult = (
@@ -51,30 +50,26 @@ export const TransactionChargeRequestedJuspayWebhookHandler = async (
   invariant(event.transaction.sourceObject, "Missing sourceObject");
   const sourceObject = event.transaction.sourceObject;
   invariant(sourceObject?.total.gross.currency, "Missing Currency");
-  const amount_to_capture = event.action.amount;
-  const payment_id = event.transaction.pspReference;
-  const errors: SyncWebhookAppErrors = [];
-  const channelId = sourceObject.channel.id;
-  const juspayClient = await createJuspayClient({
-    configData,
-  });
-  const captureJuspayPayment = juspayClient
-    .path("/v2/txns/{txn_uuid}/capture")
-    .method("post")
-    .create();
 
-  const juspayOrderStatus = juspayClient.path("/orders/{order_id}").method("get").create();
-  const orderStatusResponse = await juspayOrderStatus({
-    order_id: event.transaction.pspReference,
+  let order_id = event.transaction.pspReference;
+  const orderStatusResponse = await callJuspayClient({
+    configData,
+    targetPath: `/orders/${order_id}`,
+    method: "GET",
+    body: undefined,
   });
-  const parsedOrderStatusRespData = intoOrderStatusResponse(orderStatusResponse.data);
+
+  const parsedOrderStatusRespData = intoOrderStatusResponse(orderStatusResponse);
   invariant(parsedOrderStatusRespData.txn_uuid, `Txn_uuid not found in orderstatus response`);
 
-  const capturePaymentResponse = await captureJuspayPayment({
-    txn_uuid: parsedOrderStatusRespData.txn_uuid,
+  const capturePaymentResponse = await callJuspayClient({
+    configData,
+    targetPath: `/v2/txns/${parsedOrderStatusRespData.txn_uuid}/capture`,
+    method: "POST",
+    body: undefined,
   });
 
-  const capturePaymentResponseData = intoPreAuthTxnResponse(capturePaymentResponse.data);
+  const capturePaymentResponseData = intoPreAuthTxnResponse(capturePaymentResponse);
 
   invariant(
     capturePaymentResponseData.status &&

@@ -25,7 +25,7 @@ export const transactionChargeRequestedSyncWebhook =
     apl: saleorApp.apl,
     event: "TRANSACTION_CHARGE_REQUESTED",
     query: UntypedTransactionChargeRequestedDocument,
-    webhookPath: "/api/webhooks/saleor/transaction-charge-requested",
+    webhookPath: "/saleor/api/webhooks/saleor/transaction-charge-requested",
   });
 
 export default transactionChargeRequestedSyncWebhook.createHandler(

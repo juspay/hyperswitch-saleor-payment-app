@@ -26,7 +26,7 @@ export const transactionInitializeSessionSyncWebhook =
     apl: saleorApp.apl,
     event: "TRANSACTION_INITIALIZE_SESSION",
     query: UntypedTransactionInitializeSessionDocument,
-    webhookPath: "/api/webhooks/saleor/transaction-initialize-session",
+    webhookPath: "/saleor/api/webhooks/saleor/transaction-initialize-session",
   });
 
 export default transactionInitializeSessionSyncWebhook.createHandler(

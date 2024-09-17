@@ -25,7 +25,7 @@ export const transactionProcessSessionSyncWebhook =
     apl: saleorApp.apl,
     event: "TRANSACTION_PROCESS_SESSION",
     query: UntypedTransactionProcessSessionDocument,
-    webhookPath: "/api/webhooks/saleor/transaction-process-session",
+    webhookPath: "/saleor/api/webhooks/saleor/transaction-process-session",
   });
 
 export default transactionProcessSessionSyncWebhook.createHandler(

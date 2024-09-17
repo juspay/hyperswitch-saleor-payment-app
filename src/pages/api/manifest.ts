@@ -9,11 +9,13 @@ import { transactionRefundRequestedSyncWebhook } from "./webhooks/saleor/transac
 import { transactionCancelationRequestedSyncWebhook } from "./webhooks/saleor/transaction-cancelation-requested";
 import { transactionProcessSessionSyncWebhook } from "./webhooks/saleor/transaction-process-session";
 import { env } from "@/lib/env.mjs";
+import { invariant } from "@/lib/invariant";
 
 export default createManifestHandler({
-  async manifestFactory(context) {
+  async manifestFactory(_) {
+    invariant(env.NEXT_PUBLIC_BASE_URL, "Missing env.NEXT_PUBLIC_BASE_URL");
     const manifest: AppManifest = {
-      id: "app.saleor.juspay",
+      id: "app.saleor.juspay-proxy-me---2",
       name: "Juspay",
       about: packageJson.description,
       tokenTargetUrl: `${env.NEXT_PUBLIC_BASE_URL}/api/register`,

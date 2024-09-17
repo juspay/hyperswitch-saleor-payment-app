@@ -26,7 +26,7 @@ export const transactionCancelationRequestedSyncWebhook =
     apl: saleorApp.apl,
     event: "TRANSACTION_CANCELATION_REQUESTED",
     query: UntypedTransactionCancelationRequestedDocument,
-    webhookPath: "/api/webhooks/saleor/transaction-cancelation-requested",
+    webhookPath: "/saleor/api/webhooks/saleor/transaction-cancelation-requested",
   });
 
 export default transactionCancelationRequestedSyncWebhook.createHandler(

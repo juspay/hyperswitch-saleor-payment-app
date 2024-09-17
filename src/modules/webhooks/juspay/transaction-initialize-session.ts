@@ -11,7 +11,7 @@ import {
   validateTransactionAmount,
 } from "../../api-utils";
 import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
-import { createJuspayClient, fetchJuspayCleintId } from "@/modules/juspay/juspay-api";
+import { callJuspayClient, fetchJuspayCleintId } from "@/modules/juspay/juspay-api";
 import { type components as paymentsComponents } from "generated/juspay-payments";
 import { intoPaymentResponse } from "../../juspay/juspay-api-response";
 import { normalizeValue } from "../../payment-app-configuration/utils";
@@ -90,11 +90,6 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     ? requestData?.billingEmail
     : event.sourceObject.userEmail;
 
-  const juspayClient = await createJuspayClient({
-    configData,
-  });
-
-  const createJuspayPayment = juspayClient.path("/session").method("post").create();
 
   const billingAddress = buildAddressDetails(event.sourceObject.billingAddress, userEmail);
   const shippingAddress = buildAddressDetails(
@@ -158,9 +153,16 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     "metadata.txns.auto_capture": captureMethod,
     payment_filter: normalizeValue(requestData?.allowedPaymentMethods),
   };
-  const createOrderResponse = await createJuspayPayment(createOrderPayload);
 
-  const createPaymentResponseData = intoPaymentResponse(createOrderResponse.data);
+
+  const createOrderResponse = await callJuspayClient({
+    configData,
+    targetPath: `/session`,
+    method: "POST",
+    body:  JSON.stringify(createOrderPayload),
+  });
+
+  const createPaymentResponseData = intoPaymentResponse(createOrderResponse);
   invariant(
     createPaymentResponseData.status &&
       createPaymentResponseData.order_id &&

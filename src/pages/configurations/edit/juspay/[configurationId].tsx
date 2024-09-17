@@ -48,7 +48,7 @@ const EditConfigurationPage = () => {
             </Link>
             to the following endpoint:
             <br></br>
-            <code>{window.location.origin}/api/webhooks/juspay/authorization</code>
+            <code>{window.location.origin}/saleor/api/webhooks/juspay/authorization</code>
           </Text>
         </>
       }
