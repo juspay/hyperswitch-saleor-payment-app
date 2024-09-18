@@ -125,8 +125,8 @@ importers:
         specifier: 14.2.5
         version: 14.2.5(@babel/core@7.25.2)(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       node-fetch:
-        specifier: 2.6.1
-        version: 2.6.1
+        specifier: 2.6.7
+        version: 2.6.7
       omit-deep-lodash:
         specifier: 1.1.7
         version: 1.1.7
@@ -5279,9 +5279,14 @@ packages:
     resolution: {integrity: sha512-XKYnqUrCwXC8DGG1xX4YH5yNIrlh9c065uaMZZHUoeUUINTOyt+x/G+ezYk0Ft6ExSREVIs+qBJDK503viTfFA==}
     engines: {node: '>= 10.13'}
 
-  node-fetch@2.6.1:
-    resolution: {integrity: sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==}
+  node-fetch@2.6.7:
+    resolution: {integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==}
     engines: {node: 4.x || >=6.0.0}
+    peerDependencies:
+      encoding: ^0.1.0
+    peerDependenciesMeta:
+      encoding:
+        optional: true
 
   node-fetch@2.7.0:
     resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
@@ -7101,7 +7106,9 @@ snapshots:
 
   '@ardatan/sync-fetch@0.0.1':
     dependencies:
-      node-fetch: 2.6.1
+      node-fetch: 2.6.7
+    transitivePeerDependencies:
+      - encoding
 
   '@babel/code-frame@7.24.7':
     dependencies:
@@ -8112,6 +8119,8 @@ snapshots:
       '@whatwg-node/fetch': 0.9.21
       graphql: 16.8.1
       tslib: 2.7.0
+    transitivePeerDependencies:
+      - encoding
 
   '@graphql-tools/batch-execute@9.0.4(graphql@16.8.1)':
     dependencies:
@@ -8220,6 +8229,7 @@ snapshots:
       value-or-promise: 1.0.12
     transitivePeerDependencies:
       - '@types/node'
+      - encoding
       - supports-color
 
   '@graphql-tools/graphql-file-loader@8.0.1(graphql@16.8.1)':
@@ -8356,6 +8366,7 @@ snapshots:
     transitivePeerDependencies:
       - '@types/node'
       - bufferutil
+      - encoding
       - utf-8-validate
 
   '@graphql-tools/utils@10.5.4(graphql@16.8.1)':
@@ -9319,7 +9330,7 @@ snapshots:
     dependencies:
       https-proxy-agent: 5.0.1
       mkdirp: 0.5.6
-      node-fetch: 2.7.0
+      node-fetch: 2.6.7
       progress: 2.0.3
       proxy-from-env: 1.1.0
       which: 2.0.2
@@ -11933,6 +11944,7 @@ snapshots:
     transitivePeerDependencies:
       - '@types/node'
       - bufferutil
+      - encoding
       - typescript
       - utf-8-validate
 
@@ -12824,7 +12836,7 @@ snapshots:
       cookie: 0.5.0
       core-js: 3.38.1
       next: 14.2.5(@babel/core@7.25.2)(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      node-fetch: 2.7.0
+      node-fetch: 2.6.7
     transitivePeerDependencies:
       - encoding
 
@@ -12871,7 +12883,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  node-fetch@2.6.1: {}
+  node-fetch@2.6.7:
+    dependencies:
+      whatwg-url: 5.0.0
 
   node-fetch@2.7.0:
     dependencies:
