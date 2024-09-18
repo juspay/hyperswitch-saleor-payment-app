@@ -107,40 +107,6 @@ export const callJuspayClient = async ({
   }
 };
 
-// export const createJuspayClient = async ({ configData }: { configData: ConfigObject }) => {
-//   const SavedConfiguration = await fetchSavedConfiguration(configData);
-//   const JuspayConfig = getJuspayConfig(SavedConfiguration);
-//   const fetcher = Fetcher.for<JuspayPaymentPaths>();
-//   const apiKey = Buffer.from(JuspayConfig.apiKey).toString("base64");
-//   fetcher.configure({
-//     baseUrl: getJuspayBaseUrl(SavedConfiguration.environment),
-//     init: {
-//       headers: {
-//         authorization: `Basic ${apiKey}`,
-//         "content-type": "application/json",
-//         "x-merchantid": `${JuspayConfig.merchantId}`,
-//       },
-//     },
-//     use: [
-//       (url, init, next) =>
-//         next(url, init).catch((err) => {
-//           if (err instanceof ApiError) {
-//             const errorData = intoErrorResponse(err.data);
-//             const errorMessage = errorData.error_message
-//               ? errorData.error_message
-//               : errorData.user_message
-//                 ? errorData.user_message
-//                 : "NO ERROR MESSAGE";
-//             throw new JuspayHttpClientError(errorMessage);
-//           } else {
-//             throw err;
-//           }
-//         }),
-//     ],
-//   });
-//   return fetcher;
-// };
-
 export function getJuspayConfig(
   config: PaymentAppConfigEntryFullyConfigured,
 ): JuspayFullyConfiguredEntry {

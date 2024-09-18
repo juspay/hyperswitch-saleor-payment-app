@@ -5,7 +5,6 @@
 import { createVanillaExtractPlugin } from "@vanilla-extract/next-plugin";
 const withVanillaExtract = createVanillaExtractPlugin();
 import { withSentryConfig } from "@sentry/nextjs";
-import NodePolyfillPlugin from "node-polyfill-webpack-plugin";
 
 /**
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
@@ -20,11 +19,6 @@ const config = {
   /** @param { import("webpack").Configuration } config */
   webpack(config) {
     config.experiments = { ...config.experiments, topLevelAwait: true };
-    // Ensure `plugins` is initialized
-    config.plugins = config.plugins || [];
-
-    // Now safely push the plugin
-    config.plugins.push(new NodePolyfillPlugin());
     return config;
   },
 };
