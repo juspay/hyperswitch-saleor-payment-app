@@ -4,7 +4,7 @@ import getRawBody from "raw-body";
 
 import { APL } from "@saleor/app-sdk/APL";
 import { AuthData } from "@saleor/app-sdk/APL/index";
-import { createLogger} from "../../lib/logger";
+import { createLogger } from "../../lib/logger";
 
 import { fetchRemoteJwks } from "../../fetch-remote-jwks";
 import { getBaseUrl, getSaleorHeaders } from "../../headers";
@@ -12,9 +12,7 @@ import { getOtelTracer } from "../../open-telemetry";
 import { parseSchemaVersion } from "../../schema-version";
 import { verifySignatureWithJwks } from "@saleor/app-sdk/verify-signature";
 
-const logger = createLogger(
-  { msgPrefix: "createAppRegisterHandler" },
-);
+const logger = createLogger({ msgPrefix: "createAppRegisterHandler" });
 
 export type SaleorWebhookError =
   | "OTHER"
@@ -60,7 +58,7 @@ interface ProcessSaleorWebhookArgs {
 }
 
 type ProcessSaleorWebhook = <T = unknown>(
-  props: ProcessSaleorWebhookArgs
+  props: ProcessSaleorWebhookArgs,
 ) => Promise<WebhookContext<T>>;
 
 /**
@@ -118,7 +116,7 @@ export const processSaleorWebhook: ProcessSaleorWebhook = async <T>({
 
           throw new WebhookError(
             `Wrong incoming request event: ${event}. Expected: ${expected}`,
-            "WRONG_EVENT"
+            "WRONG_EVENT",
           );
         }
 
@@ -167,7 +165,7 @@ export const processSaleorWebhook: ProcessSaleorWebhook = async <T>({
 
           throw new WebhookError(
             `Can't find auth data for ${saleorApiUrl}. Please register the application`,
-            "NOT_REGISTERED"
+            "NOT_REGISTERED",
           );
         }
 
@@ -196,7 +194,9 @@ export const processSaleorWebhook: ProcessSaleorWebhook = async <T>({
           logger.debug("Fetched refreshed JWKS");
 
           try {
-            logger.debug("Second attempt to validate the signature JWKS, using fresh tokens from the API");
+            logger.debug(
+              "Second attempt to validate the signature JWKS, using fresh tokens from the API",
+            );
 
             await verifySignatureWithJwks(newJwks, signature, rawBody);
 
@@ -208,7 +208,7 @@ export const processSaleorWebhook: ProcessSaleorWebhook = async <T>({
 
             throw new WebhookError(
               "Request signature check failed",
-              "SIGNATURE_VERIFICATION_FAILED"
+              "SIGNATURE_VERIFICATION_FAILED",
             );
           }
         }
@@ -236,6 +236,6 @@ export const processSaleorWebhook: ProcessSaleorWebhook = async <T>({
       } finally {
         span.end();
       }
-    }
+    },
   );
 };

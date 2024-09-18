@@ -10,7 +10,6 @@ import { getOtelTracer, OTEL_CORE_SERVICE_NAME } from "./open-telemetry";
 export const getJwksUrlFromSaleorApiUrl = (saleorApiUrl: string): string =>
   `${new URL(saleorApiUrl).origin}/.well-known/jwks.json`;
 
-
 export const fetchRemoteJwks = async (saleorApiUrl: string) => {
   const tracer = getOtelTracer();
 
@@ -21,9 +20,11 @@ export const fetchRemoteJwks = async (saleorApiUrl: string) => {
       attributes: { saleorApiUrl, [SemanticAttributes.PEER_SERVICE]: OTEL_CORE_SERVICE_NAME },
     },
     async (span) => {
-    const agent = env.PROXY_URL ? new HttpsProxyAgent(env.PROXY_URL) : undefined;
+      const agent = env.PROXY_URL ? new HttpsProxyAgent(env.PROXY_URL) : undefined;
       try {
-        const jwksResponse = await fetch(getJwksUrlFromSaleorApiUrl(saleorApiUrl), {...(agent && { agent })});
+        const jwksResponse = await fetch(getJwksUrlFromSaleorApiUrl(saleorApiUrl), {
+          ...(agent && { agent }),
+        });
 
         const jwksText = await jwksResponse.text();
 
@@ -39,6 +40,6 @@ export const fetchRemoteJwks = async (saleorApiUrl: string) => {
       } finally {
         span.end();
       }
-    }
+    },
   );
 };

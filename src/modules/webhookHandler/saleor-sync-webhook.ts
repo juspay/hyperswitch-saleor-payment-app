@@ -2,7 +2,7 @@ import { NextApiHandler } from "next";
 
 import { SyncWebhookEventType } from "@saleor/app-sdk/types";
 import { NextWebhookApiHandler } from "@saleor/app-sdk/handlers/next/index";
-import { SaleorWebhook, WebhookConfig} from "./saleor-webhook";
+import { SaleorWebhook, WebhookConfig } from "./saleor-webhook";
 import { buildSyncWebhookResponsePayload } from "./sync-webhook-response-builder";
 
 type InjectedContext<TEvent extends SyncWebhookEventType> = {
@@ -11,7 +11,7 @@ type InjectedContext<TEvent extends SyncWebhookEventType> = {
 
 export class SaleorSyncWebhook<
   TPayload = unknown,
-  TEvent extends SyncWebhookEventType = SyncWebhookEventType
+  TEvent extends SyncWebhookEventType = SyncWebhookEventType,
 > extends SaleorWebhook<TPayload, InjectedContext<TEvent>> {
   readonly event: TEvent;
 
@@ -33,7 +33,7 @@ export class SaleorSyncWebhook<
       {
         buildResponse: typeof buildSyncWebhookResponsePayload<TEvent>;
       }
-    >
+    >,
   ): NextApiHandler {
     return super.createHandler(handlerFn);
   }

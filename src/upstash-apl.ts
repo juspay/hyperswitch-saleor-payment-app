@@ -1,15 +1,12 @@
 /* eslint-disable class-methods-use-this */
 // eslint-disable-next-line max-classes-per-file
 import { APL, AplConfiguredResult, AplReadyResult, AuthData } from "@saleor/app-sdk/APL";
-import { createLogger} from "./lib/logger";
-import fetch, {Response} from "node-fetch";
+import { createLogger } from "./lib/logger";
+import fetch, { Response } from "node-fetch";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import { env } from "./lib/env.mjs";
 
-const logger = createLogger(
-    { msgPrefix: "createAppRegisterHandler" },
-  );
-
+const logger = createLogger({ msgPrefix: "createAppRegisterHandler" });
 
 type SuccessResponse = { result: string };
 type ErrorResponse = { error: string };
@@ -25,7 +22,7 @@ export class ProxyUpstashAplMisconfiguredError extends Error {
     super(
       `Configuration values for: ${missingVars
         .map((v) => `"${v}"`)
-        .join(", ")} not found or is empty. Pass values to constructor of use env variables.`
+        .join(", ")} not found or is empty. Pass values to constructor of use env variables.`,
     );
   }
 }
@@ -64,7 +61,7 @@ export class ProxyUpstashAPL implements APL {
     logger.debug("Sending request to Upstash");
     if (!this.restURL || !this.restToken) {
       throw new Error(
-        "ProxyUpstashAPL is not configured. See https://docs.saleor.io/docs/3.x/developer/extending/apps/developing-apps/app-sdk/apl"
+        "ProxyUpstashAPL is not configured. See https://docs.saleor.io/docs/3.x/developer/extending/apps/developing-apps/app-sdk/apl",
       );
     }
     const agent = env.PROXY_URL ? new HttpsProxyAgent(env.PROXY_URL) : undefined;
@@ -74,7 +71,7 @@ export class ProxyUpstashAPL implements APL {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${this.restToken}` },
         body: JSON.stringify(request),
-        ...(agent && { agent })
+        ...(agent && { agent }),
       });
     } catch (error) {
       logger.debug("Error during sending the data:", error);
@@ -83,15 +80,17 @@ export class ProxyUpstashAPL implements APL {
 
     const parsedResponse = (await response.json()) as UpstashResponse;
     if (!response.ok || "error" in parsedResponse) {
-      logger.debug(`Operation unsuccessful. Upstash API has responded with ${response.status} code`);
+      logger.debug(
+        `Operation unsuccessful. Upstash API has responded with ${response.status} code`,
+      );
       if ("error" in parsedResponse) {
         logger.debug("Error message: %s", parsedResponse.error);
         throw new Error(
-          `Upstash APL was not able to perform operation. Status code: ${response.status}. Error: ${parsedResponse.error}`
+          `Upstash APL was not able to perform operation. Status code: ${response.status}. Error: ${parsedResponse.error}`,
         );
       }
       throw new Error(
-        `Upstash APL was not able to perform operation. Status code: ${response.status}`
+        `Upstash APL was not able to perform operation. Status code: ${response.status}`,
       );
     }
     logger.debug("Upstash service responded successfully");
@@ -168,7 +167,7 @@ export class ProxyUpstashAPL implements APL {
       : {
           configured: false,
           error: new ProxyUpstashAplNotConfiguredError(
-            "UpstashAPL not configured. Check if REST URL and token provided in constructor or env"
+            "UpstashAPL not configured. Check if REST URL and token provided in constructor or env",
           ),
         };
   }

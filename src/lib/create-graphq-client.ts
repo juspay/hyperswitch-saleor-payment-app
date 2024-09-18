@@ -31,11 +31,10 @@ const customFetch = async (input: URL | RequestInfo, init?: RequestInit | undefi
     });
     const responseBody = await nodeResponse.text();
 
-  
     const responseWithUrqlHeaders = new Response(responseBody, {
       status: nodeResponse.status,
       statusText: nodeResponse.statusText,
-      headers: headers, 
+      headers: headers,
     });
     return responseWithUrqlHeaders;
   } else {

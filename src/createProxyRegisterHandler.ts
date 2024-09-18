@@ -9,12 +9,9 @@ import { fetchRemoteJwks } from "./fetch-remote-jwks";
 import { getAppId } from "./get-app-id";
 import { withAuthTokenRequired, withSaleorDomainPresent } from "@saleor/app-sdk/middleware";
 import { HasAPL } from "@saleor/app-sdk/saleor-app";
-import { createLogger} from "./lib/logger";
+import { createLogger } from "./lib/logger";
 
-const logger = createLogger(
-    { msgPrefix: "createAppRegisterHandler" },
-  );
-
+const logger = createLogger({ msgPrefix: "createAppRegisterHandler" });
 
 type HookCallbackErrorParams = {
   status?: number;
@@ -46,7 +43,7 @@ export type RegisterHandlerResponseBody = {
 };
 export const createRegisterHandlerResponseBody = (
   success: boolean,
-  error?: RegisterHandlerResponseBody["error"]
+  error?: RegisterHandlerResponseBody["error"],
 ): RegisterHandlerResponseBody => ({
   success,
   error,
@@ -59,34 +56,33 @@ const handleHookError = (e: RegisterCallbackError | unknown) => {
         code: "REGISTER_HANDLER_HOOK_ERROR",
         message: e.message,
       }),
-      { status: e.status }
+      { status: e.status },
     );
   }
   return Response.InternalServerError("Error during app installation");
 };
 
 export const validateAllowSaleorUrls = (
-    saleorApiUrl: string,
-    allowedUrls: CreateAppRegisterHandlerOptions["allowedSaleorUrls"]
-  ) => {
-    if (!allowedUrls || allowedUrls.length === 0) {
+  saleorApiUrl: string,
+  allowedUrls: CreateAppRegisterHandlerOptions["allowedSaleorUrls"],
+) => {
+  if (!allowedUrls || allowedUrls.length === 0) {
+    return true;
+  }
+
+  for (const urlOrFn of allowedUrls) {
+    if (typeof urlOrFn === "string" && urlOrFn === saleorApiUrl) {
       return true;
     }
-  
-    for (const urlOrFn of allowedUrls) {
-      if (typeof urlOrFn === "string" && urlOrFn === saleorApiUrl) {
-        return true;
-      }
-  
-      if (typeof urlOrFn === "function" && urlOrFn(saleorApiUrl)) {
-        return true;
-      }
-    }
-  
-    return false;
-  };
 
-  
+    if (typeof urlOrFn === "function" && urlOrFn(saleorApiUrl)) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 export type CreateAppRegisterHandlerOptions = HasAPL & {
   /**
    * Protect app from being registered in Saleor other than specific.
@@ -106,7 +102,7 @@ export type CreateAppRegisterHandlerOptions = HasAPL & {
       saleorDomain?: string;
       saleorApiUrl?: string;
       respondWithError: typeof createCallbackError;
-    }
+    },
   ): Promise<void>;
   /**
    * Run after all security checks
@@ -116,7 +112,7 @@ export type CreateAppRegisterHandlerOptions = HasAPL & {
     context: {
       authData: AuthData;
       respondWithError: typeof createCallbackError;
-    }
+    },
   ): Promise<void>;
   /**
    * Run after APL successfully AuthData, assuming that APL.set will reject a Promise in case of error
@@ -126,7 +122,7 @@ export type CreateAppRegisterHandlerOptions = HasAPL & {
     context: {
       authData: AuthData;
       respondWithError: typeof createCallbackError;
-    }
+    },
   ): Promise<void>;
   /**
    * Run after APL fails to set AuthData
@@ -137,7 +133,7 @@ export type CreateAppRegisterHandlerOptions = HasAPL & {
       authData: AuthData;
       error: unknown;
       respondWithError: typeof createCallbackError;
-    }
+    },
   ): Promise<void>;
 };
 
@@ -162,7 +158,7 @@ export const createAppRegisterHandler = ({
     const saleorApiUrl = request.headers[SALEOR_API_URL_HEADER] as string;
 
     if (onRequestStart) {
-      logger.debug("Calling \"onRequestStart\" hook");
+      logger.debug('Calling "onRequestStart" hook');
 
       try {
         await onRequestStart(request, {
@@ -172,7 +168,7 @@ export const createAppRegisterHandler = ({
           respondWithError: createCallbackError,
         });
       } catch (e: RegisterCallbackError | unknown) {
-        logger.debug("\"onRequestStart\" hook thrown error: %o", e);
+        logger.debug('"onRequestStart" hook thrown error: %o', e);
 
         return handleHookError(e);
       }
@@ -185,14 +181,14 @@ export const createAppRegisterHandler = ({
     if (!validateAllowSaleorUrls(saleorApiUrl, allowedSaleorUrls)) {
       logger.debug(
         "Validation of URL %s against allowSaleorUrls param resolves to false, throwing",
-        saleorApiUrl
+        saleorApiUrl,
       );
 
       return Response.Forbidden(
         createRegisterHandlerResponseBody(false, {
           code: "SALEOR_URL_PROHIBITED",
           message: "This app expects to be installed only in allowed Saleor instances",
-        })
+        }),
       );
     }
 
@@ -208,7 +204,7 @@ export const createAppRegisterHandler = ({
         }),
         {
           status: 503,
-        }
+        },
       );
     }
 
@@ -223,7 +219,7 @@ export const createAppRegisterHandler = ({
         }),
         {
           status: 401,
-        }
+        },
       );
     }
 
@@ -237,7 +233,7 @@ export const createAppRegisterHandler = ({
         }),
         {
           status: 401,
-        }
+        },
       );
     }
 
@@ -250,7 +246,7 @@ export const createAppRegisterHandler = ({
     };
 
     if (onRequestVerified) {
-      logger.debug("Calling \"onRequestVerified\" hook");
+      logger.debug('Calling "onRequestVerified" hook');
 
       try {
         await onRequestVerified(request, {
@@ -258,7 +254,7 @@ export const createAppRegisterHandler = ({
           respondWithError: createCallbackError,
         });
       } catch (e: RegisterCallbackError | unknown) {
-        logger.debug("\"onRequestVerified\" hook thrown error: %o", e);
+        logger.debug('"onRequestVerified" hook thrown error: %o', e);
 
         return handleHookError(e);
       }
@@ -268,7 +264,7 @@ export const createAppRegisterHandler = ({
       await apl.set(authData);
 
       if (onAuthAplSaved) {
-        logger.debug("Calling \"onAuthAplSaved\" hook");
+        logger.debug('Calling "onAuthAplSaved" hook');
 
         try {
           await onAuthAplSaved(request, {
@@ -276,7 +272,7 @@ export const createAppRegisterHandler = ({
             respondWithError: createCallbackError,
           });
         } catch (e: RegisterCallbackError | unknown) {
-          logger.debug("\"onAuthAplSaved\" hook thrown error: %o", e);
+          logger.debug('"onAuthAplSaved" hook thrown error: %o', e);
 
           return handleHookError(e);
         }
@@ -285,7 +281,7 @@ export const createAppRegisterHandler = ({
       logger.debug("There was an error during saving the auth data");
 
       if (onAplSetFailed) {
-        logger.debug("Calling \"onAuthAplFailed\" hook");
+        logger.debug('Calling "onAuthAplFailed" hook');
 
         try {
           await onAplSetFailed(request, {
@@ -294,7 +290,7 @@ export const createAppRegisterHandler = ({
             respondWithError: createCallbackError,
           });
         } catch (hookError: RegisterCallbackError | unknown) {
-          logger.debug("\"onAuthAplFailed\" hook thrown error: %o", hookError);
+          logger.debug('"onAuthAplFailed" hook thrown error: %o', hookError);
 
           return handleHookError(hookError);
         }
@@ -303,7 +299,7 @@ export const createAppRegisterHandler = ({
       return Response.InternalServerError(
         createRegisterHandlerResponseBody(false, {
           message: "Registration failed: could not save the auth data.",
-        })
+        }),
       );
     }
 

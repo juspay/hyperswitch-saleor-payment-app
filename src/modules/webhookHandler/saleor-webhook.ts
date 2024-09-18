@@ -1,19 +1,20 @@
 import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 
 import { APL } from "@saleor/app-sdk/APL";
-import { createLogger} from "../../lib/logger";
+import { createLogger } from "../../lib/logger";
 
-const logger = createLogger(
-    { msgPrefix: "createAppRegisterHandler" },
-  );
-import { AsyncWebhookEventType, SyncWebhookEventType, WebhookManifest } from "@saleor/app-sdk/types";
+const logger = createLogger({ msgPrefix: "createAppRegisterHandler" });
+import {
+  AsyncWebhookEventType,
+  SyncWebhookEventType,
+  WebhookManifest,
+} from "@saleor/app-sdk/types";
 import {
   processSaleorWebhook,
   SaleorWebhookError,
   WebhookContext,
   WebhookError,
 } from "./process-saleor-webhook";
-
 
 import { ASTNode, print } from "graphql";
 
@@ -22,8 +23,6 @@ export const gqlAstToString = (ast: ASTNode) =>
     .replaceAll(/\n*/g, "") // remove new lines
     .replaceAll(/\s{2,}/g, " ") // remove unnecessary multiple spaces
     .trim(); // remove whitespace from beginning and end
-
-
 
 export interface WebhookConfig<Event = AsyncWebhookEventType | SyncWebhookEventType> {
   name?: string;
@@ -35,7 +34,7 @@ export interface WebhookConfig<Event = AsyncWebhookEventType | SyncWebhookEventT
   formatErrorResponse?(
     error: WebhookError | Error,
     req: NextApiRequest,
-    res: NextApiResponse
+    res: NextApiResponse,
   ): Promise<{
     code: number;
     body: object | string;
@@ -67,12 +66,12 @@ export const WebhookErrorCodeMap: Record<SaleorWebhookError, number> = {
 export type NextWebhookApiHandler<TPayload = unknown, TExtras = {}> = (
   req: NextApiRequest,
   res: NextApiResponse,
-  ctx: WebhookContext<TPayload> & TExtras
+  ctx: WebhookContext<TPayload> & TExtras,
 ) => unknown | Promise<unknown>;
 
 export abstract class SaleorWebhook<
   TPayload = unknown,
-  TExtras extends Record<string, unknown> = {}
+  TExtras extends Record<string, unknown> = {},
 > {
   protected abstract eventType: "async" | "sync";
 
