@@ -1,4 +1,4 @@
-import { SaleorSyncWebhook } from "@saleor/app-sdk/handlers/next";
+import { SaleorSyncWebhook } from "../../../../modules/webhookHandler/saleor-sync-webhook";
 import { type PageConfig } from "next";
 import { saleorApp } from "../../../../saleor-app";
 import {

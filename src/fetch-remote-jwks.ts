@@ -5,13 +5,10 @@ import pkg from "@saleor/app-sdk/package.json";
 import fetch from "node-fetch";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import { env } from "./lib/env.mjs";
+import { getOtelTracer, OTEL_CORE_SERVICE_NAME } from "./open-telemetry";
 
 export const getJwksUrlFromSaleorApiUrl = (saleorApiUrl: string): string =>
   `${new URL(saleorApiUrl).origin}/.well-known/jwks.json`;
-
-export const OTEL_CORE_SERVICE_NAME = "core";
-const TRACER_NAME = "app-sdk";
-export const getOtelTracer = (): Tracer => trace.getTracer(TRACER_NAME, pkg.version);
 
 
 export const fetchRemoteJwks = async (saleorApiUrl: string) => {
