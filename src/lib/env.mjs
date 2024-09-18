@@ -20,6 +20,7 @@ export const env = createEnv({
       .default("error"),
     VERCEL_URL: z.string().optional(),
     PORT: z.coerce.number().optional(),
+    PROXY_URL: z.string().optional(),
     UPSTASH_URL: z.string().optional(),
     UPSTASH_TOKEN: z.string().optional(),
     REST_APL_ENDPOINT: z.string().optional(),
@@ -41,8 +42,8 @@ export const env = createEnv({
     NEXT_PUBLIC_ENV: z
       .enum(["development", "test", "staging", "production"])
       .default("development"),
-      NEXT_PUBLIC_BASE_URL: z.string()
-    },
+    NEXT_PUBLIC_BASE_URL: z.string(),
+  },
 
   /*
    * Due to how Next.js bundles environment variables on Edge and Client,
@@ -61,6 +62,7 @@ export const env = createEnv({
     APP_DEBUG: process.env.APP_DEBUG,
     VERCEL_URL: process.env.VERCEL_URL,
     PORT: process.env.PORT,
+    PROXY_URL: process.env.PROXY_URL,
     UPSTASH_URL: process.env.UPSTASH_URL,
     UPSTASH_TOKEN: process.env.UPSTASH_TOKEN,
     REST_APL_ENDPOINT: process.env.REST_APL_ENDPOINT,
@@ -71,6 +73,6 @@ export const env = createEnv({
     HYPERSWITCH_PROD_BASE_URL: process.env.HYPERSWITCH_PROD_BASE_URL,
     JUSPAY_SANDBOX_BASE_URL: process.env.JUSPAY_SANDBOX_BASE_URL,
     JUSPAY_PROD_BASE_URL: process.env.JUSPAY_PROD_BASE_URL,
-    NEXT_PUBLIC_BASE_URL: process.env.APP_API_BASE_URL
+    NEXT_PUBLIC_BASE_URL: process.env.APP_API_BASE_URL,
   },
 });

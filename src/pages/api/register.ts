@@ -1,5 +1,4 @@
-import { createAppRegisterHandler } from "@saleor/app-sdk/handlers/next";
-
+import { createAppRegisterHandler } from "@/createProxyRegisterHandler";
 import { saleorApp } from "../../saleor-app";
 
 /**

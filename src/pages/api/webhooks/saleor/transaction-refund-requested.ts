@@ -1,4 +1,4 @@
-import { SaleorSyncWebhook } from "@saleor/app-sdk/handlers/next";
+import { SaleorSyncWebhook } from "../../../../modules/webhookHandler/saleor-sync-webhook";
 import { type PageConfig } from "next";
 import { uuidv7 } from "uuidv7";
 import {
@@ -25,7 +25,7 @@ export const transactionRefundRequestedSyncWebhook =
     apl: saleorApp.apl,
     event: "TRANSACTION_REFUND_REQUESTED",
     query: UntypedTransactionRefundRequestedDocument,
-    webhookPath: "/api/webhooks/saleor/transaction-refund-requested",
+    webhookPath: "/saleor/api/webhooks/saleor/transaction-refund-requested",
   });
 
 export default transactionRefundRequestedSyncWebhook.createHandler(

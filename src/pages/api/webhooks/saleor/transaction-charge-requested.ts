@@ -1,4 +1,4 @@
-import { SaleorSyncWebhook } from "@saleor/app-sdk/handlers/next";
+import { SaleorSyncWebhook } from "../../../../modules/webhookHandler/saleor-sync-webhook";
 import { type PageConfig } from "next";
 import { uuidv7 } from "uuidv7";
 import { saleorApp } from "@/saleor-app";
@@ -25,7 +25,7 @@ export const transactionChargeRequestedSyncWebhook =
     apl: saleorApp.apl,
     event: "TRANSACTION_CHARGE_REQUESTED",
     query: UntypedTransactionChargeRequestedDocument,
-    webhookPath: "/api/webhooks/saleor/transaction-charge-requested",
+    webhookPath: "/saleor/api/webhooks/saleor/transaction-charge-requested",
   });
 
 export default transactionChargeRequestedSyncWebhook.createHandler(

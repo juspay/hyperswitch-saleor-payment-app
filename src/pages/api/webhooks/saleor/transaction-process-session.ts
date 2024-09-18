@@ -1,4 +1,4 @@
-import { SaleorSyncWebhook } from "@saleor/app-sdk/handlers/next";
+import { SaleorSyncWebhook } from "../../../../modules/webhookHandler/saleor-sync-webhook";
 import { type PageConfig } from "next";
 import { saleorApp } from "@/saleor-app";
 import {
@@ -25,7 +25,7 @@ export const transactionProcessSessionSyncWebhook =
     apl: saleorApp.apl,
     event: "TRANSACTION_PROCESS_SESSION",
     query: UntypedTransactionProcessSessionDocument,
-    webhookPath: "/api/webhooks/saleor/transaction-process-session",
+    webhookPath: "/saleor/api/webhooks/saleor/transaction-process-session",
   });
 
 export default transactionProcessSessionSyncWebhook.createHandler(

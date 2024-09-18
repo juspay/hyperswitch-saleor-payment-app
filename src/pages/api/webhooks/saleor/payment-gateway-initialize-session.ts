@@ -1,4 +1,4 @@
-import { SaleorSyncWebhook } from "@saleor/app-sdk/handlers/next";
+import { SaleorSyncWebhook } from "../../../../modules/webhookHandler/saleor-sync-webhook";
 import { type PageConfig } from "next";
 import { saleorApp } from "../../../../saleor-app";
 import {
@@ -23,7 +23,7 @@ export const paymentGatewayInitializeSessionSyncWebhook =
     apl: saleorApp.apl,
     event: "PAYMENT_GATEWAY_INITIALIZE_SESSION",
     query: UntypedPaymentGatewayInitializeSessionDocument,
-    webhookPath: "/api/webhooks/saleor/payment-gateway-initialize-session",
+    webhookPath: "/saleor/api/webhooks/saleor/payment-gateway-initialize-session",
   });
 
 export default paymentGatewayInitializeSessionSyncWebhook.createHandler(

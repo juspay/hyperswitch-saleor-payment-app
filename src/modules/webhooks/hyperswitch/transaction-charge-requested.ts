@@ -9,7 +9,7 @@ import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
 } from "../../hyperswitch/currencies";
-import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
+import { callHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import { SyncWebhookAppErrors } from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
@@ -63,25 +63,18 @@ export const TransactionChargeRequestedHyperswitchWebhookHandler = async (
     sourceObject?.total.gross.currency,
   );
   const payment_id = event.transaction.pspReference;
-  const errors: SyncWebhookAppErrors = [];
-  const channelId = sourceObject.channel.id;
-  const hyperswitchClient = await createHyperswitchClient({
-    configData,
-  });
-  const captureHyperswitchPayment = hyperswitchClient
-    .path("/payments/{payment_id}/capture")
-    .method("post")
-    .create();
   const capturePaymentPayload: paymentsComponents["schemas"]["PaymentsCaptureRequest"] = {
     amount_to_capture,
   };
 
-  const capturePaymentResponse = await captureHyperswitchPayment({
-    ...capturePaymentPayload,
-    payment_id,
+  const capturePaymentResponse = await callHyperswitchClient({
+    configData,
+    targetPath: `/payments/${payment_id}/capture`,
+    method: "POST",
+    body: JSON.stringify(capturePaymentPayload),
   });
 
-  const capturePaymentResponseData = intoPaymentResponse(capturePaymentResponse.data);
+  const capturePaymentResponseData = intoPaymentResponse(capturePaymentResponse);
   const result = hyperswitchPaymentCaptureStatusToSaleorTransactionResult(
     capturePaymentResponseData.status,
   );

@@ -2,7 +2,7 @@ import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuratio
 import { TransactionRefundRequestedEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
-import { createJuspayClient } from "@/modules/juspay/juspay-api";
+import { callJuspayClient } from "@/modules/juspay/juspay-api";
 import { type components as paymentsComponents } from "generated/juspay-payments";
 import { intoRefundResponse } from "../../juspay/juspay-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
@@ -49,30 +49,22 @@ export const TransactionRefundRequestedJuspayWebhookHandler = async (
   invariant(event.transaction, "Missing sourceObject");
   const sourceObject = event.transaction.sourceObject;
   invariant(sourceObject?.total.gross.currency, "Missing Currency");
-
   const order_id = event.transaction.pspReference;
-  const channelId = sourceObject.channel.id;
-  const juspayClient = await createJuspayClient({
-    configData,
-  });
-
   const unique_request_id = uuidv4();
 
-  const refundJuspayPayment = juspayClient
-    .path("/orders/{order_id}/refunds")
-    .method("post")
-    .create();
   const refundPayload: paymentsComponents["schemas"]["RefundReq"] = {
     unique_request_id,
     amount: event.action.amount,
   };
 
-  const refundPaymentResponse = await refundJuspayPayment({
-    ...refundPayload,
-    order_id,
+  const refundPaymentResponse = await callJuspayClient({
+    configData,
+    targetPath: `/orders/${order_id}/refunds`,
+    method: "POST",
+    body: JSON.stringify(refundPayload),
   });
 
-  const refundPaymentResponseData = intoRefundResponse(refundPaymentResponse.data);
+  const refundPaymentResponseData = intoRefundResponse(refundPaymentResponse);
   let refundStatus = null;
   let refundAmount = null;
   const refundsList = refundPaymentResponseData.refunds;

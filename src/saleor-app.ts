@@ -2,6 +2,7 @@ import { SaleorApp } from "@saleor/app-sdk/saleor-app";
 import { FileAPL, UpstashAPL, SaleorCloudAPL } from "@saleor/app-sdk/APL";
 import { invariant } from "./lib/invariant";
 import { env } from "./lib/env.mjs";
+import { ProxyUpstashAPL } from "./upstash-apl";
 
 /**
  * By default auth data are stored in the `.auth-data.json` (FileAPL).
@@ -16,7 +17,7 @@ const getApl = async () => {
     case "upstash":
       invariant(env.UPSTASH_URL, "Missing UPSTASH_URL env variable!");
       invariant(env.UPSTASH_TOKEN, "Missing UPSTASH_TOKEN env variable!");
-      return new UpstashAPL({
+      return new ProxyUpstashAPL({
         restURL: env.UPSTASH_URL,
         restToken: env.UPSTASH_TOKEN,
       });

@@ -1,0 +1,241 @@
+import { SpanKind, SpanStatusCode } from "@opentelemetry/api";
+import { NextApiRequest } from "next";
+import getRawBody from "raw-body";
+
+import { APL } from "@saleor/app-sdk/APL";
+import { AuthData } from "@saleor/app-sdk/APL/index";
+import { createLogger } from "../../lib/logger";
+
+import { fetchRemoteJwks } from "../../fetch-remote-jwks";
+import { getBaseUrl, getSaleorHeaders } from "../../headers";
+import { getOtelTracer } from "../../open-telemetry";
+import { parseSchemaVersion } from "../../schema-version";
+import { verifySignatureWithJwks } from "@saleor/app-sdk/verify-signature";
+
+const logger = createLogger({ msgPrefix: "createAppRegisterHandler" });
+
+export type SaleorWebhookError =
+  | "OTHER"
+  | "MISSING_HOST_HEADER"
+  | "MISSING_DOMAIN_HEADER"
+  | "MISSING_API_URL_HEADER"
+  | "MISSING_EVENT_HEADER"
+  | "MISSING_PAYLOAD_HEADER"
+  | "MISSING_SIGNATURE_HEADER"
+  | "MISSING_REQUEST_BODY"
+  | "WRONG_EVENT"
+  | "NOT_REGISTERED"
+  | "SIGNATURE_VERIFICATION_FAILED"
+  | "WRONG_METHOD"
+  | "CANT_BE_PARSED"
+  | "CONFIGURATION_ERROR";
+
+export class WebhookError extends Error {
+  errorType: SaleorWebhookError = "OTHER";
+
+  constructor(message: string, errorType: SaleorWebhookError) {
+    super(message);
+    if (errorType) {
+      this.errorType = errorType;
+    }
+    Object.setPrototypeOf(this, WebhookError.prototype);
+  }
+}
+
+export type WebhookContext<T> = {
+  baseUrl: string;
+  event: string;
+  payload: T;
+  authData: AuthData;
+  /** For Saleor < 3.15 it will be null. */
+  schemaVersion: number | null;
+};
+
+interface ProcessSaleorWebhookArgs {
+  req: NextApiRequest;
+  apl: APL;
+  allowedEvent: string;
+}
+
+type ProcessSaleorWebhook = <T = unknown>(
+  props: ProcessSaleorWebhookArgs,
+) => Promise<WebhookContext<T>>;
+
+/**
+ * Perform security checks on given request and return WebhookContext object.
+ * In case of validation issues, instance of the WebhookError will be thrown.
+ *
+ * @returns WebhookContext
+ */
+export const processSaleorWebhook: ProcessSaleorWebhook = async <T>({
+  req,
+  apl,
+  allowedEvent,
+}: ProcessSaleorWebhookArgs): Promise<WebhookContext<T>> => {
+  const tracer = getOtelTracer();
+
+  return tracer.startActiveSpan(
+    "processSaleorWebhook",
+    {
+      kind: SpanKind.INTERNAL,
+      attributes: {
+        allowedEvent,
+      },
+    },
+    async (span) => {
+      try {
+        logger.debug("Request processing started");
+
+        if (req.method !== "POST") {
+          logger.debug("Wrong HTTP method");
+          throw new WebhookError("Wrong request method, only POST allowed", "WRONG_METHOD");
+        }
+
+        const { event, signature, saleorApiUrl } = getSaleorHeaders(req.headers);
+        const baseUrl = getBaseUrl(req.headers);
+
+        if (!baseUrl) {
+          logger.debug("Missing host header");
+          throw new WebhookError("Missing host header", "MISSING_HOST_HEADER");
+        }
+
+        if (!saleorApiUrl) {
+          logger.debug("Missing saleor-api-url header");
+          throw new WebhookError("Missing saleor-api-url header", "MISSING_API_URL_HEADER");
+        }
+
+        if (!event) {
+          logger.debug("Missing saleor-event header");
+          throw new WebhookError("Missing saleor-event header", "MISSING_EVENT_HEADER");
+        }
+
+        const expected = allowedEvent.toLowerCase();
+
+        if (event !== expected) {
+          logger.debug(`Wrong incoming request event: ${event}. Expected: ${expected}`);
+
+          throw new WebhookError(
+            `Wrong incoming request event: ${event}. Expected: ${expected}`,
+            "WRONG_EVENT",
+          );
+        }
+
+        if (!signature) {
+          logger.debug("No signature");
+
+          throw new WebhookError("Missing saleor-signature header", "MISSING_SIGNATURE_HEADER");
+        }
+
+        const rawBody = (
+          await getRawBody(req, {
+            length: req.headers["content-length"],
+          })
+        ).toString();
+        if (!rawBody) {
+          logger.debug("Missing request body");
+
+          throw new WebhookError("Missing request body", "MISSING_REQUEST_BODY");
+        }
+
+        let parsedBody: unknown & { version?: string | null };
+
+        try {
+          parsedBody = JSON.parse(rawBody);
+        } catch {
+          logger.debug("Request body cannot be parsed");
+
+          throw new WebhookError("Request body can't be parsed", "CANT_BE_PARSED");
+        }
+
+        let parsedSchemaVersion: number | null = null;
+
+        try {
+          parsedSchemaVersion = parseSchemaVersion(parsedBody.version);
+        } catch {
+          logger.debug("Schema version cannot be parsed");
+        }
+
+        /**
+         * Verify if the app is properly installed for given Saleor API URL
+         */
+        const authData = await apl.get(saleorApiUrl);
+
+        if (!authData) {
+          logger.debug("APL didn't found auth data for %s", saleorApiUrl);
+
+          throw new WebhookError(
+            `Can't find auth data for ${saleorApiUrl}. Please register the application`,
+            "NOT_REGISTERED",
+          );
+        }
+
+        /**
+         * Verify payload signature
+         *
+         * TODO: Add test for repeat verification scenario
+         */
+        try {
+          logger.debug("Will verify signature with JWKS saved in AuthData");
+
+          if (!authData.jwks) {
+            throw new Error("JWKS not found in AuthData");
+          }
+
+          await verifySignatureWithJwks(authData.jwks, signature, rawBody);
+        } catch {
+          logger.debug("Request signature check failed. Refresh the JWKS cache and check again");
+
+          const newJwks = await fetchRemoteJwks(authData.saleorApiUrl).catch((e) => {
+            logger.debug(e);
+
+            throw new WebhookError("Fetching remote JWKS failed", "SIGNATURE_VERIFICATION_FAILED");
+          });
+
+          logger.debug("Fetched refreshed JWKS");
+
+          try {
+            logger.debug(
+              "Second attempt to validate the signature JWKS, using fresh tokens from the API",
+            );
+
+            await verifySignatureWithJwks(newJwks, signature, rawBody);
+
+            logger.debug("Verification successful - update JWKS in the AuthData");
+
+            await apl.set({ ...authData, jwks: newJwks });
+          } catch {
+            logger.debug("Second attempt also ended with validation error. Reject the webhook");
+
+            throw new WebhookError(
+              "Request signature check failed",
+              "SIGNATURE_VERIFICATION_FAILED",
+            );
+          }
+        }
+
+        span.setStatus({
+          code: SpanStatusCode.OK,
+        });
+
+        return {
+          baseUrl,
+          event,
+          payload: parsedBody as T,
+          authData,
+          schemaVersion: parsedSchemaVersion,
+        };
+      } catch (err) {
+        const message = (err as Error)?.message ?? "Unknown error";
+
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message,
+        });
+
+        throw err;
+      } finally {
+        span.end();
+      }
+    },
+  );
+};

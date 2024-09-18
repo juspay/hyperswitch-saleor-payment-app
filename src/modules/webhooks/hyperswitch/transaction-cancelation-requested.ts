@@ -2,7 +2,7 @@ import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuratio
 import { type TransactionCancelationRequestedEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
-import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
+import { callHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
 import { getSaleorAmountFromHyperswitchAmount } from "../../hyperswitch/currencies";
 import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
@@ -49,27 +49,22 @@ export const TransactionCancelationRequestedHyperswitchWebhookHandler = async (
   const sourceObject = event.transaction.sourceObject;
   const payment_id = event.transaction.pspReference;
 
-  const hyperswitchClient = await createHyperswitchClient({
-    configData,
-  });
-
-  const cancelHyperswitchPayment = hyperswitchClient
-    .path("/payments/{payment_id}/cancel")
-    .method("post")
-    .create();
-
-  const cancelPaymentResponse = await cancelHyperswitchPayment({
-    ...{
-      metadata: {
-        channel_id: sourceObject.channel.id,
-        transaction_id: event.transaction.id,
-        saleor_api_url: saleorApiUrl,
-      },
+  const cancelPaymentPayload = {
+    metadata: {
+      channel_id: sourceObject.channel.id,
+      transaction_id: event.transaction.id,
+      saleor_api_url: saleorApiUrl,
     },
-    payment_id,
+  };
+
+  const cancelPaymentResponse = await callHyperswitchClient({
+    configData,
+    targetPath: `/payments/${payment_id}/cancel`,
+    method: "POST",
+    body: JSON.stringify(cancelPaymentPayload),
   });
 
-  const cancelPaymentResponseData = intoPaymentResponse(cancelPaymentResponse.data);
+  const cancelPaymentResponseData = intoPaymentResponse(cancelPaymentResponse);
   const result = hyperswitchPaymentCancelStatusToSaleorTransactionResult(
     cancelPaymentResponseData.status,
   );

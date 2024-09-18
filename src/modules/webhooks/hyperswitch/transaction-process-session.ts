@@ -8,7 +8,7 @@ import {
 import { getWebhookPaymentAppConfigurator } from "@/modules/payment-app-configuration/payment-app-configuration-factory";
 import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
 import { getSaleorAmountFromHyperswitchAmount } from "../../hyperswitch/currencies";
-import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
+import { callHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
 import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
@@ -82,14 +82,6 @@ export const TransactionProcessSessionHyperswitchWebhookHandler = async (
   const configurator = getWebhookPaymentAppConfigurator({ privateMetadata }, saleorApiUrl);
   const errors: SyncWebhookAppErrors = [];
   const channelId = event.sourceObject.channel.id;
-  const hyperswitchClient = await createHyperswitchClient({
-    configData,
-  });
-
-  const retrieveHyperswitchPayment = hyperswitchClient
-    .path("/payments/{payment_id}")
-    .method("get")
-    .create();
 
   const resource_id: paymentsComponents["schemas"]["PaymentIdType"] = {
     PaymentIntentId: event.transaction.pspReference,
@@ -105,11 +97,14 @@ export const TransactionProcessSessionHyperswitchWebhookHandler = async (
 
   const payment_id = event.transaction.pspReference;
 
-  const retrievePaymentResponse = await retrieveHyperswitchPayment({
-    ...retrievePaymentPayload,
-    payment_id,
+  const retrievePaymentResponse = await callHyperswitchClient({
+    configData,
+    targetPath: `/payments/${payment_id}`,
+    method: "GET",
+    body: JSON.stringify(retrievePaymentPayload),
   });
-  const retrievePaymentResponseData = intoPaymentResponse(retrievePaymentResponse.data);
+
+  const retrievePaymentResponseData = intoPaymentResponse(retrievePaymentResponse);
 
   const result = hyperswitchPaymentIntentToTransactionProcessResult(
     retrievePaymentResponseData.status,

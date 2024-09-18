@@ -6,7 +6,7 @@ import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
 } from "../../hyperswitch/currencies";
-import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
+import { callHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
 import { intoRefundResponse } from "../../hyperswitch/hyperswitch-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
@@ -59,12 +59,6 @@ export const TransactionRefundRequestedHyperswitchWebhookHandler = async (
     sourceObject?.total.gross.currency,
   );
   const payment_id = event.transaction.pspReference;
-  const channelId = sourceObject.channel.id;
-  const hyperswitchClient = await createHyperswitchClient({
-    configData,
-  });
-
-  const refundHyperswitchPayment = hyperswitchClient.path("/refunds").method("post").create();
 
   const refundPayload: paymentsComponents["schemas"]["RefundRequest"] = {
     payment_id,
@@ -75,9 +69,14 @@ export const TransactionRefundRequestedHyperswitchWebhookHandler = async (
     },
   };
 
-  const refundPaymentResponse = await refundHyperswitchPayment(refundPayload);
+  const refundPaymentResponse = await callHyperswitchClient({
+    configData,
+    targetPath: "/refunds",
+    method: "POST",
+    body: JSON.stringify(refundPayload),
+  });
 
-  const refundPaymentResponseData = intoRefundResponse(refundPaymentResponse.data);
+  const refundPaymentResponseData = intoRefundResponse(refundPaymentResponse);
   const result = hyperswitchRefundToTransactionResult(refundPaymentResponseData.status);
 
   const transactionRefundRequestedResponse: TransactionRefundRequestedResponse =

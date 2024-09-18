@@ -27,10 +27,8 @@ import {
 import { NextApiRequest, NextApiResponse } from "next";
 import { Event } from "../../../../../generated/graphql";
 import { getPaymentAppConfigurator } from "@/modules/payment-app-configuration/payment-app-configuration-factory";
-import { getConfigurationForChannel } from "@/modules/payment-app-configuration/payment-app-configuration";
-import { paymentAppFullyConfiguredEntrySchema } from "@/modules/payment-app-configuration/common-app-configuration/config-entry";
 import {
-  createHyperswitchClient,
+  callHyperswitchClient,
   fetchHyperswitchPaymentResponseHashKey,
 } from "@/modules/hyperswitch/hyperswitch-api";
 import { getSaleorAmountFromHyperswitchAmount } from "@/modules/hyperswitch/currencies";
@@ -170,42 +168,37 @@ export default async function hyperswitchAuthorizationWebhookHandler(
   const payment_id = webhookBody.content.object.payment_id;
   const refund_id = webhookBody.content.object.refund_id;
 
-  let hyperswitchClient = null;
-  try {
-    hyperswitchClient = await createHyperswitchClient({
-      configData,
-    });
-  } catch (errorData) {
-    if (errorData instanceof HyperswitchHttpClientError && errorData.statusCode != undefined) {
-      return res.status(errorData.statusCode).json(errorData.name);
-    } else {
-      return res.status(424).json("Sync called failed");
-    }
-  }
-
   let hyperswitchSyncResponse = null;
   let pspReference = null;
   if (isRefund) {
-    const paymentSync = hyperswitchClient.path("/refunds/{refund_id}").method("get").create();
-
     invariant(refund_id, "Missing refund id");
-
-    const refundSyncResponse = await paymentSync({
-      ...{},
-      refund_id,
-    });
-    hyperswitchSyncResponse = intoRefundResponse(refundSyncResponse.data);
-    pspReference = hyperswitchSyncResponse.refund_id;
+    try {
+      const refundSyncResponse = await callHyperswitchClient({
+        configData,
+        targetPath: `/refunds/${refund_id}`,
+        method: "GET",
+        body: undefined,
+      });
+      hyperswitchSyncResponse = intoRefundResponse(refundSyncResponse);
+      pspReference = hyperswitchSyncResponse.refund_id;
+    } catch (err) {
+      return res.status(400).json("Refund Sync call failed");
+    }
   } else {
-    const paymentSync = hyperswitchClient.path("/payments/{payment_id}").method("get").create();
-
-    const paymentSyncResponse = await paymentSync({
-      ...{},
-      payment_id,
-    });
-    hyperswitchSyncResponse = intoPaymentResponse(paymentSyncResponse.data);
-    pspReference = hyperswitchSyncResponse.payment_id;
+    try {
+      const paymentSyncResponse = await callHyperswitchClient({
+        configData,
+        targetPath: `/payments/${payment_id}`,
+        method: "GET",
+        body: undefined,
+      });
+      hyperswitchSyncResponse = intoPaymentResponse(paymentSyncResponse);
+      pspReference = hyperswitchSyncResponse.payment_id;
+    } catch (err) {
+      return res.status(400).json("Payment Sync call failed");
+    }
   }
+
   const captureMethod = webhookBody.content.object.capture_method;
 
   const type = hyperswitchStatusToSaleorTransactionResult(

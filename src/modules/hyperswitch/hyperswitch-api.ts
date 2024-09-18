@@ -4,13 +4,11 @@ import {
   HttpRequestError,
   HyperswitchHttpClientError,
 } from "@/errors";
+import fetch, { Headers } from "node-fetch";
+import { HttpsProxyAgent } from "https-proxy-agent";
 import { type paths as HyperswitchPaymentPaths } from "generated/hyperswitch-payments";
-import { ApiError, Fetcher } from "openapi-typescript-fetch";
 import { intoErrorResponse } from "./hyperswitch-api-response";
-import {
-  getConfigurationForChannel,
-  PaymentAppConfigurator,
-} from "../payment-app-configuration/payment-app-configuration";
+import { getConfigurationForChannel } from "../payment-app-configuration/payment-app-configuration";
 import {
   PaymentAppConfigEntryFullyConfigured,
   paymentAppFullyConfiguredEntrySchema,
@@ -72,37 +70,51 @@ export const fetchHyperswitchPaymentResponseHashKey = async (
   return HyperswitchConfig.paymentResponseHashKey;
 };
 
-export const createHyperswitchClient = async ({ configData }: { configData: ConfigObject }) => {
+export const callHyperswitchClient = async ({
+  configData,
+  targetPath,
+  method,
+  body,
+}: {
+  configData: ConfigObject;
+  targetPath: string;
+  method: string;
+  body: string | undefined;
+}) => {
   const SavedConfiguration = await fetchSavedConfiguration(configData);
   const HyperswitchConfig = getHyperswitchConfig(
     paymentAppFullyConfiguredEntrySchema.parse(SavedConfiguration),
   );
+  const baseUrl = getHyperswitchBaseUrl(SavedConfiguration.environment);
+  const targetUrl = new URL(`${baseUrl}${targetPath}`);
+  const meta = {
+    "api-key": HyperswitchConfig.apiKey,
+    "content-type": "application/json",
+  };
+  const headers = new Headers(meta);
 
-  const fetcher = Fetcher.for<HyperswitchPaymentPaths>();
-  fetcher.configure({
-    baseUrl: getHyperswitchBaseUrl(SavedConfiguration.environment),
-    init: {
-      headers: {
-        "api-key": HyperswitchConfig.apiKey,
-        "content-type": "application/json",
-      },
-    },
-    use: [
-      (url, init, next) =>
-        next(url, init).catch((err) => {
-          if (err instanceof ApiError) {
-            const errorData = intoErrorResponse(err.data);
-            const errorMessage = errorData.error?.message
-              ? errorData.error?.message
-              : "NO ERROR MESSAGE";
-            throw new HyperswitchHttpClientError(errorMessage);
-          } else {
-            throw err;
-          }
-        }),
-    ],
-  });
-  return fetcher;
+  try {
+    const agent = env.PROXY_URL ? new HttpsProxyAgent(env.PROXY_URL) : undefined;
+
+    const apiResponse = await fetch(targetUrl, {
+      headers,
+      method,
+      body,
+      ...(agent && { agent }),
+    });
+
+    let response = await apiResponse.json();
+
+    if (!apiResponse.ok) {
+      throw response;
+    }
+
+    return response;
+  } catch (err) {
+    const errorData = intoErrorResponse(err);
+    const errorMessage = errorData.error?.message || "NO ERROR MESSAGE";
+    throw new HyperswitchHttpClientError(errorMessage);
+  }
 };
 
 export function getHyperswitchConfig(

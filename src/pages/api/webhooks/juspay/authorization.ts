@@ -15,7 +15,7 @@ import {
 import { NextApiRequest, NextApiResponse } from "next";
 import { getPaymentAppConfigurator } from "@/modules/payment-app-configuration/payment-app-configuration-factory";
 import {
-  createJuspayClient,
+  callJuspayClient,
   fetchJuspayPassword,
   fetchJuspayUsername,
 } from "@/modules/juspay/juspay-api";
@@ -161,11 +161,18 @@ export default async function juspayAuthorizationWebhookHandler(
   }
 
   const order_id = webhookBody.content.order.order_id;
-
-  let juspayClient = null;
+  let juspaySyncResponse = null;
+  let pspReference = null;
+  let amountVal = null;
+  const captureMethod = webhookBody.content.order.udf3;
+  let webhookStatus = null;
+  let paymentSyncResponse = null;
   try {
-    juspayClient = await createJuspayClient({
+    paymentSyncResponse = await callJuspayClient({
       configData,
+      targetPath: `/orders/${order_id}`,
+      method: "GET",
+      body: undefined,
     });
   } catch (errorData) {
     if (errorData instanceof HyperswitchHttpClientError && errorData.statusCode != undefined) {
@@ -175,19 +182,7 @@ export default async function juspayAuthorizationWebhookHandler(
     }
   }
 
-  let juspaySyncResponse = null;
-  let pspReference = null;
-  let amountVal = null;
-  const captureMethod = webhookBody.content.order.udf3;
-  let webhookStatus = null;
-
-  const paymentSync = juspayClient.path("/orders/{order_id}").method("get").create();
-
-  const paymentSyncResponse = await paymentSync({
-    ...{},
-    order_id,
-  });
-  juspaySyncResponse = intoOrderStatusResponse(paymentSyncResponse.data);
+  juspaySyncResponse = intoOrderStatusResponse(paymentSyncResponse);
   let orderStatus = webhookBody.content.order.status;
   if (isRefund) {
     let eventArray = transaction.data?.transaction?.events;

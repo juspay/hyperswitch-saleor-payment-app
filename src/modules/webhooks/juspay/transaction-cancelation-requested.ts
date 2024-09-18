@@ -1,7 +1,7 @@
 import { type TransactionCancelationRequestedEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
-import { createJuspayClient } from "@/modules/juspay/juspay-api";
+import { callJuspayClient } from "@/modules/juspay/juspay-api";
 import { intoOrderStatusResponse, intoPreAuthTxnResponse } from "../../juspay/juspay-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import { TransactionCancelationRequestedResponse } from "@/schemas/TransactionCancelationRequested/TransactionCancelationRequestedResponse.mjs";
@@ -43,25 +43,26 @@ export const TransactionCancelationRequestedJuspayWebhookHandler = async (
   // Fetch Transaction Details
   invariant(event.transaction.sourceObject, "Missing sourceObject");
 
-  const juspayClient = await createJuspayClient({
+  const order_id = event.transaction.pspReference;
+  const orderStatusResponse = await callJuspayClient({
     configData,
+    targetPath: `/orders/${order_id}`,
+    method: "GET",
+    body: undefined,
   });
 
-  const cancelJuspayPayment = juspayClient.path("/v2/txns/{txn_uuid}/void").method("post").create();
+  const parsedOrderStatusRespData = intoOrderStatusResponse(orderStatusResponse);
 
-  const juspayOrderStatus = juspayClient.path("/orders/{order_id}").method("get").create();
-  const orderStatusResponse = await juspayOrderStatus({
-    order_id: event.transaction.pspReference,
+  const preAuthVoidTxnResponse = await callJuspayClient({
+    configData,
+    targetPath: `/v2/txns/${parsedOrderStatusRespData.txn_uuid}/void`,
+    method: "POST",
+    body: undefined,
   });
-  const parsedOrderStatusRespData = intoOrderStatusResponse(orderStatusResponse.data);
 
   invariant(parsedOrderStatusRespData.txn_uuid, `Txn_uuid not found in orderstatus response`);
 
-  const preAuthVoidTxnResponse = await cancelJuspayPayment({
-    txn_uuid: parsedOrderStatusRespData.txn_uuid,
-  });
-
-  const cancelPaymentResponseData = intoPreAuthTxnResponse(preAuthVoidTxnResponse.data);
+  const cancelPaymentResponseData = intoPreAuthTxnResponse(preAuthVoidTxnResponse);
   invariant(
     cancelPaymentResponseData.status &&
       cancelPaymentResponseData.order_id &&
