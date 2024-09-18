@@ -19,6 +19,8 @@ COPY . .
 # Run the pnpm generate command to prepare necessary files
 RUN pnpm generate
 
+ARG base_url
+ENV APP_API_BASE_URL=${base_url}
 # Build the Next.js application
 RUN pnpm build
 
@@ -30,6 +32,9 @@ WORKDIR /app
 
 # Install pnpm globally in the production stage
 RUN npm install -g pnpm
+
+ARG base_url
+ENV APP_API_BASE_URL=${base_url}
 
 # Copy the dependencies from the build stage
 COPY --from=builder /app/node_modules ./node_modules
