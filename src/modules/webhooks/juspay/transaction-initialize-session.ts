@@ -90,7 +90,6 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     ? requestData?.billingEmail
     : event.sourceObject.userEmail;
 
-
   const billingAddress = buildAddressDetails(event.sourceObject.billingAddress, userEmail);
   const shippingAddress = buildAddressDetails(
     event.sourceObject.shippingAddress,
@@ -154,12 +153,11 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     payment_filter: normalizeValue(requestData?.allowedPaymentMethods),
   };
 
-
   const createOrderResponse = await callJuspayClient({
     configData,
     targetPath: `/session`,
     method: "POST",
-    body:  JSON.stringify(createOrderPayload),
+    body: JSON.stringify(createOrderPayload),
   });
 
   const createPaymentResponseData = intoPaymentResponse(createOrderResponse);

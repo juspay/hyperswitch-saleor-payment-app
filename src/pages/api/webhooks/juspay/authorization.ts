@@ -172,7 +172,7 @@ export default async function juspayAuthorizationWebhookHandler(
       configData,
       targetPath: `/orders/${order_id}`,
       method: "GET",
-      body:  undefined,
+      body: undefined,
     });
   } catch (errorData) {
     if (errorData instanceof HyperswitchHttpClientError && errorData.statusCode != undefined) {

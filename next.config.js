@@ -5,15 +5,13 @@
 import { createVanillaExtractPlugin } from "@vanilla-extract/next-plugin";
 const withVanillaExtract = createVanillaExtractPlugin();
 import { withSentryConfig } from "@sentry/nextjs";
-import NodePolyfillPlugin from 'node-polyfill-webpack-plugin'; 
-
+import NodePolyfillPlugin from "node-polyfill-webpack-plugin";
 
 /**
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
  * This is especially useful for Docker builds.
  */
 // !process.env.SKIP_ENV_VALIDATION && (await import("./src/lib/env.mjs"));
-
 
 /** @type {import('next').NextConfig} */
 const config = {
@@ -22,11 +20,11 @@ const config = {
   /** @param { import("webpack").Configuration } config */
   webpack(config) {
     config.experiments = { ...config.experiments, topLevelAwait: true };
-     // Ensure `plugins` is initialized
-     config.plugins = config.plugins || [];
+    // Ensure `plugins` is initialized
+    config.plugins = config.plugins || [];
 
-     // Now safely push the plugin
-     config.plugins.push(new NodePolyfillPlugin());
+    // Now safely push the plugin
+    config.plugins.push(new NodePolyfillPlugin());
     return config;
   },
 };

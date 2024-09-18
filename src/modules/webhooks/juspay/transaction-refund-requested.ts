@@ -52,7 +52,6 @@ export const TransactionRefundRequestedJuspayWebhookHandler = async (
   const order_id = event.transaction.pspReference;
   const unique_request_id = uuidv4();
 
-
   const refundPayload: paymentsComponents["schemas"]["RefundReq"] = {
     unique_request_id,
     amount: event.action.amount,
@@ -62,7 +61,7 @@ export const TransactionRefundRequestedJuspayWebhookHandler = async (
     configData,
     targetPath: `/orders/${order_id}/refunds`,
     method: "POST",
-    body:  JSON.stringify(refundPayload),
+    body: JSON.stringify(refundPayload),
   });
 
   const refundPaymentResponseData = intoRefundResponse(refundPaymentResponse);
