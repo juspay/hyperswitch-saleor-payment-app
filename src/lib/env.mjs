@@ -25,7 +25,7 @@ export const env = createEnv({
     UPSTASH_TOKEN: z.string().optional(),
     REST_APL_ENDPOINT: z.string().optional(),
     REST_APL_TOKEN: z.string().optional(),
-    APP_API_BASE_URL: z.string(),
+    APP_API_BASE_URL: z.string().optional(),
     APP_IFRAME_BASE_URL: z.string().optional(),
     HYPERSWITCH_SANDBOX_BASE_URL: z.string().default("https://sandbox.hyperswitch.io"),
     HYPERSWITCH_PROD_BASE_URL: z.string().default("https://api.hyperswitch.io"),
@@ -42,7 +42,7 @@ export const env = createEnv({
     NEXT_PUBLIC_ENV: z
       .enum(["development", "test", "staging", "production"])
       .default("development"),
-    NEXT_PUBLIC_BASE_URL: z.string(),
+    NEXT_PUBLIC_BASE_URL: z.string().optional(),
   },
 
   /*
