@@ -113,6 +113,8 @@ export default async function juspayAuthorizationWebhookHandler(
   res: NextApiResponse,
 ): Promise<void> {
   const logger = createLogger({ msgPrefix: "[JuspayWebhookHandler]" });
+  logger.info('Recieved Webhook from Juspay');
+  try {
   let webhookBody = intoWebhookResponse(req.body);
   let eventName = webhookBody.event_name;
   if (!eventName.startsWith("ORDER")) {
@@ -140,6 +142,7 @@ export default async function juspayAuthorizationWebhookHandler(
       transactionId: originalSaleorTransactionId,
     })
     .toPromise();
+  logger.info('Called Saleor Client');
 
   const sourceObject =
     transaction.data?.transaction?.checkout ?? transaction.data?.transaction?.order;
@@ -157,8 +160,11 @@ export default async function juspayAuthorizationWebhookHandler(
   const juspayUsername = await fetchJuspayUsername(configData);
   const juspayPassword = await fetchJuspayPassword(configData);
   if (!verifyWebhookSource(req, juspayUsername, juspayPassword)) {
+    logger.info('Source Verification Failed');
     return res.status(400).json("Source Verification Failed");
   }
+
+  logger.info('Source Verification Successful');
 
   const order_id = webhookBody.content.order.order_id;
   let juspaySyncResponse = null;
@@ -181,6 +187,7 @@ export default async function juspayAuthorizationWebhookHandler(
       return res.status(424).json("Sync called failed");
     }
   }
+  logger.info('Successfully, Retrieved Status From Juspay');
 
   juspaySyncResponse = intoOrderStatusResponse(paymentSyncResponse);
   let orderStatus = webhookBody.content.order.status;
@@ -241,5 +248,11 @@ export default async function juspayAuthorizationWebhookHandler(
     })
     .toPromise();
 
+  logger.info('Updated Status Successfully');
+
   res.status(200).json("[OK]");
+  } catch (e) {
+    logger.info(`Deserialization Error: ${e}`);
+    res.status(500).json('Deserialization Error');
+  }
 }

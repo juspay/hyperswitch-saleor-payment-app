@@ -122,7 +122,11 @@ export default async function hyperswitchAuthorizationWebhookHandler(
   res: NextApiResponse,
 ): Promise<void> {
   const logger = createLogger({ msgPrefix: "[HyperswitchWebhookHandler]" });
-  let webhookBody = intoWebhookResponse(req.body);
+  logger.info('Recieved Webhook From Hyperswitch');
+  let webhookBody = undefined;
+  try {
+     webhookBody = intoWebhookResponse(req.body);
+ 
 
   const transactionId = webhookBody.content.object.metadata.transaction_id;
   const saleorApiUrl = webhookBody.content.object.metadata.saleor_api_url;
@@ -139,6 +143,8 @@ export default async function hyperswitchAuthorizationWebhookHandler(
       transactionId,
     })
     .toPromise();
+
+  logger.info('Called Saleor Client Successfully');
 
   const sourceObject =
     transaction.data?.transaction?.checkout ?? transaction.data?.transaction?.order;
@@ -198,6 +204,7 @@ export default async function hyperswitchAuthorizationWebhookHandler(
       return res.status(400).json("Payment Sync call failed");
     }
   }
+  logger.info('Sucessfully, Retrieved Status From Hyperswitch');
 
   const captureMethod = webhookBody.content.object.capture_method;
 
@@ -225,5 +232,12 @@ export default async function hyperswitchAuthorizationWebhookHandler(
     })
     .toPromise();
 
+
+  logger.info('Updated Status');
+
   res.status(200).json("[OK]");
+  } catch(e) {
+    logger.info(`Deserialization Error: ${e}`);
+    res.status(500).json('Deserialization Error');
+  }
 }
