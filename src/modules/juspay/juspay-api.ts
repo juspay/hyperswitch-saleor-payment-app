@@ -16,10 +16,10 @@ import { env } from "../../lib/env.mjs";
 
 const getJuspayBaseUrl = (config_env: string) => {
   if (config_env == "live") {
-    invariant(env.JUSPAY_PROD_BASE_URL, "ENV variable HYPERSWITCH_PROD_BASE_URL not set");
+    invariant(env.JUSPAY_PROD_BASE_URL, "ENV variable JUSPAY_PROD_BASE_URL not set");
     return env.JUSPAY_PROD_BASE_URL;
   } else {
-    invariant(env.JUSPAY_SANDBOX_BASE_URL, "ENV variable HYPERSWITCH_SANDBOX_BASE_URL not set");
+    invariant(env.JUSPAY_SANDBOX_BASE_URL, "ENV variable JUSPAY_SANDBOX_BASE_URL not set");
     return env.JUSPAY_SANDBOX_BASE_URL;
   }
 };
@@ -72,14 +72,17 @@ export const callJuspayClient = async ({
   body: string | undefined;
 }) => {
   const SavedConfiguration = await fetchSavedConfiguration(configData);
-  const HyperswitchConfig = getJuspayConfig(
+  const JuspayConfig = getJuspayConfig(
     paymentAppFullyConfiguredEntrySchema.parse(SavedConfiguration),
   );
+
   const baseUrl = getJuspayBaseUrl(SavedConfiguration.environment);
   const targetUrl = new URL(`${baseUrl}${targetPath}`);
+  const apiKey = Buffer.from(JuspayConfig.apiKey).toString("base64");
   const meta = {
-    "api-key": HyperswitchConfig.apiKey,
+    "authorization": `Basic ${apiKey}`,
     "content-type": "application/json",
+    "x-merchantid": `${JuspayConfig.merchantId}`,
   };
   const headers = new Headers(meta);
 
