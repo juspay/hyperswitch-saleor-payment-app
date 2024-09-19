@@ -7,12 +7,45 @@ import { type AppRouter } from "./trpc-app-router";
 import { getErrorHandler } from "./utils";
 import { BaseTrpcError, JwtInvalidError, JwtTokenExpiredError } from "@/errors";
 import { appBridgeInstance } from "@/app-bridge-instance";
+import { RequestInfo as NodeRequestInfo, RequestInit as NodeRequestInit } from "node-fetch";
+import { default as nodeFetch } from "node-fetch";
 
 const genericErrorHandler = (err: unknown) => {
   getErrorHandler({
     actionId: "generic-error",
     appBridge: appBridgeInstance,
   })(err as TRPCClientErrorLike<AppRouter>);
+};
+
+
+const customFetch = async (input: URL | RequestInfo, init?: RequestInit | undefined) => {
+  const proxy = process.env.PROXY_URL;
+
+  if (proxy && typeof window === "undefined") {
+    let nodeInput = input as NodeRequestInfo;
+    let nodeInit = init as NodeRequestInit;
+    const { HttpsProxyAgent } = await import("https-proxy-agent");
+    const agent = new HttpsProxyAgent(proxy);
+    nodeInit = {
+      ...nodeInit,
+      agent,
+    };
+    let nodeResponse = await nodeFetch(nodeInput, nodeInit);
+    const headers = new Headers();
+    Object.entries(nodeResponse.headers.raw()).forEach(([key, value]) => {
+      headers.set(key, value.join(", "));
+    });
+    const responseBody = await nodeResponse.text();
+
+    const responseWithUrqlHeaders = new Response(responseBody, {
+      status: nodeResponse.status,
+      statusText: nodeResponse.statusText,
+      headers: headers,
+    });
+    return responseWithUrqlHeaders;
+  } else {
+    return await fetch(input, init);
+  }
 };
 
 export const trpcClient = createTRPCNext<AppRouter>({
@@ -53,6 +86,7 @@ export const trpcClient = createTRPCNext<AppRouter>({
               [SALEOR_API_URL_HEADER]: appBridgeInstance?.getState().saleorApiUrl,
             };
           },
+          fetch: customFetch,
         }),
       ],
       queryClientConfig: {

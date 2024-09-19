@@ -15,7 +15,7 @@ export default createManifestHandler({
   async manifestFactory(_) {
     invariant(env.NEXT_PUBLIC_BASE_URL, "Missing env.NEXT_PUBLIC_BASE_URL");
     const manifest: AppManifest = {
-      id: "app.saleor.juspay-proxy-me---21",
+      id: "app.saleor.juspay",
       name: "Juspay",
       about: packageJson.description,
       tokenTargetUrl: `${env.NEXT_PUBLIC_BASE_URL}/api/register`,

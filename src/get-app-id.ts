@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import { env } from "./lib/env.mjs";
 
-const logger = createLogger({ msgPrefix: "createAppRegisterHandler" });
+const logger = createLogger({ msgPrefix: "GetAppId" });
 
 type GetIdResponseType = {
   data?: {

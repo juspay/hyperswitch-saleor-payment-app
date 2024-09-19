@@ -79,7 +79,7 @@ const CopyManifest = () => {
   }, [copied]);
 
   const handleClick = async () => {
-    await navigator.clipboard.writeText(window.location.origin + "/api/manifest");
+    await navigator.clipboard.writeText(window.location.origin + "/saleor/api/manifest");
     setCopied(true);
   };
 
