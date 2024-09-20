@@ -181,8 +181,8 @@ export const AddJuspayCredentialsForm = ({
           control={control}
           type={secretInputType}
           autoComplete="off"
-          label="Passowrd"
-          helperText="Passowrd from your juspay dashboard setting for webhook."
+          label="Password"
+          helperText="Password from your juspay dashboard setting for webhook."
           name="juspayConfiguration.password"
           size="medium"
         />
