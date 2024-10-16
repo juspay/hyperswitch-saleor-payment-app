@@ -80,9 +80,10 @@ export const callJuspayClient = async ({
   const targetUrl = new URL(`${baseUrl}${targetPath}`);
   const apiKey = Buffer.from(JuspayConfig.apiKey).toString("base64");
   const meta = {
-    "authorization": `Basic ${apiKey}`,
+    authorization: `Basic ${apiKey}`,
     "content-type": "application/json",
     "x-merchantid": `${JuspayConfig.merchantId}`,
+    version: "2024-01-01",
   };
   const headers = new Headers(meta);
 

@@ -139,6 +139,9 @@ importers:
       pino-pretty:
         specifier: 10.2.3
         version: 10.2.3
+      raw-body:
+        specifier: 2.5.2
+        version: 2.5.2
       react:
         specifier: 18.2.0
         version: 18.2.0

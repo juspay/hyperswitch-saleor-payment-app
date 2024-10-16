@@ -8,7 +8,6 @@ import { env } from "./lib/env.mjs";
 import { getOtelTracer, OTEL_CORE_SERVICE_NAME } from "./open-telemetry";
 import { getJwksUrlFromSaleorApiUrl } from "./urls";
 
-
 export const fetchRemoteJwks = async (saleorApiUrl: string) => {
   const tracer = getOtelTracer();
 
