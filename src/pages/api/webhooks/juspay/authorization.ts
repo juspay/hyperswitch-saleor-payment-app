@@ -1,8 +1,13 @@
 import { HyperswitchHttpClientError, UnExpectedJuspayPaymentStatus } from "@/errors";
 import { createClient } from "@/lib/create-graphq-client";
 import { invariant } from "@/lib/invariant";
-import { CaptureMethod, intoOrderStatusResponse } from "@/modules/juspay/juspay-api-response";
-import { intoWebhookResponse } from "@/modules/juspay/juspay-api-response";
+import {
+  CaptureMethod,
+  intoOrderStatusResponse,
+  JuspaySupportedEvents,
+  JuspayRefundEvents,
+} from "@/modules/juspay/juspay-api-response";
+import { intoWebhookResponse, parseWebhookEvent } from "@/modules/juspay/juspay-api-response";
 import { saleorApp } from "@/saleor-app";
 import {
   GetTransactionByIdDocument,
@@ -39,6 +44,10 @@ export const juspayStatusToSaleorTransactionResult = (
       } else {
         return TransactionEventTypeEnum.ChargeSuccess;
       }
+    case "AUTO_REFUND_REQUEST":
+      return TransactionEventTypeEnum.RefundRequest;
+    case "AUTO_REFUND_FAILED":
+      return TransactionEventTypeEnum.RefundFailure;
     case "DECLINED":
     case "ERROR":
     case "NOT_FOUND":
@@ -113,146 +122,156 @@ export default async function juspayAuthorizationWebhookHandler(
   res: NextApiResponse,
 ): Promise<void> {
   const logger = createLogger({ msgPrefix: "[JuspayWebhookHandler]" });
-  logger.info('Recieved Webhook from Juspay');
+  logger.info("Recieved Webhook from Juspay");
   try {
-  let webhookBody = intoWebhookResponse(req.body);
-  let eventName = webhookBody.event_name;
-  if (!eventName.startsWith("ORDER")) {
-    throw new UnExpectedJuspayPaymentStatus(
-      `Event received from juspay: ${eventName}, is not expected . Please check the payment flow.`,
-    );
-  }
-  const transactionId = webhookBody.content.order.udf1;
-  const saleorApiUrl = webhookBody.content.order.udf2;
-  const isRefund = eventName === "ORDER_REFUNDED" || eventName === "ORDER_REFUND_FAILED";
+    let webhook_event_name = parseWebhookEvent(req.body).event_name;
+    if (JuspaySupportedEvents.safeParse(webhook_event_name).success) {
+      let webhookBody = intoWebhookResponse(req.body);
+      const transactionId = webhookBody.content.order.udf1;
+      const saleorApiUrl = webhookBody.content.order.udf2;
+      const isRefund = JuspayRefundEvents.safeParse(webhook_event_name).success;
 
-  invariant(saleorApiUrl && transactionId, "user defined fields not found in webhook");
+      invariant(saleorApiUrl && transactionId, "user defined fields not found in webhook");
 
-  const originalSaleorApiUrl = atob(saleorApiUrl);
-  const originalSaleorTransactionId = atob(transactionId);
+      const originalSaleorApiUrl = atob(saleorApiUrl);
+      const originalSaleorTransactionId = atob(transactionId);
 
-  const authData = await saleorApp.apl.get(originalSaleorApiUrl);
-  if (authData === undefined) {
-    res.status(401).json("Failed fetching auth data, check your Saleor API URL");
-  }
-  invariant(authData, "Failed fetching auth data");
-  const client = createClient(originalSaleorApiUrl, async () => ({ token: authData?.token }));
-  const transaction = await client
-    .query<GetTransactionByIdQuery, GetTransactionByIdQueryVariables>(GetTransactionByIdDocument, {
-      transactionId: originalSaleorTransactionId,
-    })
-    .toPromise();
-  logger.info('Called Saleor Client');
+      const authData = await saleorApp.apl.get(originalSaleorApiUrl);
+      if (authData === undefined) {
+        res.status(401).json("Failed fetching auth data, check your Saleor API URL");
+      }
+      invariant(authData, "Failed fetching auth data");
+      const client = createClient(originalSaleorApiUrl, async () => ({ token: authData?.token }));
+      const transaction = await client
+        .query<GetTransactionByIdQuery, GetTransactionByIdQueryVariables>(
+          GetTransactionByIdDocument,
+          {
+            transactionId: originalSaleorTransactionId,
+          },
+        )
+        .toPromise();
+      logger.info("Called Saleor Client");
 
-  const sourceObject =
-    transaction.data?.transaction?.checkout ?? transaction.data?.transaction?.order;
+      const sourceObject =
+        transaction.data?.transaction?.checkout ?? transaction.data?.transaction?.order;
 
-  let isChargeFlow = transaction.data?.transaction?.events.some(
-    (event) => event.type === "AUTHORIZATION_SUCCESS",
-  );
+      let isChargeFlow = transaction.data?.transaction?.events.some(
+        (event) => event.type === "AUTHORIZATION_SUCCESS",
+      );
 
-  invariant(sourceObject, "Missing Source Object");
+      invariant(sourceObject, "Missing Source Object");
 
-  const configData: ConfigObject = {
-    configurator: getPaymentAppConfigurator(client, originalSaleorApiUrl),
-    channelId: sourceObject.channel.id,
-  };
-  const juspayUsername = await fetchJuspayUsername(configData);
-  const juspayPassword = await fetchJuspayPassword(configData);
-  if (!verifyWebhookSource(req, juspayUsername, juspayPassword)) {
-    logger.info('Source Verification Failed');
-    return res.status(400).json("Source Verification Failed");
-  }
+      const configData: ConfigObject = {
+        configurator: getPaymentAppConfigurator(client, originalSaleorApiUrl),
+        channelId: sourceObject.channel.id,
+      };
+      const juspayUsername = await fetchJuspayUsername(configData);
+      const juspayPassword = await fetchJuspayPassword(configData);
+      if (!verifyWebhookSource(req, juspayUsername, juspayPassword)) {
+        logger.info("Source Verification Failed");
+        return res.status(400).json("Source Verification Failed");
+      }
 
-  logger.info('Source Verification Successful');
+      logger.info("Source Verification Successful");
 
-  const order_id = webhookBody.content.order.order_id;
-  let juspaySyncResponse = null;
-  let pspReference = null;
-  let amountVal = null;
-  const captureMethod = webhookBody.content.order.udf3;
-  let webhookStatus = null;
-  let paymentSyncResponse = null;
-  try {
-    paymentSyncResponse = await callJuspayClient({
-      configData,
-      targetPath: `/orders/${order_id}`,
-      method: "GET",
-      body: undefined,
-    });
-  } catch (errorData) {
-    if (errorData instanceof HyperswitchHttpClientError && errorData.statusCode != undefined) {
-      return res.status(errorData.statusCode).json(errorData.name);
-    } else {
-      return res.status(424).json("Sync called failed");
-    }
-  }
-  logger.info('Successfully, Retrieved Status From Juspay');
+      const order_id = webhookBody.content.order.order_id;
+      let juspaySyncResponse = null;
+      let pspReference = null;
+      let amountVal = null;
+      let message = "";
+      const captureMethod = webhookBody.content.order.udf3;
+      let webhookStatus = null;
+      let paymentSyncResponse = null;
+      try {
+        paymentSyncResponse = await callJuspayClient({
+          configData,
+          targetPath: `/orders/${order_id}`,
+          method: "GET",
+          body: undefined,
+        });
+      } catch (errorData) {
+        if (errorData instanceof HyperswitchHttpClientError && errorData.statusCode != undefined) {
+          return res.status(errorData.statusCode).json(errorData.name);
+        } else {
+          return res.status(424).json("Sync called failed");
+        }
+      }
+      logger.info("Successfully, Retrieved Status From Juspay");
 
-  juspaySyncResponse = intoOrderStatusResponse(paymentSyncResponse);
-  let orderStatus = webhookBody.content.order.status;
-  if (isRefund) {
-    let eventArray = transaction.data?.transaction?.events;
-    let refundList = webhookBody.content.order.refunds;
-    if (orderStatus == "AUTO_REFUNDED") {
-      amountVal = webhookBody.content.order.amount;
-      pspReference = webhookBody.content.order.order_id;
-      webhookStatus = orderStatus;
-    } else {
-      invariant(eventArray, "Missing event list from transaction event");
-      invariant(refundList, "Missing refunds list in event");
-      outerLoop: for (const eventObj of eventArray) {
-        if (eventObj.type === "REFUND_REQUEST") {
-          for (const RefundObj of refundList) {
-            if (
-              eventObj.pspReference === RefundObj.unique_request_id &&
-              RefundObj.status !== "PENDING"
-            ) {
-              amountVal = RefundObj.amount;
-              pspReference = RefundObj.unique_request_id;
-              webhookStatus = RefundObj.status;
-              break outerLoop;
+      juspaySyncResponse = intoOrderStatusResponse(paymentSyncResponse);
+      let orderStatus = juspaySyncResponse.status; // not needed
+      if (isRefund) {
+        let eventArray = transaction.data?.transaction?.events;
+        let refundList = juspaySyncResponse.refunds; // not needed from status
+        if (orderStatus == "AUTO_REFUNDED") {
+          amountVal = juspaySyncResponse.amount; // not needed from status
+          pspReference = juspaySyncResponse.order_id; // not needed from status
+          if (
+            webhook_event_name == "AUTO_REFUND_INITIATED" ||
+            webhook_event_name == "REFUND_MANUAL_REVIEW_NEEDED"
+          ) {
+            webhookStatus = "AUTO_REFUND_REQUEST";
+          } else if (webhook_event_name == "AUTO_REFUND_FAILED") {
+            webhookStatus = "AUTO_REFUND_FAILED";
+          } else webhookStatus = orderStatus;
+          message = webhook_event_name;
+        } else {
+          invariant(eventArray, "Missing event list from transaction event");
+          invariant(refundList, "Missing refunds list in event");
+          outerLoop: for (const eventObj of eventArray) {
+            if (eventObj.type === "REFUND_REQUEST") {
+              for (const RefundObj of refundList) {
+                if (
+                  eventObj.pspReference === RefundObj.unique_request_id &&
+                  RefundObj.status !== "PENDING"
+                ) {
+                  amountVal = RefundObj.amount;
+                  pspReference = RefundObj.unique_request_id;
+                  webhookStatus = RefundObj.status;
+                  break outerLoop;
+                }
+              }
             }
           }
         }
+      } else {
+        pspReference = juspaySyncResponse.order_id;
+        amountVal = juspaySyncResponse.amount;
+        webhookStatus = orderStatus;
       }
+
+      invariant(amountVal, "no amount value found");
+      invariant(pspReference, "no values of pspReference found");
+      invariant(webhookStatus, "no values of status found");
+
+      const type = juspayStatusToSaleorTransactionResult(
+        webhookStatus,
+        isRefund,
+        captureMethod,
+        isChargeFlow,
+      );
+
+      await client
+        .mutation(TransactionEventReportDocument, {
+          transactionId: originalSaleorTransactionId,
+          amount: amountVal,
+          availableActions: getAvailableActions(type),
+          externalUrl: "",
+          time: new Date().toISOString(),
+          type,
+          pspReference,
+          message: webhookBody.content.order.txn_detail?.error_message
+            ? webhookBody.content.order.txn_detail?.error_message
+            : message,
+        })
+        .toPromise();
+
+      logger.info("Updated Status Successfully");
     }
-  } else {
-    pspReference = juspaySyncResponse.order_id;
-    amountVal = juspaySyncResponse.amount;
-    webhookStatus = orderStatus;
-  }
 
-  invariant(amountVal, "no amount value found");
-  invariant(pspReference, "no values of pspReference found");
-  invariant(webhookStatus, "no values of status found");
-
-  const type = juspayStatusToSaleorTransactionResult(
-    webhookStatus,
-    isRefund,
-    captureMethod,
-    isChargeFlow,
-  );
-  await client
-    .mutation(TransactionEventReportDocument, {
-      transactionId: originalSaleorTransactionId,
-      amount: amountVal,
-      availableActions: getAvailableActions(type),
-      externalUrl: "",
-      time: new Date().toISOString(),
-      type,
-      pspReference,
-      message: webhookBody.content.order.txn_detail?.error_message
-        ? webhookBody.content.order.txn_detail?.error_message
-        : "",
-    })
-    .toPromise();
-
-  logger.info('Updated Status Successfully');
-
-  res.status(200).json("[OK]");
+    res.status(200).json("[OK]");
   } catch (e) {
     logger.info(`Deserialization Error: ${e}`);
-    res.status(500).json('Deserialization Error');
+    res.status(500).json("Deserialization Error");
   }
 }

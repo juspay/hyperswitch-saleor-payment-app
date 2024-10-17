@@ -9,7 +9,7 @@ export const verifyTokenExpiration = (token: DashboardTokenPayload) => {
   const nowTimestamp = now.valueOf();
 
   if (!tokenExpiration) {
-    throw new Error("Missing \"exp\" field in token");
+    throw new Error('Missing "exp" field in token');
   }
 
   /**
@@ -20,7 +20,7 @@ export const verifyTokenExpiration = (token: DashboardTokenPayload) => {
   logger.debug(
     "Comparing todays date: %s and token expiration date: %s",
     now.toLocaleString(),
-    new Date(tokenMsTimestamp).toLocaleString()
+    new Date(tokenMsTimestamp).toLocaleString(),
   );
 
   if (tokenMsTimestamp <= nowTimestamp) {

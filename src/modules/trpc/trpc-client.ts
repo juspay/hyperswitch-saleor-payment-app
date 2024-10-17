@@ -17,7 +17,6 @@ const genericErrorHandler = (err: unknown) => {
   })(err as TRPCClientErrorLike<AppRouter>);
 };
 
-
 const customFetch = async (input: URL | RequestInfo, init?: RequestInit | undefined) => {
   const proxy = process.env.PROXY_URL;
 

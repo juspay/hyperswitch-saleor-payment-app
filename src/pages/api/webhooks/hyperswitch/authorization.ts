@@ -122,122 +122,123 @@ export default async function hyperswitchAuthorizationWebhookHandler(
   res: NextApiResponse,
 ): Promise<void> {
   const logger = createLogger({ msgPrefix: "[HyperswitchWebhookHandler]" });
-  logger.info('Recieved Webhook From Hyperswitch');
+  logger.info("Recieved Webhook From Hyperswitch");
   let webhookBody = undefined;
   try {
-     webhookBody = intoWebhookResponse(req.body);
- 
+    webhookBody = intoWebhookResponse(req.body);
 
-  const transactionId = webhookBody.content.object.metadata.transaction_id;
-  const saleorApiUrl = webhookBody.content.object.metadata.saleor_api_url;
-  const isRefund = webhookBody.content.type === "refund_details";
+    const transactionId = webhookBody.content.object.metadata.transaction_id;
+    const saleorApiUrl = webhookBody.content.object.metadata.saleor_api_url;
+    const isRefund = webhookBody.content.type === "refund_details";
 
-  const authData = await saleorApp.apl.get(saleorApiUrl);
-  if (authData === undefined) {
-    res.status(401).json("Failed fetching auth data, check your Saleor API URL");
-  }
-  invariant(authData, "Failed fetching auth data");
-  const client = createClient(saleorApiUrl, async () => ({ token: authData?.token }));
-  const transaction = await client
-    .query<GetTransactionByIdQuery, GetTransactionByIdQueryVariables>(GetTransactionByIdDocument, {
-      transactionId,
-    })
-    .toPromise();
-
-  logger.info('Called Saleor Client Successfully');
-
-  const sourceObject =
-    transaction.data?.transaction?.checkout ?? transaction.data?.transaction?.order;
-
-  let isChargeFlow = transaction.data?.transaction?.events.some(
-    (event) => event.type === "AUTHORIZATION_SUCCESS",
-  );
-
-  invariant(sourceObject, "Missing Source Object");
-
-  const configData: ConfigObject = {
-    configurator: getPaymentAppConfigurator(client, saleorApiUrl),
-    channelId: sourceObject.channel.id,
-  };
-
-  let paymentResponseHashKey = null;
-  try {
-    paymentResponseHashKey = await fetchHyperswitchPaymentResponseHashKey(configData);
-  } catch (errorData) {
-    return res.status(406).json("Channel not assigned");
-  }
-
-  if (!verifyWebhookSource(req, paymentResponseHashKey)) {
-    return res.status(400).json("Source Verification Failed");
-  }
-  logger.info("Webhook Source Verified");
-  const payment_id = webhookBody.content.object.payment_id;
-  const refund_id = webhookBody.content.object.refund_id;
-
-  let hyperswitchSyncResponse = null;
-  let pspReference = null;
-  if (isRefund) {
-    invariant(refund_id, "Missing refund id");
-    try {
-      const refundSyncResponse = await callHyperswitchClient({
-        configData,
-        targetPath: `/refunds/${refund_id}`,
-        method: "GET",
-        body: undefined,
-      });
-      hyperswitchSyncResponse = intoRefundResponse(refundSyncResponse);
-      pspReference = hyperswitchSyncResponse.refund_id;
-    } catch (err) {
-      return res.status(400).json("Refund Sync call failed");
+    const authData = await saleorApp.apl.get(saleorApiUrl);
+    if (authData === undefined) {
+      res.status(401).json("Failed fetching auth data, check your Saleor API URL");
     }
-  } else {
+    invariant(authData, "Failed fetching auth data");
+    const client = createClient(saleorApiUrl, async () => ({ token: authData?.token }));
+    const transaction = await client
+      .query<GetTransactionByIdQuery, GetTransactionByIdQueryVariables>(
+        GetTransactionByIdDocument,
+        {
+          transactionId,
+        },
+      )
+      .toPromise();
+
+    logger.info("Called Saleor Client Successfully");
+
+    const sourceObject =
+      transaction.data?.transaction?.checkout ?? transaction.data?.transaction?.order;
+
+    let isChargeFlow = transaction.data?.transaction?.events.some(
+      (event) => event.type === "AUTHORIZATION_SUCCESS",
+    );
+
+    invariant(sourceObject, "Missing Source Object");
+
+    const configData: ConfigObject = {
+      configurator: getPaymentAppConfigurator(client, saleorApiUrl),
+      channelId: sourceObject.channel.id,
+    };
+
+    let paymentResponseHashKey = null;
     try {
-      const paymentSyncResponse = await callHyperswitchClient({
-        configData,
-        targetPath: `/payments/${payment_id}`,
-        method: "GET",
-        body: undefined,
-      });
-      hyperswitchSyncResponse = intoPaymentResponse(paymentSyncResponse);
-      pspReference = hyperswitchSyncResponse.payment_id;
-    } catch (err) {
-      return res.status(400).json("Payment Sync call failed");
+      paymentResponseHashKey = await fetchHyperswitchPaymentResponseHashKey(configData);
+    } catch (errorData) {
+      return res.status(406).json("Channel not assigned");
     }
-  }
-  logger.info('Sucessfully, Retrieved Status From Hyperswitch');
 
-  const captureMethod = webhookBody.content.object.capture_method;
+    if (!verifyWebhookSource(req, paymentResponseHashKey)) {
+      return res.status(400).json("Source Verification Failed");
+    }
+    logger.info("Webhook Source Verified");
+    const payment_id = webhookBody.content.object.payment_id;
+    const refund_id = webhookBody.content.object.refund_id;
 
-  const type = hyperswitchStatusToSaleorTransactionResult(
-    webhookBody.content.object.status,
-    isRefund,
-    captureMethod,
-    isChargeFlow,
-  );
-  await client
-    .mutation(TransactionEventReportDocument, {
-      transactionId,
-      amount: getSaleorAmountFromHyperswitchAmount(
-        hyperswitchSyncResponse.amount,
-        hyperswitchSyncResponse.currency,
-      ),
-      availableActions: getAvailableActions(type),
-      externalUrl: "",
-      time: new Date().toISOString(),
-      type,
-      pspReference: isRefund ? getRefundId(webhookBody) : webhookBody.content.object.payment_id,
-      message: webhookBody.content.object.error_message
-        ? webhookBody.content.object.error_message
-        : "",
-    })
-    .toPromise();
+    let hyperswitchSyncResponse = null;
+    let pspReference = null;
+    if (isRefund) {
+      invariant(refund_id, "Missing refund id");
+      try {
+        const refundSyncResponse = await callHyperswitchClient({
+          configData,
+          targetPath: `/refunds/${refund_id}`,
+          method: "GET",
+          body: undefined,
+        });
+        hyperswitchSyncResponse = intoRefundResponse(refundSyncResponse);
+        pspReference = hyperswitchSyncResponse.refund_id;
+      } catch (err) {
+        return res.status(400).json("Refund Sync call failed");
+      }
+    } else {
+      try {
+        const paymentSyncResponse = await callHyperswitchClient({
+          configData,
+          targetPath: `/payments/${payment_id}`,
+          method: "GET",
+          body: undefined,
+        });
+        hyperswitchSyncResponse = intoPaymentResponse(paymentSyncResponse);
+        pspReference = hyperswitchSyncResponse.payment_id;
+      } catch (err) {
+        return res.status(400).json("Payment Sync call failed");
+      }
+    }
+    logger.info("Sucessfully, Retrieved Status From Hyperswitch");
 
+    const captureMethod = webhookBody.content.object.capture_method;
 
-  logger.info('Updated Status');
+    const type = hyperswitchStatusToSaleorTransactionResult(
+      webhookBody.content.object.status,
+      isRefund,
+      captureMethod,
+      isChargeFlow,
+    );
+    await client
+      .mutation(TransactionEventReportDocument, {
+        transactionId,
+        amount: getSaleorAmountFromHyperswitchAmount(
+          hyperswitchSyncResponse.amount,
+          hyperswitchSyncResponse.currency,
+        ),
+        availableActions: getAvailableActions(type),
+        externalUrl: "",
+        time: new Date().toISOString(),
+        type,
+        pspReference: isRefund ? getRefundId(webhookBody) : webhookBody.content.object.payment_id,
+        message: webhookBody.content.object.error_message
+          ? webhookBody.content.object.error_message
+          : "",
+      })
+      .toPromise();
 
-  res.status(200).json("[OK]");
-  } catch(e) {
+    logger.info("Updated Status");
+
+    res.status(200).json("[OK]");
+  } catch (e) {
     logger.info(`Deserialization Error: ${e}`);
-    res.status(500).json('Deserialization Error');
+    res.status(500).json("Deserialization Error");
   }
 }

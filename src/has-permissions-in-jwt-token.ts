@@ -6,7 +6,7 @@ const logger = createLogger({ msgPrefix: "HaspermissionInJWTtoken" });
 
 export const hasPermissionsInJwtToken = (
   tokenData?: Pick<DashboardTokenPayload, "user_permissions">,
-  permissionsToCheckAgainst?: Permission[]
+  permissionsToCheckAgainst?: Permission[],
 ) => {
   logger.debug(`Permissions required ${permissionsToCheckAgainst}`);
 
@@ -23,7 +23,7 @@ export const hasPermissionsInJwtToken = (
   }
 
   const arePermissionsSatisfied = permissionsToCheckAgainst.every((permission) =>
-    userPermissions.includes(permission)
+    userPermissions.includes(permission),
   );
 
   if (!arePermissionsSatisfied) {

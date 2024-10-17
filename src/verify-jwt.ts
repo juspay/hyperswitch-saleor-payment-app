@@ -5,7 +5,7 @@ import { Permission } from "@saleor/app-sdk/types";
 import { getJwksUrlFromSaleorApiUrl } from "./urls";
 import { verifyTokenExpiration } from "./verify-token-expiration";
 import { createLogger } from "./lib/logger";
-import { HttpsProxyAgent } from 'https-proxy-agent';
+import { HttpsProxyAgent } from "https-proxy-agent";
 import { env } from "@/lib/env.mjs";
 
 const logger = createLogger({ msgPrefix: "verify-jwt" });
@@ -47,7 +47,7 @@ export const verifyJWT = async ({
 
   if (tokenClaims.app !== appId) {
     logger.debug(
-      "Resolved App ID value from token to be different than in request, will respond with Bad Request"
+      "Resolved App ID value from token to be different than in request, will respond with Bad Request",
     );
 
     throw new Error(`${ERROR_MESSAGE} Token's app property is different than app ID.`);
@@ -62,8 +62,8 @@ export const verifyJWT = async ({
     logger.debug("Trying to create JWKS");
     const proxyAgent = env.PROXY_URL ? new HttpsProxyAgent(env.PROXY_URL) : undefined;
     const JWKS = jose.createRemoteJWKSet(new URL(getJwksUrlFromSaleorApiUrl(saleorApiUrl)), {
-        agent: proxyAgent // Pass the proxy agent
-      });
+      agent: proxyAgent, // Pass the proxy agent
+    });
     logger.debug("Trying to compare JWKS with token");
     await jose.jwtVerify(token, JWKS);
   } catch (e) {
