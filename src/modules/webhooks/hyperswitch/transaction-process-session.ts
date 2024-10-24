@@ -104,6 +104,8 @@ export const TransactionProcessSessionHyperswitchWebhookHandler = async (
     body: JSON.stringify(retrievePaymentPayload),
   });
 
+  logger.info("Successfully called hyperswitch client for transaction process session.");
+
   const retrievePaymentResponseData = intoPaymentResponse(retrievePaymentResponse);
 
   const result = hyperswitchPaymentIntentToTransactionProcessResult(

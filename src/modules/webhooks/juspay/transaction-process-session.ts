@@ -97,6 +97,8 @@ export const TransactionProcessSessionJuspayWebhookHandler = async (
     body: undefined,
   });
 
+  logger.info("Successfully called juspay client for transaction process session.");
+
   const parsedOrderStatusRespData = intoOrderStatusResponse(orderStatusResponse);
   invariant(
     parsedOrderStatusRespData.order_id && parsedOrderStatusRespData.amount,

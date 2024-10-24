@@ -14,6 +14,7 @@ import {
   GetTransactionByIdQuery,
   GetTransactionByIdQueryVariables,
   TransactionActionEnum,
+  TransactionEvent,
   TransactionEventReportDocument,
   TransactionEventTypeEnum,
 } from "generated/graphql";
@@ -104,6 +105,10 @@ export const verifyWebhookSource = (
   }
 };
 
+export function hasChargeSuccess(events: Partial<TransactionEvent>[]): boolean {
+  return events.some((event) => event.type === "CHARGE_SUCCESS");
+}
+
 const getAvailableActions = (
   transactionType: TransactionEventTypeEnum,
 ): TransactionActionEnum[] => {
@@ -117,161 +122,193 @@ const getAvailableActions = (
   }
 };
 
+function getEventMessage(errorMessage: string | undefined, webhookEvent: string): string {
+  if (!errorMessage || errorMessage === "") {
+    return webhookEvent.replace(/_/g, " ");
+  }
+  return errorMessage;
+}
+
 export default async function juspayAuthorizationWebhookHandler(
   req: NextApiRequest,
   res: NextApiResponse,
 ): Promise<void> {
   const logger = createLogger({ msgPrefix: "[JuspayWebhookHandler]" });
-  logger.info("Recieved Webhook from Juspay");
+  logger.info("Received Webhook from Juspay");
+
   try {
-    let webhook_event_name = parseWebhookEvent(req.body).event_name;
-    if (JuspaySupportedEvents.safeParse(webhook_event_name).success) {
-      let webhookBody = intoWebhookResponse(req.body);
-      const transactionId = webhookBody.content.order.udf1;
-      const saleorApiUrl = webhookBody.content.order.udf2;
-      const isRefund = JuspayRefundEvents.safeParse(webhook_event_name).success;
+    const webhookEvent = parseWebhookEvent(req.body).event_name;
+    logger.info(`${webhookEvent} Event received from Juspay`);
 
-      invariant(saleorApiUrl && transactionId, "user defined fields not found in webhook");
+    if (!JuspaySupportedEvents.safeParse(webhookEvent).success) {
+      return res.status(200).json("[OK]");
+    }
+    const webhookBody = intoWebhookResponse(req.body);
+    logger.info(`order_id: ${webhookBody.content.order.order_id}`);
+    const {
+      udf1: transactionId,
+      udf2: saleorApiUrl,
+      udf3: captureMethod,
+    } = webhookBody.content.order;
+    const isRefund = JuspayRefundEvents.safeParse(webhookEvent).success;
 
-      const originalSaleorApiUrl = atob(saleorApiUrl);
-      const originalSaleorTransactionId = atob(transactionId);
+    invariant(
+      saleorApiUrl && transactionId && captureMethod,
+      "User-defined fields not found in webhook",
+    );
 
-      const authData = await saleorApp.apl.get(originalSaleorApiUrl);
-      if (authData === undefined) {
-        res.status(401).json("Failed fetching auth data, check your Saleor API URL");
+    const originalSaleorApiUrl = atob(saleorApiUrl);
+    const originalSaleorTransactionId = atob(transactionId);
+
+    const authData = await saleorApp.apl.get(originalSaleorApiUrl);
+    if (!authData) {
+      return res.status(401).json("Failed fetching auth data, check your Saleor API URL");
+    }
+
+    const client = createClient(originalSaleorApiUrl, async () => ({ token: authData.token }));
+    const transaction = await client
+      .query<
+        GetTransactionByIdQuery,
+        GetTransactionByIdQueryVariables
+      >(GetTransactionByIdDocument, { transactionId: originalSaleorTransactionId })
+      .toPromise();
+
+    logger.info("Called Saleor Client Successfully");
+
+    const sourceObject =
+      transaction.data?.transaction?.checkout ?? transaction.data?.transaction?.order;
+    const isChargeFlow = transaction.data?.transaction?.events.some(
+      (event) => event.type === "AUTHORIZATION_SUCCESS",
+    );
+
+    invariant(sourceObject, "Missing Source Object");
+
+    const configData: ConfigObject = {
+      configurator: getPaymentAppConfigurator(client, originalSaleorApiUrl),
+      channelId: sourceObject.channel.id,
+    };
+
+    const juspayUsername = await fetchJuspayUsername(configData);
+    const juspayPassword = await fetchJuspayPassword(configData);
+
+    if (!verifyWebhookSource(req, juspayUsername, juspayPassword)) {
+      logger.info("Source Verification Failed");
+      return res.status(400).json("Source Verification Failed");
+    }
+
+    logger.info("Source Verification Successful");
+
+    const order_id = webhookBody.content.order.order_id;
+    let paymentSyncResponse;
+
+    try {
+      paymentSyncResponse = await callJuspayClient({
+        configData,
+        targetPath: `/orders/${order_id}`,
+        method: "GET",
+        body: undefined,
+      });
+    } catch (errorData) {
+      if (errorData instanceof HyperswitchHttpClientError && errorData.statusCode) {
+        return res.status(errorData.statusCode).json(errorData.name);
       }
-      invariant(authData, "Failed fetching auth data");
-      const client = createClient(originalSaleorApiUrl, async () => ({ token: authData?.token }));
-      const transaction = await client
-        .query<GetTransactionByIdQuery, GetTransactionByIdQueryVariables>(
-          GetTransactionByIdDocument,
-          {
-            transactionId: originalSaleorTransactionId,
-          },
-        )
-        .toPromise();
-      logger.info("Called Saleor Client");
+      return res.status(424).json("Sync call failed");
+    }
 
-      const sourceObject =
-        transaction.data?.transaction?.checkout ?? transaction.data?.transaction?.order;
+    logger.info("Successfully retrieved status from Juspay");
 
-      let isChargeFlow = transaction.data?.transaction?.events.some(
-        (event) => event.type === "AUTHORIZATION_SUCCESS",
-      );
+    const juspaySyncResponse = intoOrderStatusResponse(paymentSyncResponse);
+    let {
+      status: orderStatus,
+      amount: amountVal,
+      order_id: pspReference,
+      refunds: refundList,
+    } = juspaySyncResponse;
 
-      invariant(sourceObject, "Missing Source Object");
+    invariant(pspReference, "No order id found in sync response");
 
-      const configData: ConfigObject = {
-        configurator: getPaymentAppConfigurator(client, originalSaleorApiUrl),
-        channelId: sourceObject.channel.id,
-      };
-      const juspayUsername = await fetchJuspayUsername(configData);
-      const juspayPassword = await fetchJuspayPassword(configData);
-      if (!verifyWebhookSource(req, juspayUsername, juspayPassword)) {
-        logger.info("Source Verification Failed");
-        return res.status(400).json("Source Verification Failed");
-      }
+    if (isRefund) {
+      const eventArray = transaction.data?.transaction?.events;
+      invariant(eventArray, "Missing event list from transaction");
+      invariant(refundList, "Missing refunds list in Juspay response");
 
-      logger.info("Source Verification Successful");
-
-      const order_id = webhookBody.content.order.order_id;
-      let juspaySyncResponse = null;
-      let pspReference = null;
-      let amountVal = null;
-      let message = "";
-      const captureMethod = webhookBody.content.order.udf3;
-      let webhookStatus = null;
-      let paymentSyncResponse = null;
-      try {
-        paymentSyncResponse = await callJuspayClient({
-          configData,
-          targetPath: `/orders/${order_id}`,
-          method: "GET",
-          body: undefined,
-        });
-      } catch (errorData) {
-        if (errorData instanceof HyperswitchHttpClientError && errorData.statusCode != undefined) {
-          return res.status(errorData.statusCode).json(errorData.name);
-        } else {
-          return res.status(424).json("Sync called failed");
+      if (orderStatus === "AUTO_REFUNDED") {
+        amountVal = juspaySyncResponse.amount;
+        if (!hasChargeSuccess(eventArray)) {
+          await client
+            .mutation(TransactionEventReportDocument, {
+              transactionId: originalSaleorTransactionId,
+              amount: amountVal,
+              availableActions: [TransactionActionEnum.Refund],
+              externalUrl: "",
+              time: new Date().toISOString(),
+              type: TransactionEventTypeEnum.ChargeSuccess,
+              pspReference: order_id,
+              message: "Charged amount marked as conflicted, refund initiated by Juspay.",
+            })
+            .toPromise();
         }
-      }
-      logger.info("Successfully, Retrieved Status From Juspay");
-
-      juspaySyncResponse = intoOrderStatusResponse(paymentSyncResponse);
-      let orderStatus = juspaySyncResponse.status; // not needed
-      if (isRefund) {
-        let eventArray = transaction.data?.transaction?.events;
-        let refundList = juspaySyncResponse.refunds; // not needed from status
-        if (orderStatus == "AUTO_REFUNDED") {
-          amountVal = juspaySyncResponse.amount; // not needed from status
-          pspReference = juspaySyncResponse.order_id; // not needed from status
-          if (
-            webhook_event_name == "AUTO_REFUND_INITIATED" ||
-            webhook_event_name == "REFUND_MANUAL_REVIEW_NEEDED"
-          ) {
-            webhookStatus = "AUTO_REFUND_REQUEST";
-          } else if (webhook_event_name == "AUTO_REFUND_FAILED") {
-            webhookStatus = "AUTO_REFUND_FAILED";
-          } else webhookStatus = orderStatus;
-          message = webhook_event_name;
-        } else {
-          invariant(eventArray, "Missing event list from transaction event");
-          invariant(refundList, "Missing refunds list in event");
-          outerLoop: for (const eventObj of eventArray) {
-            if (eventObj.type === "REFUND_REQUEST") {
-              for (const RefundObj of refundList) {
-                if (
-                  eventObj.pspReference === RefundObj.unique_request_id &&
-                  RefundObj.status !== "PENDING"
-                ) {
-                  amountVal = RefundObj.amount;
-                  pspReference = RefundObj.unique_request_id;
-                  webhookStatus = RefundObj.status;
-                  break outerLoop;
-                }
+        for (const refundObj of refundList) {
+          let foundMatch = false;
+          for (const eventObj of eventArray) {
+            if (refundObj.unique_request_id == eventObj.pspReference) {
+              foundMatch = true;
+              break;
+            }
+          }
+          if (!foundMatch) {
+            amountVal = refundObj.amount;
+            pspReference = refundObj.unique_request_id;
+            orderStatus = refundObj.status;
+            break;
+          }
+        }
+      } else {
+        for (const eventObj of eventArray) {
+          if (eventObj.type === "REFUND_REQUEST") {
+            for (const refundObj of refundList) {
+              if (
+                eventObj.pspReference === refundObj.unique_request_id &&
+                refundObj.status !== "PENDING"
+              ) {
+                amountVal = refundObj.amount;
+                pspReference = refundObj.unique_request_id;
+                orderStatus = refundObj.status;
+                break;
               }
             }
           }
         }
-      } else {
-        pspReference = juspaySyncResponse.order_id;
-        amountVal = juspaySyncResponse.amount;
-        webhookStatus = orderStatus;
       }
-
-      invariant(amountVal, "no amount value found");
-      invariant(pspReference, "no values of pspReference found");
-      invariant(webhookStatus, "no values of status found");
-
-      const type = juspayStatusToSaleorTransactionResult(
-        webhookStatus,
-        isRefund,
-        captureMethod,
-        isChargeFlow,
-      );
-
-      await client
-        .mutation(TransactionEventReportDocument, {
-          transactionId: originalSaleorTransactionId,
-          amount: amountVal,
-          availableActions: getAvailableActions(type),
-          externalUrl: "",
-          time: new Date().toISOString(),
-          type,
-          pspReference,
-          message: webhookBody.content.order.txn_detail?.error_message
-            ? webhookBody.content.order.txn_detail?.error_message
-            : message,
-        })
-        .toPromise();
-
-      logger.info("Updated Status Successfully");
     }
 
+    invariant(amountVal, "No amount value found");
+    invariant(orderStatus, "No status value found");
+
+    const type = juspayStatusToSaleorTransactionResult(
+      orderStatus,
+      isRefund,
+      captureMethod,
+      isChargeFlow,
+    );
+
+    await client
+      .mutation(TransactionEventReportDocument, {
+        transactionId: originalSaleorTransactionId,
+        amount: amountVal,
+        availableActions: getAvailableActions(type),
+        externalUrl: "",
+        time: new Date().toISOString(),
+        type,
+        pspReference,
+        message: getEventMessage(webhookBody.content.order.txn_detail?.error_message, webhookEvent),
+      })
+      .toPromise();
+
+    logger.info("Updated status successfully");
     res.status(200).json("[OK]");
-  } catch (e) {
-    logger.info(`Deserialization Error: ${e}`);
+  } catch (error) {
+    logger.info(`Deserialization Error: ${error}`);
     res.status(500).json("Deserialization Error");
   }
 }

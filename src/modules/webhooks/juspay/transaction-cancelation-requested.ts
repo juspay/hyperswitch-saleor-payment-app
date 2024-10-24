@@ -51,6 +51,8 @@ export const TransactionCancelationRequestedJuspayWebhookHandler = async (
     body: undefined,
   });
 
+  logger.info("Successfully called juspay client for transaction cancelation.");
+
   const parsedOrderStatusRespData = intoOrderStatusResponse(orderStatusResponse);
 
   const preAuthVoidTxnResponse = await callJuspayClient({

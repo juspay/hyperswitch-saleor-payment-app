@@ -255,7 +255,6 @@ export const JuspaySupportedEvents = z.enum([
   "ORDER_COD_INITIATED",
   "AUTO_REFUND_SUCCEEDED",
   "AUTO_REFUND_FAILED",
-  "AUTO_REFUND_INITIATED",
 ]);
 export const JuspayRefundEvents = z.enum([
   "ORDER_REFUNDED",

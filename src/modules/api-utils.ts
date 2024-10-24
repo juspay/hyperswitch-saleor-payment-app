@@ -90,3 +90,14 @@ export function validateTransactionAmount(amount: number) {
     );
   }
 }
+
+export function generateUniqueUUID(): string {
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let uuid = "";
+  for (let i = 0; i < 10; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    uuid += characters[randomIndex];
+  }
+  uuid += Date.now().toString(36);
+  return uuid;
+}

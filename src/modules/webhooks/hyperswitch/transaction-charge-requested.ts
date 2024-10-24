@@ -74,6 +74,8 @@ export const TransactionChargeRequestedHyperswitchWebhookHandler = async (
     body: JSON.stringify(capturePaymentPayload),
   });
 
+  logger.info("Successfully called hyperswitch client for transaction charge.");
+
   const capturePaymentResponseData = intoPaymentResponse(capturePaymentResponse);
   const result = hyperswitchPaymentCaptureStatusToSaleorTransactionResult(
     capturePaymentResponseData.status,
