@@ -7,8 +7,8 @@ import { createLogger } from "@/lib/logger";
 import {
   buildAddressDetails,
   validatePaymentCreateRequest,
-  generate16DigitId,
   validateTransactionAmount,
+  generateUniqueUUID,
 } from "../../api-utils";
 import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
 import { callJuspayClient, fetchJuspayCleintId } from "@/modules/juspay/juspay-api";
@@ -16,7 +16,6 @@ import { type components as paymentsComponents } from "generated/juspay-payments
 import { intoPaymentResponse } from "../../juspay/juspay-api-response";
 import { normalizeValue } from "../../payment-app-configuration/utils";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
-import { v4 as uuidv4 } from "uuid";
 import {
   PaymentLinks,
   SdkPayload,
@@ -105,16 +104,6 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
   const captureMethod =
     event.action.actionType == TransactionFlowStrategyEnum.Authorization ? false : true;
 
-  function generateUniqueUUID(): string {
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let uuid = "";
-    for (let i = 0; i < 10; i++) {
-      const randomIndex = Math.floor(Math.random() * characters.length);
-      uuid += characters[randomIndex];
-    }
-    uuid += Date.now().toString(36);
-    return uuid;
-  }
   const orderId = generateUniqueUUID();
 
   const createOrderPayload: paymentsComponents["schemas"]["SessionRequest"] = {
@@ -159,6 +148,8 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     method: "POST",
     body: JSON.stringify(createOrderPayload),
   });
+
+  logger.info("Successfully called juspay client for transaction initialize.");
 
   const createPaymentResponseData = intoPaymentResponse(createOrderResponse);
   invariant(

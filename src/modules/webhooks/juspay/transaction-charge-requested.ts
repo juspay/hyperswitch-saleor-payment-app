@@ -69,6 +69,8 @@ export const TransactionChargeRequestedJuspayWebhookHandler = async (
     body: undefined,
   });
 
+  logger.info("Successfully called juspay client for transaction charge.");
+
   const capturePaymentResponseData = intoPreAuthTxnResponse(capturePaymentResponse);
 
   invariant(

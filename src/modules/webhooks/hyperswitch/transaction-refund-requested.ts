@@ -76,6 +76,8 @@ export const TransactionRefundRequestedHyperswitchWebhookHandler = async (
     body: JSON.stringify(refundPayload),
   });
 
+  logger.info("Successfully called hyperswitch client for transaction refund request.");
+
   const refundPaymentResponseData = intoRefundResponse(refundPaymentResponse);
   const result = hyperswitchRefundToTransactionResult(refundPaymentResponseData.status);
 

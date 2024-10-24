@@ -133,6 +133,8 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
     body: JSON.stringify(createPaymentPayload),
   });
 
+  logger.info("Successfully called hyperswitch client for transaction initialize.");
+
   const publishableKey = await fetchHyperswitchPublishableKey(configData);
 
   const createPaymentResponseData = intoPaymentResponse(hyperswitchResponse);

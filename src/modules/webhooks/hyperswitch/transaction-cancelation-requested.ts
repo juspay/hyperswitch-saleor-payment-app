@@ -64,6 +64,8 @@ export const TransactionCancelationRequestedHyperswitchWebhookHandler = async (
     body: JSON.stringify(cancelPaymentPayload),
   });
 
+  logger.info("Successfully called hyperswitch client for transaction cancelation.");
+
   const cancelPaymentResponseData = intoPaymentResponse(cancelPaymentResponse);
   const result = hyperswitchPaymentCancelStatusToSaleorTransactionResult(
     cancelPaymentResponseData.status,

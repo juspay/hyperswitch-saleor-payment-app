@@ -126,7 +126,7 @@ export default async function hyperswitchAuthorizationWebhookHandler(
   let webhookBody = undefined;
   try {
     webhookBody = intoWebhookResponse(req.body);
-
+    logger.info(`payment_id: ${webhookBody.content.object.payment_id}`);
     const transactionId = webhookBody.content.object.metadata.transaction_id;
     const saleorApiUrl = webhookBody.content.object.metadata.saleor_api_url;
     const isRefund = webhookBody.content.type === "refund_details";
@@ -170,6 +170,7 @@ export default async function hyperswitchAuthorizationWebhookHandler(
     }
 
     if (!verifyWebhookSource(req, paymentResponseHashKey)) {
+      logger.info("Source Verification Failed");
       return res.status(400).json("Source Verification Failed");
     }
     logger.info("Webhook Source Verified");

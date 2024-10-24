@@ -64,6 +64,8 @@ export const TransactionRefundRequestedJuspayWebhookHandler = async (
     body: JSON.stringify(refundPayload),
   });
 
+  logger.info("Successfully called juspay client for transaction refund request.");
+
   const refundPaymentResponseData = intoRefundResponse(refundPaymentResponse);
   let refundStatus = null;
   let refundAmount = null;
