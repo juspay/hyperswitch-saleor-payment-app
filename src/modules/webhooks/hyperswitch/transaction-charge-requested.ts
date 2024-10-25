@@ -4,7 +4,7 @@ import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuratio
 import { invariant } from "@/lib/invariant";
 import { TransactionChargeRequestedEventFragment } from "generated/graphql";
 import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
-import { createLogger } from "@/lib/logger";
+import { createLogger, redactLogObject } from "@/lib/logger";
 import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
@@ -50,8 +50,6 @@ export const TransactionChargeRequestedHyperswitchWebhookHandler = async (
   );
   const app = event.recipient;
   invariant(app, "Missing event.recipient!");
-  const { privateMetadata } = app;
-  const configurator = getWebhookPaymentAppConfigurator({ privateMetadata }, saleorApiUrl);
   invariant(event.transaction, "Missing transaction");
 
   // Fetch Transaction Details
@@ -67,16 +65,24 @@ export const TransactionChargeRequestedHyperswitchWebhookHandler = async (
     amount_to_capture,
   };
 
+  logger.info({
+    payload: redactLogObject(capturePaymentPayload),
+    message: "Creating payments capture with payload",
+  });
   const capturePaymentResponse = await callHyperswitchClient({
     configData,
     targetPath: `/payments/${payment_id}/capture`,
     method: "POST",
     body: JSON.stringify(capturePaymentPayload),
   });
-
   logger.info("Successfully called hyperswitch client for transaction charge.");
 
   const capturePaymentResponseData = intoPaymentResponse(capturePaymentResponse);
+  logger.info({
+    payload: redactLogObject(capturePaymentResponseData),
+    message: "Charge payment successful",
+  });
+
   const result = hyperswitchPaymentCaptureStatusToSaleorTransactionResult(
     capturePaymentResponseData.status,
   );

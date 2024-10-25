@@ -3,7 +3,7 @@ import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuratio
 import { invariant } from "@/lib/invariant";
 import { TransactionChargeRequestedEventFragment } from "generated/graphql";
 import { intoOrderStatusResponse, intoPreAuthTxnResponse } from "../../juspay/juspay-api-response";
-import { createLogger } from "@/lib/logger";
+import { createLogger, redactLogObject } from "@/lib/logger";
 import { callJuspayClient } from "@/modules/juspay/juspay-api";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import { TransactionChargeRequestedResponse } from "@/schemas/TransactionChargeRequested/TransactionChargeRequestedResponse.mjs";
@@ -58,8 +58,14 @@ export const TransactionChargeRequestedJuspayWebhookHandler = async (
     method: "GET",
     body: undefined,
   });
+  logger.info("Successfully called juspay client for orders retrieve");
 
   const parsedOrderStatusRespData = intoOrderStatusResponse(orderStatusResponse);
+  logger.info({
+    payload: redactLogObject(parsedOrderStatusRespData),
+    message: "Orders retrieve successful",
+  });
+
   invariant(parsedOrderStatusRespData.txn_uuid, `Txn_uuid not found in orderstatus response`);
 
   const capturePaymentResponse = await callJuspayClient({
@@ -68,10 +74,13 @@ export const TransactionChargeRequestedJuspayWebhookHandler = async (
     method: "POST",
     body: undefined,
   });
-
   logger.info("Successfully called juspay client for transaction charge.");
 
   const capturePaymentResponseData = intoPreAuthTxnResponse(capturePaymentResponse);
+  logger.info({
+    payload: redactLogObject(capturePaymentResponseData),
+    message: "Charge transaction successful",
+  });
 
   invariant(
     capturePaymentResponseData.status &&

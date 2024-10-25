@@ -1,7 +1,7 @@
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
 import { TransactionRefundRequestedEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
-import { createLogger } from "@/lib/logger";
+import { createLogger, redactLogObject } from "@/lib/logger";
 import { callJuspayClient } from "@/modules/juspay/juspay-api";
 import { type components as paymentsComponents } from "generated/juspay-payments";
 import { intoRefundResponse } from "../../juspay/juspay-api-response";
@@ -57,16 +57,24 @@ export const TransactionRefundRequestedJuspayWebhookHandler = async (
     amount: event.action.amount,
   };
 
+  logger.info({
+    payload: redactLogObject(refundPayload),
+    message: "Creating refund with payload",
+  });
   const refundPaymentResponse = await callJuspayClient({
     configData,
     targetPath: `/orders/${order_id}/refunds`,
     method: "POST",
     body: JSON.stringify(refundPayload),
   });
-
   logger.info("Successfully called juspay client for transaction refund request.");
 
   const refundPaymentResponseData = intoRefundResponse(refundPaymentResponse);
+  logger.info({
+    payload: redactLogObject(refundPaymentResponseData),
+    message: "Refunds successful",
+  });
+
   let refundStatus = null;
   let refundAmount = null;
   const refundsList = refundPaymentResponseData.refunds;

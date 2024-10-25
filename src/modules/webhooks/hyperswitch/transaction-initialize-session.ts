@@ -3,7 +3,7 @@ import {
   type TransactionInitializeSessionEventFragment,
 } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
-import { createLogger } from "@/lib/logger";
+import { createLogger, redactLogObject } from "@/lib/logger";
 import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
@@ -126,18 +126,26 @@ export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
     },
   };
 
+  logger.info({
+    payload: redactLogObject(createPaymentPayload),
+    message: "Calling payment create with payload",
+  });
   const hyperswitchResponse = await callHyperswitchClient({
     configData,
     targetPath: "/payments",
     method: "POST",
     body: JSON.stringify(createPaymentPayload),
   });
-
   logger.info("Successfully called hyperswitch client for transaction initialize.");
 
   const publishableKey = await fetchHyperswitchPublishableKey(configData);
 
   const createPaymentResponseData = intoPaymentResponse(hyperswitchResponse);
+  logger.info({
+    payload: redactLogObject(createPaymentResponseData),
+    message: "Payments create successful",
+  });
+
   const result = hyperswitchPaymentIntentToTransactionResult(
     createPaymentResponseData.status,
     event.action.actionType,

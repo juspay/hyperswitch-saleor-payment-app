@@ -1,5 +1,5 @@
 import { invariant } from "@/lib/invariant";
-import { createLogger } from "@/lib/logger";
+import { createLogger, redactLogObject } from "@/lib/logger";
 import {
   TransactionFlowStrategyEnum,
   type TransactionProcessSessionEventFragment,
@@ -90,16 +90,21 @@ export const TransactionProcessSessionJuspayWebhookHandler = async (
   const errors: SyncWebhookAppErrors = [];
 
   let order_id = event.transaction.pspReference;
+
   const orderStatusResponse = await callJuspayClient({
     configData,
     targetPath: `/orders/${order_id}`,
     method: "GET",
     body: undefined,
   });
-
   logger.info("Successfully called juspay client for transaction process session.");
 
   const parsedOrderStatusRespData = intoOrderStatusResponse(orderStatusResponse);
+  logger.info({
+    payload: redactLogObject(parsedOrderStatusRespData),
+    message: "Creating payment successful",
+  });
+
   invariant(
     parsedOrderStatusRespData.order_id && parsedOrderStatusRespData.amount,
     `Required fields not found session call response`,

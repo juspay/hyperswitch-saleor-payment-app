@@ -1,7 +1,7 @@
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
 import { type TransactionCancelationRequestedEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
-import { createLogger } from "@/lib/logger";
+import { createLogger, redactLogObject } from "@/lib/logger";
 import { callHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
 import { getSaleorAmountFromHyperswitchAmount } from "../../hyperswitch/currencies";
 import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
@@ -63,10 +63,14 @@ export const TransactionCancelationRequestedHyperswitchWebhookHandler = async (
     method: "POST",
     body: JSON.stringify(cancelPaymentPayload),
   });
-
   logger.info("Successfully called hyperswitch client for transaction cancelation.");
 
   const cancelPaymentResponseData = intoPaymentResponse(cancelPaymentResponse);
+  logger.info({
+    payload: redactLogObject(cancelPaymentResponseData),
+    message: "Creating cancel payment successful",
+  });
+
   const result = hyperswitchPaymentCancelStatusToSaleorTransactionResult(
     cancelPaymentResponseData.status,
   );

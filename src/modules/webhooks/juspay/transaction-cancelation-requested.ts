@@ -1,6 +1,6 @@
 import { type TransactionCancelationRequestedEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
-import { createLogger } from "@/lib/logger";
+import { createLogger, redactLogObject } from "@/lib/logger";
 import { callJuspayClient } from "@/modules/juspay/juspay-api";
 import { intoOrderStatusResponse, intoPreAuthTxnResponse } from "../../juspay/juspay-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
@@ -37,8 +37,7 @@ export const TransactionCancelationRequestedJuspayWebhookHandler = async (
     },
     "Received event",
   );
-  const app = event.recipient;
-  invariant(app, "Missing event.recipient!");
+
   invariant(event.transaction, "Missing transaction");
   // Fetch Transaction Details
   invariant(event.transaction.sourceObject, "Missing sourceObject");
@@ -50,10 +49,13 @@ export const TransactionCancelationRequestedJuspayWebhookHandler = async (
     method: "GET",
     body: undefined,
   });
-
-  logger.info("Successfully called juspay client for transaction cancelation.");
+  logger.info("Successfully called juspay client for orders retrieve");
 
   const parsedOrderStatusRespData = intoOrderStatusResponse(orderStatusResponse);
+  logger.info({
+    payload: redactLogObject(parsedOrderStatusRespData),
+    message: "Orders retrieve successful",
+  });
 
   const preAuthVoidTxnResponse = await callJuspayClient({
     configData,
@@ -61,10 +63,16 @@ export const TransactionCancelationRequestedJuspayWebhookHandler = async (
     method: "POST",
     body: undefined,
   });
+  logger.info("Successfully called juspay client to void transaction");
 
   invariant(parsedOrderStatusRespData.txn_uuid, `Txn_uuid not found in orderstatus response`);
 
   const cancelPaymentResponseData = intoPreAuthTxnResponse(preAuthVoidTxnResponse);
+  logger.info({
+    payload: redactLogObject(cancelPaymentResponseData),
+    message: "Void transaction successful",
+  });
+
   invariant(
     cancelPaymentResponseData.status &&
       cancelPaymentResponseData.order_id &&

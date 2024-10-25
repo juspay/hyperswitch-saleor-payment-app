@@ -1,5 +1,5 @@
 import { invariant } from "@/lib/invariant";
-import { createLogger } from "@/lib/logger";
+import { createLogger, redactLogObject } from "@/lib/logger";
 import {
   TransactionFlowStrategyEnum,
   type TransactionProcessSessionEventFragment,
@@ -103,10 +103,13 @@ export const TransactionProcessSessionHyperswitchWebhookHandler = async (
     method: "GET",
     body: JSON.stringify(retrievePaymentPayload),
   });
-
   logger.info("Successfully called hyperswitch client for transaction process session.");
 
   const retrievePaymentResponseData = intoPaymentResponse(retrievePaymentResponse);
+  logger.info({
+    payload: redactLogObject(retrievePaymentResponseData),
+    message: "Creating payment successful",
+  });
 
   const result = hyperswitchPaymentIntentToTransactionProcessResult(
     retrievePaymentResponseData.status,

@@ -1,7 +1,7 @@
 import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
 import { TransactionRefundRequestedEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
-import { createLogger } from "@/lib/logger";
+import { createLogger, redactLogObject } from "@/lib/logger";
 import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
@@ -69,16 +69,24 @@ export const TransactionRefundRequestedHyperswitchWebhookHandler = async (
     },
   };
 
+  logger.info({
+    payload: redactLogObject(refundPayload),
+    message: "Creating refund with payload",
+  });
   const refundPaymentResponse = await callHyperswitchClient({
     configData,
     targetPath: "/refunds",
     method: "POST",
     body: JSON.stringify(refundPayload),
   });
-
   logger.info("Successfully called hyperswitch client for transaction refund request.");
 
   const refundPaymentResponseData = intoRefundResponse(refundPaymentResponse);
+  logger.info({
+    payload: redactLogObject(refundPaymentResponseData),
+    message: "Refunds successful",
+  });
+
   const result = hyperswitchRefundToTransactionResult(refundPaymentResponseData.status);
 
   const transactionRefundRequestedResponse: TransactionRefundRequestedResponse =
