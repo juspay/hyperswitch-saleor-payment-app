@@ -17,6 +17,7 @@ const redactionFields = [
   "shipping_address_last_name",
   "shipping_address_line1",
   "shipping_address_line2",
+  "shipping_address_postal_code",
   "customer_email",
   "customer_phone",
   "first_name",
