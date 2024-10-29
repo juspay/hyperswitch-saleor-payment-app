@@ -3,7 +3,7 @@ import {
   type TransactionInitializeSessionEventFragment,
 } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
-import { createLogger } from "@/lib/logger";
+import { createLogger, redactLogObject } from "@/lib/logger";
 import {
   buildAddressDetails,
   validatePaymentCreateRequest,
@@ -142,16 +142,24 @@ export const TransactionInitializeSessionJuspayWebhookHandler = async (
     payment_filter: normalizeValue(requestData?.allowedPaymentMethods),
   };
 
+  logger.info({
+    payload: redactLogObject(createOrderPayload),
+    message: "Creating order with payload",
+  });
   const createOrderResponse = await callJuspayClient({
     configData,
     targetPath: `/session`,
     method: "POST",
     body: JSON.stringify(createOrderPayload),
   });
-
   logger.info("Successfully called juspay client for transaction initialize.");
 
   const createPaymentResponseData = intoPaymentResponse(createOrderResponse);
+  logger.info({
+    payload: redactLogObject(createPaymentResponseData),
+    message: "Creating order successful",
+  });
+
   invariant(
     createPaymentResponseData.status &&
       createPaymentResponseData.order_id &&

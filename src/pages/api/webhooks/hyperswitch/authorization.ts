@@ -34,7 +34,7 @@ import {
 import { getSaleorAmountFromHyperswitchAmount } from "@/modules/hyperswitch/currencies";
 import crypto from "crypto";
 import { result } from "lodash-es";
-import { createLogger, logger } from "@/lib/logger";
+import { createLogger, redactLogObject } from "@/lib/logger";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 
 export const hyperswitchStatusToSaleorTransactionResult = (
@@ -126,7 +126,11 @@ export default async function hyperswitchAuthorizationWebhookHandler(
   let webhookBody = undefined;
   try {
     webhookBody = intoWebhookResponse(req.body);
-    logger.info(`payment_id: ${webhookBody.content.object.payment_id}`);
+    logger.info({
+      payload: redactLogObject(webhookBody),
+      message: "Webhook body received",
+    });
+
     const transactionId = webhookBody.content.object.metadata.transaction_id;
     const saleorApiUrl = webhookBody.content.object.metadata.saleor_api_url;
     const isRefund = webhookBody.content.type === "refund_details";
@@ -207,7 +211,10 @@ export default async function hyperswitchAuthorizationWebhookHandler(
         return res.status(400).json("Payment Sync call failed");
       }
     }
-    logger.info("Sucessfully, Retrieved Status From Hyperswitch");
+    logger.info({
+      payload: redactLogObject(hyperswitchSyncResponse),
+      message: "Sucessfully, Retrieved Status From Hyperswitch",
+    });
 
     const captureMethod = webhookBody.content.object.capture_method;
 

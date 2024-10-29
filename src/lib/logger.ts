@@ -6,6 +6,41 @@ import { isObject } from "./utils";
 import { obfuscateValue } from "@/modules/app-configuration/utils";
 import { BaseError, BaseTrpcError } from "@/errors";
 
+const redactionFields = [
+  "secretKey",
+  "billing_address_first_name",
+  "billing_address_last_name",
+  "billing_address_line1",
+  "billing_address_line2",
+  "billing_address_postal_code",
+  "shipping_address_first_name",
+  "shipping_address_last_name",
+  "shipping_address_line1",
+  "shipping_address_line2",
+  "shipping_address_postal_code",
+  "customer_email",
+  "customer_phone",
+  "first_name",
+  "last_name",
+  "udf1",
+  "udf2",
+  "payment_links",
+  "sdk_payload",
+  "billing_address_city",
+  "shipping_address_city",
+  "email",
+  "statement_descriptor_name",
+  "billing",
+  "shipping",
+  "client_secret",
+  "payment_link",
+  "txn_uuid",
+  "metadata",
+  "saleor_api_url",
+  "hostname",
+  "pid",
+];
+
 /* c8 ignore start */
 export const logger = pino({
   level: process.env.APP_DEBUG ?? "info",
@@ -72,13 +107,16 @@ export const redactLogObject = <T extends {}>(obj: T, callCount = 1): T => {
   }
 
   const entries = Object.entries(obj).map(([key, value]) => {
+    if (redactionFields.includes(key)) {
+      return [key, "[REDACTED]"];
+    }
     if (isObject(value)) {
       return [key, redactLogObject(value, callCount + 1)];
     }
     if (Array.isArray(value)) {
       return [key, redactLogArray(value)];
     }
-    return [key, redactLogValue(value)];
+    return [key, value];
   });
   return Object.fromEntries(entries) as T;
 };
@@ -97,6 +135,6 @@ export const redactLogArray = <T extends unknown[]>(array: T | undefined, callCo
     if (Array.isArray(item)) {
       return redactLogArray(item, callCount + 1);
     }
-    return redactLogValue(item);
+    return item;
   }) as T;
 };

@@ -47,7 +47,7 @@ export const hyperswitchFormConfigEntrySchema = z
     ),
     profileId: hyperswitchConfigEntryPublicSchema.shape.profileId.startsWith(
       "pro_",
-      "This isn't publishable key, it must start with pro_",
+      "This isn't profile Id, it must start with pro_",
     ),
   })
   .strict()

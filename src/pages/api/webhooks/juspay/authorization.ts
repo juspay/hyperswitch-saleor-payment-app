@@ -25,7 +25,7 @@ import {
   fetchJuspayPassword,
   fetchJuspayUsername,
 } from "@/modules/juspay/juspay-api";
-import { createLogger } from "@/lib/logger";
+import { createLogger, redactLogObject } from "@/lib/logger";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import { Buffer } from "buffer";
 
@@ -144,7 +144,11 @@ export default async function juspayAuthorizationWebhookHandler(
       return res.status(200).json("[OK]");
     }
     const webhookBody = intoWebhookResponse(req.body);
-    logger.info(`order_id: ${webhookBody.content.order.order_id}`);
+    logger.info({
+      payload: redactLogObject(webhookBody),
+      message: "Webhook body received",
+    });
+
     const {
       udf1: transactionId,
       udf2: saleorApiUrl,
@@ -214,10 +218,14 @@ export default async function juspayAuthorizationWebhookHandler(
       }
       return res.status(424).json("Sync call failed");
     }
-
     logger.info("Successfully retrieved status from Juspay");
 
     const juspaySyncResponse = intoOrderStatusResponse(paymentSyncResponse);
+    logger.info({
+      payload: redactLogObject(juspaySyncResponse),
+      message: "Order retrieved successful",
+    });
+
     let {
       status: orderStatus,
       amount: amountVal,
