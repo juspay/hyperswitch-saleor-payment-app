@@ -316,7 +316,8 @@ export default async function juspayAuthorizationWebhookHandler(
     logger.info("Updated status successfully");
     res.status(200).json("[OK]");
   } catch (error) {
-    logger.info(`Deserialization Error: ${error}`);
+
+    logger.info(`Deserialization Error: ${error} \n Juspay Webhook body: ${req}`);
     res.status(500).json("Deserialization Error");
   }
 }
