@@ -246,7 +246,7 @@ export default async function hyperswitchAuthorizationWebhookHandler(
 
     res.status(200).json("[OK]");
   } catch (error) {
-    logger.info(`Deserialization Error: ${error} \n Hyperswitch Webhook body: ${req}`);
+    logger.info(`Deserialization Error: ${error} \n Hyperswitch Webhook body: ${req.body}`);
     res.status(500).json("Deserialization Error");
   }
 }
