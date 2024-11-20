@@ -132,7 +132,7 @@ export default async function hyperswitchAuthorizationWebhookHandler(
     });
     const payment_id = webhookBody.content.object.payment_id;
     const refund_id = webhookBody.content.object.refund_id;
-    
+
     if (
       !(
         webhookBody.content?.object?.metadata &&
@@ -140,11 +140,10 @@ export default async function hyperswitchAuthorizationWebhookHandler(
         webhookBody.content.object.metadata.saleor_api_url
       )
     ) {
-      const message = "Recieved webhook for a payment, not done via Saleor Hyperswitch Plugin";
+      const message = "Recieved webhook for a payment, processed via Saleor Hyperswitch Plugin";
       logger.info(`${payment_id}: ${message}`);
       return res.status(400).json(message);
     }
-    
 
     const transactionId = webhookBody.content.object.metadata.transaction_id;
     const saleorApiUrl = webhookBody.content.object.metadata.saleor_api_url;
@@ -260,9 +259,7 @@ export default async function hyperswitchAuthorizationWebhookHandler(
 
     res.status(200).json("[OK]");
   } catch (error) {
-    logger.info({message: `Deserialization Error ${error}`,
-    payload : req.body
-  });
+    logger.info({ message: `Deserialization Error ${error}`, payload: req.body });
     res.status(500).json("Deserialization Error");
   }
 }
