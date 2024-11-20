@@ -130,6 +130,21 @@ export default async function hyperswitchAuthorizationWebhookHandler(
       payload: redactLogObject(webhookBody),
       message: "Webhook body received",
     });
+    const payment_id = webhookBody.content.object.payment_id;
+    const refund_id = webhookBody.content.object.refund_id;
+    
+    if (
+      !(
+        webhookBody.content?.object?.metadata &&
+        webhookBody.content.object.metadata.transaction_id &&
+        webhookBody.content.object.metadata.saleor_api_url
+      )
+    ) {
+      const message = "Recieved webhook for a payment, not done via Saleor Hyperswitch Plugin";
+      logger.info(`${payment_id}: ${message}`);
+      return res.status(400).json(message);
+    }
+    
 
     const transactionId = webhookBody.content.object.metadata.transaction_id;
     const saleorApiUrl = webhookBody.content.object.metadata.saleor_api_url;
@@ -137,6 +152,7 @@ export default async function hyperswitchAuthorizationWebhookHandler(
 
     const authData = await saleorApp.apl.get(saleorApiUrl);
     if (authData === undefined) {
+      logger.info(`${payment_id}: Failed fetching auth data, check your Saleor API URL`);
       res.status(401).json("Failed fetching auth data, check your Saleor API URL");
     }
     invariant(authData, "Failed fetching auth data");
@@ -150,7 +166,7 @@ export default async function hyperswitchAuthorizationWebhookHandler(
       )
       .toPromise();
 
-    logger.info("Called Saleor Client Successfully");
+    logger.info(`${payment_id}: Data retrieved form Saleor`);
 
     const sourceObject =
       transaction.data?.transaction?.checkout ?? transaction.data?.transaction?.order;
@@ -178,8 +194,6 @@ export default async function hyperswitchAuthorizationWebhookHandler(
       return res.status(400).json("Source Verification Failed");
     }
     logger.info("Webhook Source Verified");
-    const payment_id = webhookBody.content.object.payment_id;
-    const refund_id = webhookBody.content.object.refund_id;
 
     let hyperswitchSyncResponse = null;
     let pspReference = null;
@@ -213,7 +227,7 @@ export default async function hyperswitchAuthorizationWebhookHandler(
     }
     logger.info({
       payload: redactLogObject(hyperswitchSyncResponse),
-      message: "Sucessfully, Retrieved Status From Hyperswitch",
+      message: `${payment_id}: Sucessfully, Retrieved Status From Hyperswitch`,
     });
 
     const captureMethod = webhookBody.content.object.capture_method;
@@ -242,11 +256,13 @@ export default async function hyperswitchAuthorizationWebhookHandler(
       })
       .toPromise();
 
-    logger.info("Updated Status");
+    logger.info(`${payment_id}: Updated Status`);
 
     res.status(200).json("[OK]");
   } catch (error) {
-    logger.info(`Deserialization Error: ${error} \n Hyperswitch Webhook body: ${req.body}`);
+    logger.info({message: `Deserialization Error ${error}`,
+    payload : req.body
+  });
     res.status(500).json("Deserialization Error");
   }
 }

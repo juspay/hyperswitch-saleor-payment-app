@@ -2,8 +2,8 @@ import { z, ZodError } from "zod";
 import { JsonSchemaError } from "@/errors";
 
 export const SaleorMetadataSchema = z.object({
-  transaction_id: z.string(),
-  saleor_api_url: z.string(),
+  transaction_id: z.string().nullable().optional(),
+  saleor_api_url: z.string().nullable().optional(),
 });
 
 export const PaymentLinkSchema = z.object({
@@ -98,7 +98,7 @@ const WebhookObjectBodySchema = z.object({
   status: z.string(),
   payment_id: z.string(),
   refund_id: z.string().nullable().optional(),
-  metadata: SaleorMetadataSchema,
+  metadata: SaleorMetadataSchema.nullable().optional(),
   capture_method: CaptureMethodEnum.nullable().optional(),
   error_message: z.string().nullable().optional(),
 });
