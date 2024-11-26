@@ -76,7 +76,7 @@ export class ProxyPostgresAPL implements APL {
     try {
       const { appId, domain, jwks, saleorApiUrl, token } = authData;
       await client.query(
-        "INSERT INTO auth (app_id, domain, jwks, saleor_api_url, token) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (app_id) DO UPDATE SET domain = $2, jwks = $3, saleor_api_url = $4, token = $5",
+        "INSERT INTO auth (app_id, domain, jwks, saleor_api_url, token) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (saleor_api_url) DO UPDATE SET app_id = $1, domain = $2, jwks = $3, token = $5",
         [appId, domain, jwks, saleorApiUrl, token],
       );
     } finally {
