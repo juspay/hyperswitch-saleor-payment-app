@@ -140,7 +140,7 @@ export default async function hyperswitchAuthorizationWebhookHandler(
         webhookBody.content.object.metadata.saleor_api_url
       )
     ) {
-      const message = "Recieved webhook for a payment, processed via Saleor Hyperswitch Plugin";
+      const message = "Recieved webhook for a payment, not processed via Saleor Juspay Plugin";
       logger.info(`${payment_id}: ${message}`);
       return res.status(400).json(message);
     }

@@ -12,7 +12,7 @@ export const env = createEnv({
     ENV: z.enum(["development", "test", "staging", "production"]).default("development"),
     SECRET_KEY: z.string().min(8, { message: "Cannot be too short" }).default("secretkey123456"),
     SENTRY_DSN: z.string().min(1).optional(),
-    APL: z.enum(["saleor-cloud", "upstash", "file"]).optional().default("file"),
+    APL: z.enum(["saleor-cloud", "upstash", "file", "postgres"]).optional().default("file"),
     CI: z.coerce.boolean().optional().default(false),
     APP_DEBUG: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
@@ -31,6 +31,11 @@ export const env = createEnv({
     HYPERSWITCH_PROD_BASE_URL: z.string().default("https://api.hyperswitch.io"),
     JUSPAY_SANDBOX_BASE_URL: z.string().default("https://sandbox.juspay.in"),
     JUSPAY_PROD_BASE_URL: z.string().default("https://api.juspay.in"),
+    PG_USER: z.string().optional(),
+    PG_HOST: z.string().optional(),
+    PG_DATABASE: z.string().optional(),
+    PG_PASSWORD: z.string().optional(),
+    PG_PORT: z.string().optional(),
   },
   /*
    * Environment variables available on the client (and server).
@@ -74,5 +79,10 @@ export const env = createEnv({
     JUSPAY_SANDBOX_BASE_URL: process.env.JUSPAY_SANDBOX_BASE_URL,
     JUSPAY_PROD_BASE_URL: process.env.JUSPAY_PROD_BASE_URL,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
+    PG_USER: process.env.PG_USER,
+    PG_HOST: process.env.PG_HOST,
+    PG_DATABASE: process.env.PG_DATABASE,
+    PG_PASSWORD: process.env.PG_PASSWORD,
+    PG_PORT: process.env.PG_PORT,
   },
 });

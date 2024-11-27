@@ -3,6 +3,7 @@ import { FileAPL, UpstashAPL, SaleorCloudAPL } from "@saleor/app-sdk/APL";
 import { invariant } from "./lib/invariant";
 import { env } from "./lib/env.mjs";
 import { ProxyUpstashAPL } from "./upstash-apl";
+import { ProxyPostgresAPL } from "./postgres-apl";
 
 /**
  * By default auth data are stored in the `.auth-data.json` (FileAPL).
@@ -27,6 +28,20 @@ const getApl = async () => {
       return new SaleorCloudAPL({
         resourceUrl: env.REST_APL_ENDPOINT,
         token: env.REST_APL_TOKEN,
+      });
+    }
+    case "postgres": {
+      invariant(env.PG_USER, "Missing PG_USER env variable!");
+      invariant(env.PG_HOST, "Missing PG_HOST env variable!");
+      invariant(env.PG_DATABASE, "Missing PG_DATABASE env variable!");
+      invariant(env.PG_PASSWORD, "Missing PG_PASSWORD env variable!");
+      invariant(env.PG_PORT, "Missing PG_PORT env variable!");
+      return new ProxyPostgresAPL({
+        user: env.PG_USER,
+        host: env.PG_HOST,
+        database: env.PG_DATABASE,
+        password: env.PG_PASSWORD,
+        port: Number(env.PG_PORT),
       });
     }
     default:
