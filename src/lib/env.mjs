@@ -37,6 +37,9 @@ export const env = createEnv({
     PG_PASSWORD: z.string().optional(),
     PG_PORT: z.string().optional(),
     MIGRATION_TOKEN: z.string().optional(),
+    CA: z.string().optional(),
+    KEY: z.string().optional(),
+    CERT: z.string().optional(),
   },
   /*
    * Environment variables available on the client (and server).
@@ -86,5 +89,8 @@ export const env = createEnv({
     PG_PASSWORD: process.env.PG_PASSWORD,
     PG_PORT: process.env.PG_PORT,
     MIGRATION_TOKEN: process.env.MIGRATION_TOKEN,
+    CA: process.env.CA,
+    KEY: process.env.KEY,
+    CERT: process.env.CERT,
   },
 });
