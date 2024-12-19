@@ -4,12 +4,21 @@ import { createLogger } from "./lib/logger";
 
 const logger = createLogger({ msgPrefix: "PostgresAPL" });
 
+export type Ssl = {
+  ca: string;
+  key: string;
+  cert: string;
+};
+
 export type ProxyPostgresAPLConfig = {
   user?: string;
   host?: string;
   database?: string;
   password?: string;
   port?: number;
+  ca?: string;
+  key?: string;
+  cert?: string;
 };
 
 export class ProxyPostgresAplMisconfiguredError extends Error {
@@ -30,6 +39,9 @@ export class ProxyPostgresAPL implements APL {
   private database?: string;
   private password?: string;
   private port?: number;
+  private ca?: string;
+  private key?: string;
+  private cert?: string;
 
   private pool: Pool;
 
@@ -39,6 +51,9 @@ export class ProxyPostgresAPL implements APL {
     this.database = config?.database || process.env.PG_DATABASE;
     this.password = config?.password || process.env.PG_PASSWORD;
     this.port = config?.port || Number(process.env.PG_PORT);
+    this.ca = config?.ca || process.env.CA;
+    this.key = config?.key || process.env.KEY;
+    this.cert = config?.key || process.env.CERT;
 
     this.pool = new Pool({
       user: this.user,
@@ -46,8 +61,17 @@ export class ProxyPostgresAPL implements APL {
       database: this.database,
       password: this.password,
       port: this.port,
+      ssl:
+        this.key && this.ca && this.cert
+          ? {
+              ca: this.ca,
+              key: this.key,
+              cert: this.cert,
+            }
+          : undefined,
     });
   }
+
   async get(saleorApiUrl: string) {
     const client = await this.pool.connect();
     try {
