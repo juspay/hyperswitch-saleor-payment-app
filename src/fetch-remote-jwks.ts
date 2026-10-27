@@ -20,7 +20,11 @@ export const fetchRemoteJwks = async (saleorApiUrl: string) => {
     async (span) => {
       const agent = env.PROXY_URL ? new HttpsProxyAgent(env.PROXY_URL) : undefined;
       try {
+        // saleorApiUrl is caller-supplied: don't let node-fetch decompress (br/gzip bombs) and cap body size
         const jwksResponse = await fetch(getJwksUrlFromSaleorApiUrl(saleorApiUrl), {
+          headers: { "Accept-Encoding": "identity" },
+          compress: false,
+          size: 1024 * 1024,
           ...(agent && { agent }),
         });
 
