@@ -1,5 +1,5 @@
 # Use an official Node.js image as the base image
-FROM node:20-alpine AS builder
+FROM node:22.23.4-alpine AS builder
 
 # Set the working directory in the container
 WORKDIR /app
@@ -25,7 +25,7 @@ ENV APP_API_BASE_URL=${base_url}
 RUN pnpm build
 
 # Prepare the production environment
-FROM node:20-alpine AS production
+FROM node:22.23.4-alpine AS production
 
 # Set the working directory in the container
 WORKDIR /app

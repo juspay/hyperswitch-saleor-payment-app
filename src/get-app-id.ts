@@ -30,7 +30,11 @@ export const getAppId = async ({
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
+        "Accept-Encoding": "identity",
       },
+      // saleorApiUrl is caller-supplied: don't let node-fetch decompress (br/gzip bombs) and cap body size
+      compress: false,
+      size: 1024 * 1024,
       body: JSON.stringify({
         query: `
           {

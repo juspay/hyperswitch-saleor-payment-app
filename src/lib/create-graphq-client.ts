@@ -6,7 +6,7 @@ import {
   fetchExchange,
 } from "urql";
 import { RequestInfo as NodeRequestInfo, RequestInit as NodeRequestInit } from "node-fetch";
-import { default as nodeFetch } from "node-fetch";
+import { default as nodeFetch, Headers as NodeHeaders } from "node-fetch";
 
 interface IAuthState {
   token: string;
@@ -20,9 +20,15 @@ const customFetch = async (input: URL | RequestInfo, init?: RequestInit | undefi
     let nodeInit = init as NodeRequestInit;
     const { HttpsProxyAgent } = await import("https-proxy-agent");
     const agent = new HttpsProxyAgent(proxy);
+    const requestHeaders = new NodeHeaders(nodeInit?.headers);
+    requestHeaders.set("Accept-Encoding", "identity");
     nodeInit = {
       ...nodeInit,
+      headers: requestHeaders,
       agent, // Attach the proxy agent here
+      // The Saleor API URL is caller-supplied: don't let node-fetch decompress (br/gzip bombs) and cap body size
+      compress: false,
+      size: 10 * 1024 * 1024,
     };
     let nodeResponse = await nodeFetch(nodeInput, nodeInit);
     const headers = new Headers();
