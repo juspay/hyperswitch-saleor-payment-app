@@ -9,7 +9,6 @@ import { getWebhookPaymentAppConfigurator } from "@/modules/payment-app-configur
 import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
 import { getSaleorAmountFromHyperswitchAmount } from "../../hyperswitch/currencies";
 import { callHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
-import { type components as paymentsComponents } from "generated/hyperswitch-payments";
 import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
 import { ConfigObject } from "@/backend-lib/api-route-utils";
 import {
@@ -83,25 +82,16 @@ export const TransactionProcessSessionHyperswitchWebhookHandler = async (
   const errors: SyncWebhookAppErrors = [];
   const channelId = event.sourceObject.channel.id;
 
-  const resource_id: paymentsComponents["schemas"]["PaymentIdType"] = {
-    PaymentIntentId: event.transaction.pspReference,
-  };
-
   const capture_method =
     event.action.actionType == TransactionFlowStrategyEnum.Authorization ? "manual" : "automatic";
-
-  const retrievePaymentPayload: paymentsComponents["schemas"]["PaymentsRetrieveRequest"] = {
-    force_sync: true,
-    resource_id,
-  };
 
   const payment_id = event.transaction.pspReference;
 
   const retrievePaymentResponse = await callHyperswitchClient({
     configData,
-    targetPath: `/payments/${payment_id}`,
+    targetPath: `/payments/${payment_id}?force_sync=true`,
     method: "GET",
-    body: JSON.stringify(retrievePaymentPayload),
+    body: undefined,
   });
   logger.info("Successfully called hyperswitch client for transaction process session.");
 
